@@ -29,8 +29,7 @@ python afu_to_png.ps transp.rm
 ```
 will output `transp.rm.png`.
 
-To convert a `.fon` font file, like sprite files, also requires an additional
-`.rm` or `.scr` background file.
+To convert a `.fon` font file also requires an additional `.rm` or `.scr` background file.
 For example:
 ```sh
 python afu_to_png.py brdgpica.spr bridge.rm
