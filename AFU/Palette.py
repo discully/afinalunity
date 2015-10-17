@@ -75,7 +75,7 @@ class FullPalette:
 def standard(file_path = None):
 	if( file_path == None ):
 		import os
-		file_path = os.getenv("STTNG_PAL", "standard.pal")
+		file_path = os.getenv("STTNG_PAL")
 		if( file_path == None ):
 			raise EnvironmentError("Environment variable 'STTNG_PAL' should be the path to standard.pal")
 	
