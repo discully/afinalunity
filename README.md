@@ -7,6 +7,8 @@ Tools for extracting files from A Final Unity, the classic Start Trek: The Next 
 The `afu_to_png.py` application converts sprite, background and font files to png.
 However, not all of those files in A Final Unity are currently supported.
 
+The application requires the [PIL module](https://pypi.python.org/pypi/PIL).
+
 Before converting any images the `afinalunity` library needs to know where the standard
 colour palette `standard.pal` is.
 This is achieved by setting its location in an environment variable:
