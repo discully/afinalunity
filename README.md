@@ -4,10 +4,10 @@ Tools for extracting files from A Final Unity, the classic Start Trek: The Next 
 
 ## Image Files
 
-The `afu_to_png.py` application converts sprite, background and font files to png.
+The `afu_to_png.py` application converts `.spr` and `.spt` sprites, `.rm` and `.scr` backgrounds, and `.fon` fonts to PNG.
 However, not all of those files in A Final Unity are currently supported.
 
-The application requires the [PIL module](https://pypi.python.org/pypi/PIL).
+The application requires the [PIL module](https://pypi.python.org/pypi/PIL) to be installed.
 
 Before converting any images the `afinalunity` library needs to know where the standard
 colour palette `standard.pal` is.
@@ -41,7 +41,7 @@ will output a png for each character in the font.
 ## Audio Files
 
 The `.rac` `.vac` and `.mac` files contain audio.
-To convert these into .wav files you will first require sox to be installed.
+To convert these into .wav files you will first require [sox](http://sox.sourceforge.net) to be installed.
 Then run `afu_to_wav.sh` with the path to the audio file as the first and only argument.
 For example:
 ```sh
