@@ -7,7 +7,7 @@ Tools for extracting files from A Final Unity, the classic Start Trek: The Next 
 The `afu_to_png.py` application converts `.spr` and `.spt` sprites, `.rm` and `.scr` backgrounds, and `.fon` fonts to PNG.
 However, not all of those files in A Final Unity are currently supported.
 
-The application requires the [PIL module](https://pypi.python.org/pypi/PIL) to be installed.
+The application requires the [PyPNG](https://pythonhosted.org/pypng/) module to be installed.
 
 Before converting any images the `afinalunity` library needs to know where the standard
 colour palette `standard.pal` is.
@@ -34,7 +34,7 @@ will output `transp.rm.png`.
 To convert a `.fon` font file also requires an additional `.rm` or `.scr` background file.
 For example:
 ```sh
-python afu_to_png.py brdgpica.spr bridge.rm
+python afu_to_png.py brdgpica.fon bridge.rm
 ```
 will output a png for each character in the font.
 
