@@ -1,4 +1,4 @@
-import Image
+import AFU.Image as Image
 
 
 
@@ -388,19 +388,19 @@ def main():
 	
 	import sys
 	if( len(sys.argv) != 3 ):
-		print "[USAGE] Sprite.py <spritefile.spr> <palettefile.rm>"
+		print("[USAGE]",__file__,"<spritefile.spr> <palettefile.rm>")
 		return 0
 	
-	import File
+	import AFU.File as File
 	f = File.File(sys.argv[1])
 	
-	import Palette
+	import AFU.Palette as Palette
 	p = Palette.FullPalette()
 	p.setGlobalPalette( Palette.standard() )
 	p.setLocalPalette( Palette.Palette( File.File(sys.argv[2]) ) )
 	
 	s = Sprite(p, f)
-	print s
+	print(s)
 
 
 if __name__ == "__main__":

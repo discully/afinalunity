@@ -1,4 +1,4 @@
-import File
+import AFU.File as File
 
 
 
@@ -14,7 +14,7 @@ class Database:
 		if( "astro.db" in self.file_name ):
 			self.readAstro(f)
 		else:
-			print self.file_name, "unsupported"
+			print(self.file_name, "unsupported")
 	
 	
 	def readAstro(self, f):
@@ -32,11 +32,11 @@ class Database:
 						data = []
 						for i in range(34):
 							data.append(f.readUInt8())
-						print coord, (x,y,z), (xi,yi,zi), data
+						print(coord, (x,y,z), (xi,yi,zi), data)
 						assert(x == xi)
 						assert(y == yi)
 						assert(z == zi)
 					except AssertionError:
-						print hex(f.pos())
+						print(hex(f.pos()))
 						raise AssertionError
 					

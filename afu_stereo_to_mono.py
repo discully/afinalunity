@@ -11,7 +11,7 @@ import os.path
 
 
 def usage():
-	print "[USAGE] {0} <file.rac>".format(__file__)
+	print("[USAGE]",__file__,"<file.rac>")
 	return 1
 
 
@@ -29,8 +29,8 @@ def main():
 	file_name = os.path.splitext(os.path.basename(input_file_path))[0]
 	
 	output_files = (
-		open("{0}.L.rac".format(file_name), "w"),
-		open("{0}.R.rac".format(file_name), "w")
+		open("{0}.L.rac".format(file_name), "wb"),
+		open("{0}.R.rac".format(file_name), "wb")
 		)
 	
 	while True:

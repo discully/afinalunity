@@ -3,42 +3,43 @@ import AFU
 
 
 
-def supported(is_supported, message =""):
-	if( is_supported ):
-		return ""
-	else:
-		return message
-
-
-
 def main():
 	
 	if( len(sys.argv) != 2 ):
-		print "[USAGE]", __file__, "<file>"
+		print("[USAGE]", __file__, "<file>")
 		return
-		
-	f_name = sys.argv[1]
-	f_type = AFU.Utils.identify(f_name)
-	f_file = AFU.File.File(f_name)
-	f_msg = "supported"
-	
+
+	file_path = sys.argv[1]
+	file_type = AFU.Utils.identify(file_path)
+
+	print("AFU File Type:", file_type)
+
+	if( file_type == "unknown"):
+		return
+
+	afu_file = AFU.File.File(file_path)
+
+	afu_object = None
 	try:
-		if( f_type == "sprite" ):
-			AFU.Sprite.SpriteFile(AFU.Palette.standard(), f_file)
-		elif( f_type == "background" ):
-			AFU.Background.Background()
-		elif( f_type == "font" ):
-			AFU.Font.Font(AFU.Palette.standard(), f_file)
-		elif( f_type == "palette" ):
-			AFU.Palette.Palette(f_file)
-		elif( f_type == "database" ):
-			AFU.Database.Database(f_file)
+		if( file_type == "sprite" ):
+			afu_object = AFU.Sprite.Sprite(AFU.Palette.standard(), afu_file)
+		elif( file_type == "background" ):
+			afu_object = AFU.Background.Background()
+		elif( file_type == "font" ):
+			afu_object = AFU.Font.Font(AFU.Palette.standard(), afu_file)
+		elif( file_type == "palette" ):
+			afu_object = AFU.Palette.Palette(afu_file)
+		elif( file_type == "database" ):
+			afu_object = AFU.Database.Database(afu_file)
 		else:
 			f_msg = "Unknown file type"
 	except ValueError as e:
 		f_msg = str(e)
-	
-	print "[{0}] {1} ".format(f_type, f_msg)
+
+	if afu_object != None:
+		print(afu_object)
+
+	print("[{0}] {1} ".format(file_type, f_msg))
 
 
 

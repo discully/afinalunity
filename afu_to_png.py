@@ -1,53 +1,39 @@
 import os.path
 import sys
-import PIL.Image
+import png
 import AFU
 
 
 
-class PILImage:
-	
+class PNGImage:
+
 	def __init__(self, img):
-		
-		self.transparent = (0,0,0,0)
-		self.red = (255,0,0,255)
-		self.green = (0,255,0,255)
-		self.blue = (0,0,255,255)
-		
-		self.image = PIL.Image.new("RGBA", (img.width, img.height) )
-		self.pixels = self.image.load()
-		
-		for x in range(img.width):
-			for y in range(img.height):
-				self.set(x, y, img[x][y])
-	
-	
-	def get(self, row, column):
-		return self.pixels[row, column]
-	
-	
+		self.transparent = img.blank
+		self.img = img
+		self.pixels = []
+		for y in range(img.height):
+			self.pixels.append([])
+			for x in range(img.width):
+				for colour in img[x][y]:
+					self.pixels[-1].append(colour)
+
+
 	def save(self, file_name):
-		self.image.save(file_name, "PNG")
-	
-	
-	def set(self, row, column, colour):
-		if( len(colour) == 3 ):
-			colour = (colour[0], colour[1], colour[2], 255) # convert rgb to rgba
-		elif( len(colour) != 4 ):
-			raise ValueError("Invalid colour: {0}".format(colour))
-		
-		self.pixels[row, column] = colour
+		f = open(file_name, "wb")
+		img = self.img
+		self.image = png.Writer(width = img.width, height = img.height, transparent = self.transparent)
+		self.image.write(f, self.pixels)
 
 
 
 def export(name, afu_image):
-	pil_image = PILImage( afu_image )
-	pil_image.save("{0}.png".format(name))
+	png_image = PNGImage(afu_image)
+	png_image.save("{0}.png".format(name))
 
 
 
 def usage():
-	print "[USAGE] {0} <file.spr> <file.pal>".format(__file__)
+	print("[USAGE]",__file__,"<file.spr> <file.pal>")
 	return 1
 
 
@@ -90,9 +76,9 @@ def main():
 		p.setLocalPalette( AFU.Palette.Palette( AFU.File.File(sys.argv[2]) ) )
 		
 		afu_font = AFU.Font.Font(p, afu_file)
-		for char,afu_character in afu_font.characters.iteritems():
+		for char,afu_character in afu_font.characters.items():
 			export("{0}.{1}".format(output_file_name,ord(char)), afu_character.image)
-			print "Exporting {0} ({1})".format(char, ord(char))
+			print("Exporting",char,ord(char))
 
 
 

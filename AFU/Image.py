@@ -33,7 +33,7 @@ class Image:
 		if( coord2 == None ):
 			if( coord1 >= len(self) ):
 				raise IndexError( "Attempt to set nth pixel {0} which is out of range (0,{1}]".format( coord1, len(self) ) )
-			x,y = ( coord1%self.width, coord1/self.width )
+			x,y = ( coord1%self.width, coord1//self.width )
 		else:
 			x,y = (coord1,coord2)
 		

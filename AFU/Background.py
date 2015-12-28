@@ -1,5 +1,5 @@
-import Image
-import Palette
+import AFU.Image as Image
+import AFU.Palette as Palette
 
 
 
@@ -44,14 +44,14 @@ def main():
 	
 	import sys
 	if( len(sys.argv) != 2 ):
-		print "[USAGE] Background.py <filename.rm>"
+		print("[USAGE] Background.py <filename.rm>")
 		return 0
 	
 	import File
 	f = File.File(sys.argv[1])
 	
 	rm = Background(f)
-	print rm
+	print(rm)
 
 
 if __name__ == "__main__":

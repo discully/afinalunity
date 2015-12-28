@@ -60,7 +60,7 @@ class FullPalette:
 	
 	def __str__(self):
 		for i in range(len(self)):
-			print i, self[i]
+			print(i, self[i])
 	
 	
 	def setGlobalPalette(self, global_palette):
@@ -79,7 +79,7 @@ def standard(file_path = None):
 		if( file_path == None ):
 			raise EnvironmentError("Environment variable 'STTNG_PAL' should be the path to standard.pal")
 	
-	import File
+	import AFU.File as File
 	f = File.File(file_path)
 	
 	p = Palette(f)
@@ -91,14 +91,14 @@ def main():
 	
 	import sys
 	if( len(sys.argv) != 2 ):
-		print "[USAGE] Palette.py <filename.pal>"
+		print("[USAGE]",__file__,"<filename.pal>")
 		return 0
 	
 	import File
 	f = File.File(sys.argv[1])
 	
 	pal = Palette(f)
-	print pal
+	print(pal)
 
 
 if __name__ == "__main__":

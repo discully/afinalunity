@@ -38,14 +38,14 @@ def main():
 	
 	import sys
 	if( len(sys.argv) != 2 ):
-		print "[USAGE] List.py <filename.lst>"
+		print("[USAGE]",__file__,"<filename.lst>")
 		return 0
 	
-	import File
+	import AFU.File as File
 	f = File.File(sys.argv[1])
 	
 	lst = List(f)
-	print lst
+	print(lst)
 
 
 if __name__ == "__main__":

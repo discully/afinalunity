@@ -1,16 +1,18 @@
+from os.path import splitext
 
 
 
-def identify(file_name):
-	if( ".spr" in file_name or ".spt" in file_name ):
+def identify(file_path):
+	file_extension = splitext(file_path)[1]
+	if( file_extension in [".spr",".spt"] ):
 		return "sprite"
-	elif( ".rm" in file_name or ".scr" in file_name ):
+	elif( file_extension in [".rm",".scr"] ):
 		return "background"
-	elif( ".fon" in file_name ):
+	elif( file_extension == ".fon" ):
 		return "font"
-	elif( ".pal" in file_name ):
+	elif( file_extension == ".pal" ):
 		return "palette"
-	elif( ".db" in file_name ):
+	elif( file_extension == ".db" ):
 		return "database"
 	else:
 		return "unknown"

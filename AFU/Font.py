@@ -1,6 +1,6 @@
-import Image
-import Palette
-import File
+import AFU.Image as Image
+import AFU.Palette as Palette
+import AFU.File as File
 
 
 
@@ -95,12 +95,12 @@ class Font:
 		if( size != expected_size ):
 			raise ValueError("Size reported in file ({0}) does not match that expected ({1}).".format(size, expected_size))
 		
-		print self
+		print(self)
 		
 		for char_int in range(self.start, self.end+1):
 			char_character = chr(char_int)
 			char_width =  f.readUInt8()
-			print char_width
+			print(char_width)
 			char_image = Image.Image(self.pitch, self.height)
 			
 			for y in range(self.height):
@@ -123,19 +123,19 @@ def main():
 	
 	import sys
 	if( len(sys.argv) != 3 ):
-		print "[USAGE] Font.py <filename.fon> <user palette file>"
+		print("[USAGE]",__file__,"<filename.fon> <user palette file>")
 		return 0
 	
-	import File
+	import AFU.File as File
 	f = File.File(sys.argv[1])
 	
-	import Palette
+	import AFU.Palette as Palette
 	p = Palette.FullPalette()
 	p.setGlobalPalette( Palette.standard() )
 	p.setLocalPalette( Palette.Palette(File.File(sys.argv[2])) )
 	
 	fon = Font(p, f)
-	print fon
+	print(fon)
 
 
 if __name__ == "__main__":
