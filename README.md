@@ -1,6 +1,6 @@
 # afinalunity
 
-Tools for extracting files from A Final Unity, the classic Start Trek: The Next Generation game by Spectrum Holobyte.
+Tools for extracting files from A Final Unity, the classic Star Trek: The Next Generation game by Spectrum Holobyte.
 
 ## Image Files
 
