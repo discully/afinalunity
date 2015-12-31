@@ -5,38 +5,33 @@ Tools for extracting files from A Final Unity, the classic Star Trek: The Next G
 ## Image Files
 
 The `afu_to_png.py` application converts `.spr` and `.spt` sprites, `.rm` and `.scr` backgrounds, and `.fon` fonts to PNG.
-However, not all of those files in A Final Unity are currently supported.
+However, not all of those files are currently supported.
 
 The application requires the [PyPNG](https://pythonhosted.org/pypng/) module to be installed.
 
+If the standard palette file `standard.pal` is not in the same directory as the image
+file being converted, its location must be provided using the `--palette` argument.
 Before converting any images the `afinalunity` library needs to know where the standard
 colour palette `standard.pal` is.
-This is achieved by setting its location in an environment variable:
-```sh
-export STTNG_PAL=/path/to/standard.pal
-```
-
-To convert a `.spr` or `.spt` sprite file you must provide both the sprite file
-and a `.rm` or `.scr` background image upon which the sprite would be drawn.
 For example:
 ```sh
-python afu_to_png.py brdgpica.spr bridge.rm
+python afu_to_png.py transp.rm --palette other/directory/standard.pal
+```
+which will output the transporter room scene as `transp.rm.png`.
+
+To convert a sprite or font file you must also provide a `.rm` or `.scr`
+background image upon which the sprite would be drawn, using the `--background` argument.
+For example:
+```sh
+python afu_to_png.py brdgpica.spr --background bridge.rm
 ```
 will output 31 pngs representing the frames making up the Picard bridge sprite.
-
-To convert a `.rm` or `.scr` background image requires just the image path itself.
-For example:
+Another example:
 ```sh
-python afu_to_png.ps transp.rm
+python afu_to_png.py font2.fon --background bridge.rm
 ```
-will output `transp.rm.png`.
+will output a png for each character in font number 2.
 
-To convert a `.fon` font file also requires an additional `.rm` or `.scr` background file.
-For example:
-```sh
-python afu_to_png.py brdgpica.fon bridge.rm
-```
-will output a png for each character in the font.
 
 ## Audio Files
 
