@@ -1,3 +1,4 @@
+import os.path
 
 
 
@@ -22,7 +23,7 @@ class Palette:
 	
 	def __str__(self):
 		s = "Palette:\n"
-		for i in range(palette_size):
+		for i in range(self.size):
 			s += "  {0} {1}\n".format(i, self[i])
 		return s
 	
@@ -72,18 +73,25 @@ class FullPalette:
 
 
 
-def standard(file_path = None):
-	if( file_path == None ):
-		import os
-		file_path = os.getenv("STTNG_PAL")
-		if( file_path == None ):
-			raise EnvironmentError("Environment variable 'STTNG_PAL' should be the path to standard.pal")
-	
-	import AFU.File as File
-	f = File.File(file_path)
-	
-	p = Palette(f)
-	return p
+def standard():
+	global standard_file_path
+	global _standard_palette
+
+	if( standard_file_path == None ):
+		if( os.path.isfile("standard.pal") ):
+			standard_file_path = "standard.pal"
+		else:
+			raise RuntimeError("The location of the palette file standard.pal is not set and it cannot be found.")
+
+	if( _standard_palette == None ):
+		import AFU.File as File
+		f = File.File(standard_file_path)
+		_standard_palette = Palette(f)
+
+	return _standard_palette
+
+standard_file_path = None
+_standard_palette = None
 
 
 
@@ -94,7 +102,7 @@ def main():
 		print("[USAGE]",__file__,"<filename.pal>")
 		return 0
 	
-	import File
+	import AFU.File as File
 	f = File.File(sys.argv[1])
 	
 	pal = Palette(f)

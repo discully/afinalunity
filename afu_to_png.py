@@ -1,4 +1,4 @@
-import os.path
+import os
 import sys
 import png
 import AFU
@@ -42,6 +42,11 @@ def main():
 	
 	if( not len(sys.argv) in range(2,5) ):
 		return usage()
+
+	palette_path = os.getenv("STTNG_PAL")
+	if( palette_path == None ):
+		raise EnvironmentError("Environment variable 'STTNG_PAL' should be the path to standard.pal")
+	AFU.Palette.standard_file_path = palette_path
 	
 	input_file_name = sys.argv[1]
 	afu_file = AFU.File.File(input_file_name)
