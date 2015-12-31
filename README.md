@@ -11,8 +11,6 @@ The application requires the [PyPNG](https://pythonhosted.org/pypng/) module to 
 
 If the standard palette file `standard.pal` is not in the same directory as the image
 file being converted, its location must be provided using the `--palette` argument.
-Before converting any images the `afinalunity` library needs to know where the standard
-colour palette `standard.pal` is.
 For example:
 ```sh
 python afu_to_png.py transp.rm --palette other/directory/standard.pal
@@ -20,7 +18,7 @@ python afu_to_png.py transp.rm --palette other/directory/standard.pal
 which will output the transporter room scene as `transp.rm.png`.
 
 To convert a sprite or font file you must also provide a `.rm` or `.scr`
-background image upon which the sprite would be drawn, using the `--background` argument.
+background image upon which they would be drawn, using the `--background` argument.
 For example:
 ```sh
 python afu_to_png.py brdgpica.spr --background bridge.rm
