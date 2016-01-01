@@ -8,6 +8,8 @@ def identify(file_path):
 		return "sprite"
 	elif( file_extension in [".rm",".scr"] ):
 		return "background"
+	elif( file_extension in [".mac",".rac",".vac"] ):
+		return "audio"
 	elif( file_extension == ".fon" ):
 		return "font"
 	elif( file_extension == ".pal" ):

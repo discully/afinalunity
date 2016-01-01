@@ -20,27 +20,19 @@ def main():
 	afu_file = AFU.File.File(file_path)
 
 	afu_object = None
-	f_msg = ""
-	try:
-		if( file_type == "sprite" ):
-			afu_object = AFU.Sprite.Sprite(afu_file) #AFU.Palette.standard(), afu_file)
-		elif( file_type == "background" ):
-			afu_object = AFU.Background.Background(afu_file)
-		elif( file_type == "font" ):
-			afu_object = AFU.Font.Font(AFU.Palette.standard(), afu_file)
-		elif( file_type == "palette" ):
-			afu_object = AFU.Palette.Palette(afu_file)
-		elif( file_type == "database" ):
-			afu_object = AFU.Database.Database(afu_file)
-		else:
-			f_msg = "Unknown file type"
-	except ValueError as e:
-		f_msg = str(e)
+	if( file_type == "sprite" ):
+		afu_object = AFU.Sprite.Sprite(afu_file) #AFU.Palette.standard(), afu_file)
+	elif( file_type == "background" ):
+		afu_object = AFU.Background.Background(afu_file)
+	elif( file_type == "font" ):
+		afu_object = AFU.Font.Font(AFU.Palette.standard(), afu_file)
+	elif( file_type == "palette" ):
+		afu_object = AFU.Palette.Palette(afu_file)
+	elif( file_type == "database" ):
+		afu_object = AFU.Database.Database(afu_file)
 
 	if afu_object != None:
 		print(afu_object)
-	else:
-		print("[{0}] {1} ".format(file_type, f_msg))
 
 
 
