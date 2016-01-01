@@ -25,7 +25,7 @@ def main():
 		if( file_type == "sprite" ):
 			afu_object = AFU.Sprite.Sprite(afu_file) #AFU.Palette.standard(), afu_file)
 		elif( file_type == "background" ):
-			afu_object = AFU.Background.Background()
+			afu_object = AFU.Background.Background(afu_file)
 		elif( file_type == "font" ):
 			afu_object = AFU.Font.Font(AFU.Palette.standard(), afu_file)
 		elif( file_type == "palette" ):
