@@ -27,8 +27,9 @@ class PNGImage:
 
 
 def export(name, afu_image):
-	png_image = PNGImage(afu_image)
-	png_image.save("{0}.png".format(name))
+	if( afu_image != None ):
+		png_image = PNGImage(afu_image)
+		png_image.save("{0}.png".format(name))
 
 
 
