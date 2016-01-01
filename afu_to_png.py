@@ -68,7 +68,7 @@ def main():
 		p.setGlobalPalette( AFU.Palette.standard() )
 		p.setLocalPalette( AFU.Palette.Palette( AFU.File.File(args.background) ) )
 		
-		afu_sprite = AFU.Sprite.Sprite(p, afu_file)
+		afu_sprite = AFU.Sprite.Sprite(afu_file, p)
 		for index,afu_image in afu_sprite.images.items():
 			export("{0}.{1}".format(output_file_name,index), afu_image.image)
 		

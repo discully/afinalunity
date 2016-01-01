@@ -1,4 +1,5 @@
 import AFU.Image as Image
+from collections import Counter
 
 
 
@@ -40,7 +41,7 @@ def hext(int_list):
 
 class Sprite:
 	
-	def __init__(self, palette, input_file = None):
+	def __init__(self, input_file=None, palette=None):
 		self.file_name = ""
 		self.images = {}
 		self.main_list = []
@@ -53,9 +54,11 @@ class Sprite:
 	
 	
 	def __str__(self):
-		return "Sprite ({0} {1})".format(self.file_name, {
-			"key_frames": len(self.main_list),
-			"images": len(self.images)
+		return "Sprite: {0} {1})".format(self.file_name, {
+			"key image frames": len(self.main_list),
+			"images": len(self.images),
+			"steps": len(self.steps),
+			"image formats": Counter([(info["type"],info["encoding"]) for block,info in self.steps if block in ["COMP","SCOM"]]),
 		} )
 	
 	
@@ -125,8 +128,8 @@ class Sprite:
 	
 	def readBlockCOMP(self, f):
 		block_start = f.pos() - 8
-		img = self.readImage(f)
-		self.steps.append( ("COMP", {"img":img}) )
+		info = self.readImage(f)
+		self.steps.append( ("COMP", info) )
 	
 	
 	def readBlockEXIT(self, f):
@@ -188,8 +191,8 @@ class Sprite:
 	
 	def readBlockSCOM(self, f):
 		block_start = f.pos() - 8
-		img = self.readImage(f)
-		self.steps.append( ("SCOM", {"img":img}) )
+		info = self.readImage(f)
+		self.steps.append( ("SCOM", info) )
 	
 	
 	def readBlockSETF(self, f):
@@ -220,36 +223,48 @@ class Sprite:
 		self.steps.append( ("TIME", {"time":time}) )
 	
 	
-	def readImage(self, f):
+	def readImage(self, f, process_image=False):
 		
 		block_start = f.pos() - 12 - 8
 		
 		image_width  = f.readUInt32()
 		image_height = f.readUInt32()
-		image_source = f.readUInt16()
-		image_type   = f.readUInt16()
-		
-		if( image_source == 0xd ):
-			if( image_type == 0x1 ):
-				#img = "image!"
-				img = SpriteImage1(image_width, image_height, self.palette, f)
-				img.read(f)
-				self.images[block_start] = img
-				return block_start
-			elif( image_type == 0x2 ):
-				#img = "image!"
-				img = SpriteImage2(image_width, image_height, self.palette, f)
-				img.read(f)
-				self.images[block_start] = img
-				return block_start
-		elif( image_type == 0x3 ):
-			relative = f.readUInt32()
-			sprite_block_start = block_start - relative
-			if( not sprite_block_start in self.images ):
-				raise ValueError("Reference to sprite which is not present")
-			return sprite_block_start
-		
-		raise ValueError( "Unknown sprite: image_type={0:#x} image_source={1:#x}".format(image_type, image_source) )
+		image_encoding = f.readUInt16()
+		image_type   = f.readUInt16() # 0x1 = SpriteType1, 0x2 = SpriteType2, 0x3 = copy of previous sprite
+
+		if( image_type == 0x3 ):
+			# Reference to an image which has already been passed
+			relative_position = f.readUInt32()
+			image_position = block_start - relative_position
+			if( not image_position in self.images ):
+				raise ValueError("Image at {0} references image at {1} which is not present".format(block_start, image_position))
+		else:
+			image_position = block_start
+
+		image_info = {
+			"width":image_width,
+			"height":image_height,
+			"encoding":image_encoding,
+			"type":image_type,
+			"image":image_position
+		}
+
+		if( image_type != 0x3 ):
+			# A new image
+			self.images[block_start] = None
+			if( self.palette != None ):
+				# Note that not all format/type combinations are currently supported
+				if( image_encoding == 0xd ):
+					if( image_type == 0x1 ):
+						img = SpriteImage1(image_width, image_height, self.palette, f)
+						img.read(f)
+						self.images[image_position] = img
+					elif( image_type == 0x2 ):
+						img = SpriteImage2(image_width, image_height, self.palette, f)
+						img.read(f)
+						self.images[image_position] = img
+
+		return image_info
 
 
 

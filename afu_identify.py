@@ -20,9 +20,10 @@ def main():
 	afu_file = AFU.File.File(file_path)
 
 	afu_object = None
+	f_msg = ""
 	try:
 		if( file_type == "sprite" ):
-			afu_object = AFU.Sprite.Sprite(AFU.Palette.standard(), afu_file)
+			afu_object = AFU.Sprite.Sprite(afu_file) #AFU.Palette.standard(), afu_file)
 		elif( file_type == "background" ):
 			afu_object = AFU.Background.Background()
 		elif( file_type == "font" ):
@@ -38,8 +39,8 @@ def main():
 
 	if afu_object != None:
 		print(afu_object)
-
-	print("[{0}] {1} ".format(file_type, f_msg))
+	else:
+		print("[{0}] {1} ".format(file_type, f_msg))
 
 
 
