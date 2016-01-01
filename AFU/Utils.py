@@ -1,9 +1,9 @@
-from os.path import splitext
+from pathlib import PurePath
 
 
 
 def identify(file_path):
-	file_extension = splitext(file_path)[1]
+	file_extension = PurePath(file_path).suffix
 	if( file_extension in [".spr",".spt"] ):
 		return "sprite"
 	elif( file_extension in [".rm",".scr"] ):
