@@ -93,6 +93,10 @@ def main():
 			export("{0}.{1}".format(output_file_name,ord(char)), afu_character.image)
 			print("Exporting",char,ord(char))
 
+	elif( file_type == "texture" ):
+		afu_texture = AFU.Texture.Texture(afu_file)
+		export(output_file_name, afu_texture.image)
+
 
 
 if __name__ == "__main__":

@@ -7,6 +7,7 @@ __all__ = [
 	"List",
 	"Palette",
 	"Sprite",
+	"Texture",
 	"Utils",
 	]
 from . import *
