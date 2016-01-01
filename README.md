@@ -7,7 +7,7 @@ Tools for extracting files from A Final Unity, the classic Star Trek: The Next G
 The `afu_to_png.py` application converts `.spr` and `.spt` sprites, `.rm` and `.scr` backgrounds, and `.fon` fonts to PNG.
 However, not all of those files are currently supported.
 
-The application requires the [PyPNG](https://pythonhosted.org/pypng/) module to be installed.
+The application requires the [Pillow](http://python-pillow.github.io) module to be installed.
 
 If the standard palette file `standard.pal` is not in the same directory as the image
 file being converted, its location must be provided using the `--palette` argument.

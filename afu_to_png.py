@@ -1,34 +1,48 @@
 import argparse
 import pathlib
-import png
+import PIL
 import AFU
 
 
 
-class PNGImage:
+class PILImage:
 
 	def __init__(self, img):
+
 		self.transparent = img.blank
-		self.img = img
-		self.pixels = []
-		for y in range(img.height):
-			self.pixels.append([])
-			for x in range(img.width):
-				for colour in img[x][y]:
-					self.pixels[-1].append(colour)
+
+		self.image = PIL.Image.new("RGBA", (img.width, img.height) )
+		self.pixels = self.image.load()
+
+		for x in range(img.width):
+			for y in range(img.height):
+				self.set(x, y, img[x][y])
+
+
+	def get(self, row, column):
+		return self.pixels[row, column]
 
 
 	def save(self, file_name):
-		f = open(file_name, "wb")
-		img = self.img
-		self.image = png.Writer(width = img.width, height = img.height, transparent = self.transparent)
-		self.image.write(f, self.pixels)
+		self.image.save(file_name, "PNG")
+
+
+	def set(self, row, column, colour):
+		if( len(colour) == 3 ):
+			if( colour == self.transparent ):
+				colour = (0,0,0,0)
+			else:
+				colour = (colour[0], colour[1], colour[2], 255) # convert rgb to rgba
+		elif( len(colour) != 4 ):
+			raise ValueError("Invalid colour: {0}".format(colour))
+
+		self.pixels[row, column] = colour
 
 
 
 def export(name, afu_image):
 	if( afu_image != None ):
-		png_image = PNGImage(afu_image)
+		png_image = PILImage(afu_image)
 		png_image.save("{0}.png".format(name))
 
 
