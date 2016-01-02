@@ -9,11 +9,19 @@ from pathlib import PurePath
 
 
 def identify(file_path):
-	file_extension = PurePath(file_path).suffix
+	file_path = PurePath(file_path)
+	file_extension = file_path.suffix
+	file_name = file_path.stem
 	if( file_extension in [".spr",".spt"] ):
 		return "sprite"
-	elif( file_extension in [".rm",".scr"] ):
+	elif( file_extension == ".rm" ):
 		return "background"
+	elif( file_extension == ".scr" ):
+		prefix = file_name[:2]
+		if( prefix == "sb" ):
+			return "background"
+		elif( prefix in ["st", "sl"]):
+			return "unknown"
 	elif( file_extension in [".mac",".rac",".vac"] ):
 		return "audio"
 	elif( file_extension == ".img" ):
@@ -24,6 +32,8 @@ def identify(file_path):
 		return "palette"
 	elif( file_extension == ".db" ):
 		return "database"
+	elif( file_extension == ".txt" ):
+		return "text"
 	else:
 		return "unknown"
 
