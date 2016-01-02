@@ -60,7 +60,7 @@ class World:
 				entrance_id = f.readUInt8()
 
 				# unknown is 0x1 for every single screen in every world except
-				# screen 11 in world 2, where it's 141.
+				# screen 11 in world 2, where it's 0x8d.
 				# If you don't unwind by one byte then, you end up overrunning
 				# the block, and the entrance positions are nonsense.
 				unknown = f.readUInt8()

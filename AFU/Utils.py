@@ -24,8 +24,6 @@ def identify(file_path):
 			return "world"
 		elif( prefix == "st" ):
 			return "polygons"
-		else:
-			return "unknown"
 	elif( file_extension in [".mac",".rac",".vac"] ):
 		return "audio"
 	elif( file_extension == ".img" ):
@@ -38,7 +36,18 @@ def identify(file_path):
 		return "database"
 	elif( file_extension == ".txt" ):
 		return "text"
-	else:
-		return "unknown"
+	#elif( file_extension == ".bst" ):
+		# o_XXXXXX.bst - object
+		# p_XXXXXX.bst
+		# t_XXXXXX.bst
+		# wXXXXobj.bst - object with sprite
+		# wXXXcXXX.bst - conversation
+		# wXXXXXXX.bst
+		# worlname.bst
+		# w_DDDcon.bst
+		# w_DDscrn.bst
+		# w_DDstrt.bst - startup screens for world
+
+	return "unknown"
 
 
