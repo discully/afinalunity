@@ -32,6 +32,8 @@ def main():
 		afu_object = AFU.Database.Database(afu_file)
 	elif( file_type == "texture" ):
 		afu_object = AFU.Texture.Texture(afu_file)
+	elif( file_type == "world" ):
+		afu_object = AFU.World.World(afu_file)
 
 	if afu_object != None:
 		print(afu_object)

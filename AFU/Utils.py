@@ -20,7 +20,11 @@ def identify(file_path):
 		prefix = file_name[:2]
 		if( prefix == "sb" ):
 			return "background"
-		elif( prefix in ["st", "sl"]):
+		elif( prefix == "sl" ):
+			return "world"
+		elif( prefix == "st" ):
+			return "polygons"
+		else:
 			return "unknown"
 	elif( file_extension in [".mac",".rac",".vac"] ):
 		return "audio"

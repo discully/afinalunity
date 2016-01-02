@@ -9,5 +9,6 @@ __all__ = [
 	"Sprite",
 	"Texture",
 	"Utils",
+	"World",
 	]
 from . import *
