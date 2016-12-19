@@ -6,8 +6,8 @@ from collections import deque
 class File:
 	
 	def __init__(self, file_name):
-		self.file_name = file_name
-		self.f = open(file_name, "rb")
+		self.file_name = str(file_name)
+		self.f = open(self.file_name, "rb")
 		self.start = self.pos()
 		self.bits = deque()
 	
