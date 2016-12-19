@@ -36,6 +36,8 @@ def main():
 		afu_object = AFU.World.World(afu_file)
 	elif( file_type == "list" ):
 		afu_object = AFU.List.List(afu_file)
+	elif( file_type == "menu" ):
+		afu_object = AFU.Menu.Menu(file_path)
 
 	if afu_object != None:
 		print(afu_object)

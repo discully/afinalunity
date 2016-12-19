@@ -110,6 +110,15 @@ def main():
 	elif( file_type == "texture" ):
 		afu_texture = AFU.Texture.Texture(afu_file)
 		export(output_file_name, afu_texture.image)
+		
+	elif( file_type == "menu" ):
+		path = pathlib.Path(args.image_file)
+		afu_menu = AFU.Menu.Menu(path)
+		for i in range(len(afu_menu)):
+			offset = afu_menu.offsets[i]
+			image = afu_menu.images[i]
+			output_file_name = "{}_{}".format(path.stem, offset)
+			export(output_file_name, image)
 
 
 

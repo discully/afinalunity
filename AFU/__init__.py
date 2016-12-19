@@ -5,6 +5,7 @@ __all__ = [
 	"Font",
 	"Image",
 	"List",
+	"Menu",
 	"Palette",
 	"Sprite",
 	"Texture",

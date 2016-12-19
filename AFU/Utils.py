@@ -39,6 +39,8 @@ def identify(file_path):
 		return "text"
 	elif( file_extension == ".lst" ):
 		return "list"
+	elif( file_extension == ".mrg" ):
+		return "menu"
 	#elif( file_extension == ".bst" ):
 		# o_XXXXXX.bst - object
 		# p_XXXXXX.bst
