@@ -4,7 +4,7 @@ Tools for extracting files from A Final Unity, the classic Star Trek: The Next G
 
 ## Image Files
 
-The `afu_to_png.py` application converts `.spr` and `.spt` sprites, `.rm` and `.scr` backgrounds, and `.fon` fonts to PNG.
+The `afu_to_png.py` application converts `.spr` and `.spt` sprites, `.rm` and `.scr` backgrounds, `.fon` fonts, and `.mrg` menus to PNG.
 However, not all of those files are currently supported.
 
 The application requires the [Pillow](http://python-pillow.github.io) module to be installed.
