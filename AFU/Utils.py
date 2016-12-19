@@ -1,4 +1,5 @@
 from pathlib import PurePath
+from enum import Enum
 
 # All the file extensions in AFU:
 # {'', '.3dv', '.img', '.pc4', '.rm', '.pc1', '.pc6', '.db',
@@ -36,6 +37,8 @@ def identify(file_path):
 		return "database"
 	elif( file_extension == ".txt" ):
 		return "text"
+	elif( file_extension == ".lst" ):
+		return "list"
 	#elif( file_extension == ".bst" ):
 		# o_XXXXXX.bst - object
 		# p_XXXXXX.bst

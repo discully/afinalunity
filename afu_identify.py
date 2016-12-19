@@ -34,6 +34,8 @@ def main():
 		afu_object = AFU.Texture.Texture(afu_file)
 	elif( file_type == "world" ):
 		afu_object = AFU.World.World(afu_file)
+	elif( file_type == "list" ):
+		afu_object = AFU.List.List(afu_file)
 
 	if afu_object != None:
 		print(afu_object)
