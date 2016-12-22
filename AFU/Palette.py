@@ -5,8 +5,7 @@ import os.path
 class Palette:
 	
 	def __init__(self, input_file = None):
-		self.size = 128
-		self.palette = []
+		self._palette = [None for i in range(128)]
 		if( input_file != None ):
 			self.read(input_file)
 	
@@ -14,29 +13,26 @@ class Palette:
 	def __getitem__(self, index):
 		if( index < 0 or index >= len(self) ):
 			raise IndexError( "Palette index {0} out of range [0,{1})".format(index, len(self)) )
-		return self.palette[index]
+		return self._palette[index]
 	
 	
 	def __len__(self):
-		return len(self.palette)
+		return len(self._palette)
 	
 	
 	def __str__(self):
 		s = "Palette:\n"
-		for i in range(self.size):
+		for i in range(len(self)):
 			s += "  {0} {1}\n".format(i, self[i])
 		return s
 	
 	
 	def read(self, f):
-		palette = []
-		for i in range(self.size):
+		for i in range(len(self)):
 			r = f.readUInt8() * 4
 			g = f.readUInt8() * 4
 			b = f.readUInt8() * 4
-			colour = (r,g,b)
-			palette.append(colour)
-		self.palette = palette
+			self._palette[i] = (r,g,b)
 
 
 
