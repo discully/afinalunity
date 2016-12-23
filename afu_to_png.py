@@ -119,6 +119,9 @@ def main():
 			image = afu_menu.images[i]
 			output_file_name = "{}_{}".format(path.stem, offset)
 			export(output_file_name, image)
+	
+	else:
+		print("Unsupported file type: {}".format(file_type))
 
 
 

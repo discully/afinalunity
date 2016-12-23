@@ -1,37 +1,35 @@
-from pathlib import PurePath
+from pathlib import Path
+from AFU.Image import Image
 import PIL.Image
-import AFU.Image
 
 
 
 class Texture:
 
-	def __init__(self, input_file = None):
+	def __init__(self, file_path):
+		self.file_path = Path(file_path)
 		self.width = None
 		self.height = None
 		self.image = None
-		self.file_name = ""
-
-		if( input_file != None ):
-			self.read(input_file)
+		self._read()
 
 
 	def __str__(self):
-		return "Texture ({0} {1})".format(self.file_name, {
+		return "Texture ({0} {1})".format(self.file_path.name, {
 			"width":self.width,
 			"height":self.height,
 		})
 
 
-	def read(self, f):
-		self.file_name = PurePath(f.name()).name
-		pil_image = PIL.Image.open(f.file_name)
+	def _read(self):
+		
+		pil_image = PIL.Image.open(str(self.file_path))
 		pil_image = pil_image.convert(mode="RGB")
 		pil_pixels = pil_image.load()
-		afu_image = AFU.Image.Image(pil_image.width, pil_image.height)
+		
+		self.image = Image(pil_image.width, pil_image.height)
 		for x in range(pil_image.width):
 			for y in range(pil_image.height):
-				afu_image.set(pil_pixels[x,y], x, y)
-		self.image = afu_image
+				self.image.set(pil_pixels[x,y], x, y)
 		self.width = pil_image.width
 		self.height = pil_image.height

@@ -1,23 +1,36 @@
-from pathlib import PurePath
+from pathlib import Path
+from AFU.File import File
 
 
 
 class World:
 
-	def __init__(self, input_file = None):
-		self.world_id = None
-		self.file_name = ""
-		self.screens = []
-
-		if( input_file != None ):
-			self.read(input_file)
+	def __init__(self, file_path):
+		
+		self.file_path = Path(file_path)
+		
+		if( self.file_path.suffix != ".scr" or self.file_path.name[:2] != "sl" ):
+			raise ValueError("World only supports sl*.scr files")
+		
+		self.id = int(self.file_path.stem[2:])
+		self._screens = []
+		
+		self._read()
+	
+	
+	def __getitem__(self, item):
+		return self._screens[item]
+	
+	
+	def __len__(self):
+		return len(self._screens)
 
 
 	def __str__(self):
-		s = "World {0}:\n".format(self.world_id)
-		s += "  File: {0}\n".format(self.file_name)
-		s += "  Screens ({0}):\n".format(len(self.screens))
-		for screen in self.screens:
+		s = "World {0}:\n".format(self.id)
+		s += "  File: {0}\n".format(self.file_path.name)
+		s += "  Screens ({0}):\n".format(len(self))
+		for screen in self._screens:
 			s += "    Screen {0}:\n".format(screen["screen_id"])
 			s += "      Background: {0}\n".format(screen["background"])
 			s += "      Polygons:   {0}\n".format(screen["polygons"])
@@ -25,11 +38,8 @@ class World:
 		return s
 
 
-	def read(self, f):
-		fname = PurePath(f.name())
-		self.file_name = fname.name
-		if( fname.suffix == ".scr" and len(fname.stem) == 5 and fname.stem[:2] == "sl" ):
-			self.world_id = int(fname.stem[2:])
+	def _read(self):
+		f = File(self.file_path)
 
 		n_screens = f.readUInt16()
 
@@ -75,4 +85,4 @@ class World:
 
 			screen["entrances"] = entrances
 
-		self.screens = screens
+		self._screens = screens
