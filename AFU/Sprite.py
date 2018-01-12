@@ -1,4 +1,5 @@
 import AFU.Image as Image
+import AFU.Palette as Palette
 from collections import Counter
 
 
@@ -107,6 +108,7 @@ class Sprite:
 		elif( block_name == "PAUS" ): self.readBlockPAUS(f)
 		elif( block_name == "EXIT" ): self.readBlockEXIT(f)
 		elif( block_name == "STAT" ): self.readBlockSTAT(f)
+		elif( block_name == "RGBP" ): self.readBlockRGBP(f)
 		else:
 			raise ValueError("Block at {0:#x} has invalid type: {1}".format(block_start, block_name))
 		
@@ -216,6 +218,10 @@ class Sprite:
 	
 	def readBlockSTAT(self, f):
 		self.steps.append( ("STAT", {}) )
+	
+	
+	def readBlockRGBP(self, f):
+		self.palette.local_palette = Palette.Palette(f)
 	
 	
 	def readBlockTIME(self, f):
