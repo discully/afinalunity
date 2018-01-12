@@ -92,7 +92,7 @@ class File:
 	def read(self, length):
 		"""Read `length` bytes from the file"""
 		got = self.f.read(length)
-		if( len(got) != length ): raise EOFError("End of file")
+		if( len(got) != length ): raise EOFError("End of file {}".format(self.pos()))
 		return got
 	
 	
