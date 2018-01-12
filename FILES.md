@@ -8,17 +8,26 @@
 * AST - [3]
 * BIN - [17]
 * BST - [3003]
+  * o_######.bst - objects [2561]
+  * p_######.bst - [97] 
+  * t_######.bst - [10]
+  * w{world}c###.bst - conversations [182]
+  * w###con.bst - [8]
+  * w##strt.bst - [9]
+  * w##scrn.bst - [9]
+  * w####obj.bst - [126]
+  * worlname.bst - [1]
 * DAT - [15]
 * DB - [3]
 * IMG - images (3d textures) [197]
 * DMG - [7]
-* <no extension> - [2]
+* no extension - [2] list, compstat
 * FON - font [10]
 * FVF - 27
 * LBM - [4]
 * MAP - [3]
 * MAC - audio (sound effects) [103]
-* LST - list [1]
+* LST - list (index of sprites) [1] sprites.lst
 * MRG - [11]
 * MTL - [55]
 * MTR - [9]
@@ -35,7 +44,7 @@
 * SCR - background image [153]
 * SPR - sprite [666]
 * SPT - sprite (characters in transporter room) [9]
-* TXT - text [2]
+* TXT - text (credits) [2]
 * VAC - audio (voice) [10182]
 
 ## Interesting Files
