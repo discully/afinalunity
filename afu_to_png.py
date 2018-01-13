@@ -67,18 +67,14 @@ def main():
 	
 	if file_type == "sprite":
 		
-		if args.background == None:
+		if args.background is None:
 			print("Path to background image required for sprite but not provided.")
 			parser.print_help()
 			return
 		
-		p = AFU.Palette.FullPalette()
-		p.setGlobalPalette( AFU.Palette.standard() )
-		p.setLocalPalette( AFU.Palette.Palette( AFU.File.File(args.background) ) )
-		
-		afu_sprite = AFU.Sprite.Sprite(afu_file, p)
-		for index,afu_image in afu_sprite.images.items():
-			export("{0}.{1}".format(output_file_name,index), afu_image.image)
+		afu_sprite = AFU.Sprite.read(args.image_file, args.background)
+		for index,image in afu_sprite.images.items():
+			export("{0}.{1}".format(output_file_name, index), image)
 		
 	elif file_type == "background":
 		afu_background = AFU.Background.Background(afu_file)
