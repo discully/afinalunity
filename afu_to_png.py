@@ -1,5 +1,5 @@
-import argparse
-import pathlib
+from argparse import ArgumentParser
+from pathlib import Path
 import PIL
 import AFU
 
@@ -28,12 +28,12 @@ class PILImage:
 
 
 	def set(self, row, column, colour):
-		if( len(colour) == 3 ):
-			if( colour == self.transparent ):
+		if len(colour) == 3 :
+			if colour == self.transparent:
 				colour = (0,0,0,0)
 			else:
 				colour = (colour[0], colour[1], colour[2], 255) # convert rgb to rgba
-		elif( len(colour) != 4 ):
+		elif len(colour) != 4:
 			raise ValueError("Invalid colour: {0}".format(colour))
 
 		self.pixels[row, column] = colour
@@ -41,7 +41,7 @@ class PILImage:
 
 
 def export(name, afu_image):
-	if( afu_image != None ):
+	if afu_image != None:
 		png_image = PILImage(afu_image)
 		png_image.save("{0}.png".format(name))
 
@@ -49,32 +49,25 @@ def export(name, afu_image):
 
 def main():
 
-	parser = argparse.ArgumentParser()
-	parser.add_argument("image_file",
-		help="Path to the image file to be converted.",
-		)
-	parser.add_argument("-p", "--palette",
-		help="Path to the standard.pal palette file. If not provided, standard.pal must be in the same directory as image_file.",
-		)
-	parser.add_argument("-b", "--background",
-		help="Path to a background image on which the sprite is drawn. Only required for Sprites and Fonts.",
-		required=False
-		)
+	parser = ArgumentParser()
+	parser.add_argument("image_file", type=Path, help="Path to the image file")
+	parser.add_argument("-p", "--palette", type=Path, help="Path to standard.pal")
+	parser.add_argument("-b", "--background", type=Path, help="Path to a background image on which the sprite is drawn (required for Sprites and Fonts)")
 	args = parser.parse_args()
 
-	if( args.palette is None ):
-		AFU.Palette.standard_file_path = str(pathlib.PurePath(args.image_file).with_name("standard.pal"))
+	if args.palette is None:
+		AFU.Palette.standard_file_path = args.image_file.with_name("standard.pal")
 	else:
 		AFU.Palette.standard_file_path = args.palette
 
 	afu_file = AFU.File.File(args.image_file)
-	output_file_name = pathlib.PurePath(args.image_file).name
+	output_file_name = args.image_file.name
 	
 	file_type = AFU.Utils.identify( args.image_file )
 	
-	if( file_type == "sprite" ):
+	if file_type == "sprite":
 		
-		if( args.background == None ):
+		if args.background == None:
 			print("Path to background image required for sprite but not provided.")
 			parser.print_help()
 			return
@@ -87,13 +80,13 @@ def main():
 		for index,afu_image in afu_sprite.images.items():
 			export("{0}.{1}".format(output_file_name,index), afu_image.image)
 		
-	elif( file_type == "background" ):
+	elif file_type == "background":
 		afu_background = AFU.Background.Background(afu_file)
 		export(output_file_name, afu_background.image)
 	
-	elif( file_type == "font" ):
+	elif file_type == "font":
 		
-		if( args.background == None ):
+		if args.background is None:
 			print("Path to background image required for font but not provided.")
 			parser.print_help()
 			return
@@ -107,12 +100,12 @@ def main():
 			export("{0}.{1}".format(output_file_name,ord(char)), afu_character.image)
 			print("Exporting",char,ord(char))
 
-	elif( file_type == "texture" ):
+	elif file_type == "texture":
 		afu_texture = AFU.Texture.Texture(afu_file)
 		export(output_file_name, afu_texture.image)
 		
-	elif( file_type == "menu" ):
-		path = pathlib.Path(args.image_file)
+	elif file_type == "menu":
+		path = args.image_file
 		afu_menu = AFU.Menu.Menu(path)
 		for i in range(len(afu_menu)):
 			offset = afu_menu.offsets[i]
