@@ -7,7 +7,7 @@
 | 3DR |                           |      9 |                   |
 | 3DV |                           |     49 |                   |
 | ANM |                           |      1 |                   |
-| AST |                           |      3 | astropnl.ast, compupnl.ast, sector.ast                  |
+| AST |                           |      3 | astropnl.ast, compupnl.ast, sector.ast (list of sector names) |
 | BIN |                           |     17 |                   |
 | BST | `multiple (see below)`    |   3003 |                   |
 |     | objects                   |   2561 | o_######.bst      |
@@ -42,21 +42,35 @@
 | PC6 |                           |      9 |                   |
 | PIC |                           |      4 |                   |
 | RAC | audio                     |     69 |                   |
-| RM  | background image          |      5 |                   |
-| SCR | background image          |    153 |                   |
+| RM  | background image          |      5 | bridge.rm, transp.rm, viewscr.rm |
+| SCR |                           |    153 |                   |
+|     | world screen background   |     73 | sb{world}{screen}.scr |
+|     | world                     |      6 | sl{world}.scr         |
+|     | world screen polygons     |     74 | st{world}{screen}.scr |
 | SPR | sprite                    |    666 |                   |
 | SPT | sprite (transporter room) |      9 |                   |
 | TXT | text (credits)            |      2 |                   |
 | VAC | audio (voice)             |  10182 |                   |
+|     |                           |   7235 | fe{character}####.vac |
 
+### Characters
+* 00 - Picard
+* 01 - Riker
+* 02 - Data
+* 03 - Troi
+* 04 - Worf
+* 05 - Crusher
+* 06 - La Forge
+* 07 - Carlstrom
+* 08 - Butler
+* 09 - Computer
+* ff - 
 
-## Interesting Files
+### Worlds
+* 002 - 
+* 003 - Morassia
+* 004 - Mertens Orbital Station
+* 005 - Frigis (Shonoisho Epsilon VI)
+* 006 - 
+* 007 - 
 
-* AST
-  * sector.ast - List of sector names
-* LST
-  * sprite.lst - list of sprite files, in index order
-* RM
-  * bridge.rm - The Enterprise bridge
-  * transp.rm - The transporter room
-  * viewscr.rm - The bridge viewscreen
