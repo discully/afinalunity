@@ -1,4 +1,4 @@
-
+import PIL
 
 
 class Image:
@@ -42,3 +42,38 @@ class Image:
 		
 		
 		self[x][y] = colour
+
+	
+	def export(self, name):
+		class PILImage:
+			
+			def __init__(self, img):
+				
+				self.transparent = img.blank
+				
+				self.image = PIL.Image.new("RGBA", (img.width, img.height))
+				self.pixels = self.image.load()
+				
+				for x in range(img.width):
+					for y in range(img.height):
+						self.set(x, y, img[x][y])
+			
+			def get(self, row, column):
+				return self.pixels[row, column]
+			
+			def save(self, file_name):
+				self.image.save(file_name, "PNG")
+			
+			def set(self, row, column, colour):
+				if len(colour) == 3:
+					if colour == self.transparent:
+						colour = (0, 0, 0, 0)
+					else:
+						colour = (colour[0], colour[1], colour[2], 255)  # convert rgb to rgba
+				elif len(colour) != 4:
+					raise ValueError("Invalid colour: {0}".format(colour))
+				
+				self.pixels[row, column] = colour
+		
+		png_image = PILImage(self)
+		png_image.save("{0}.png".format(name))
