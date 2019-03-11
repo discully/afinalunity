@@ -96,6 +96,16 @@ class File:
 		return got
 	
 	
+	def readLine(self):
+		"""Read string up to a \n"""
+		s = ""
+		c = self.readUInt8()
+		while c != 0x0A:
+			s += chr(c)
+			c = self.readUInt8()
+		return s.strip()
+	
+	
 	def readString(self):
 		"""Read string up to a null byte"""
 		s = ""
