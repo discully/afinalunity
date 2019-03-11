@@ -11,8 +11,8 @@ class Menu:
 		
 		self.file_path = Path(file_path)
 		
-		if self.file_path.suffix != "mgr":
-			raise ValueError("Menu only supports .mgr files")
+		if self.file_path.suffix != ".mrg":
+			raise ValueError("Menu only supports .mrg files")
 		
 		standard_palette = Palette(File(self.file_path.with_name("standard.pal")))
 		self.palette = FullPalette()
