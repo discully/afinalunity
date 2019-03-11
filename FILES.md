@@ -22,7 +22,7 @@
 | &vellip; |                           |    126 | w####obj.bst      |
 | &vellip; |                           |      1 | worlname.bst      |
 | DAT |                           |     15 |                   |
-| DB  |                           |      3 |                   |
+| DB  | database                  |      3 | astro.db, astromap.db, computer.db |
 | IMG | images (3d textures)      |    197 |                   |
 | DMG |                           |      7 |                   |
 | --- |                           |      2 | list, compstat    |
@@ -44,7 +44,7 @@
 | PC6 |                           |      9 |                   |
 | PIC |                           |      4 |                   |
 | RAC | audio                     |     69 |                   |
-| RM  | background image          |      5 | bridge.rm, transp.rm, viewscr.rm |
+| RM  | background image (room?)  |      5 | bridge.rm, transp.rm, viewscr.rm |
 | SCR |                           |    153 |                   |
 | &vellip; | world screen background   |     73 | sb{world}{screen}.scr |
 | &vellip; | world                     |      6 | sl{world}.scr         |
