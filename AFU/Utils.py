@@ -17,6 +17,9 @@ def identify(file_path):
 		return "sprite"
 	elif( file_extension == ".rm" ):
 		return "background"
+	elif( file_extension == ".ast" ):
+		if file_name != "sector":
+			return "background"
 	elif( file_extension == ".scr" ):
 		prefix = file_name[:2]
 		if( prefix == "sb" ):
