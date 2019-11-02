@@ -2,6 +2,8 @@
 
 Tools for extracting files from A Final Unity, the classic Star Trek: The Next Generation game by Spectrum Holobyte.
 
+Information on the different files in A Final Unity is documented in [FILES.md](FILES.md).
+
 ## Image Files
 
 The `afu_to_png.py` application converts `.spr` and `.spt` sprites, `.rm` and `.scr` backgrounds, `.fon` fonts, and `.mrg` menus to PNG.
@@ -47,4 +49,3 @@ will output `readalert.wav`.
 
 A lot of information required for writing this came from
 the work of [fuzzie](https://github.com/fuzzie/unity).
-
