@@ -1,38 +1,5 @@
-from AFU.File import File
+from AFU.File import DatabaseFile
 
-
-
-class _DatabaseFile(File):
-
-	def __init__(self, file_path):
-		self._offset_base = 0
-		File.__init__(self, file_path)
-
-	def setOffsetBase(self, offset):
-		self._offset_base = offset
-
-	def offset(self):
-		return self.pos() - self._offset_base
-
-	def offsetBase(self):
-		return self._offset_base
-
-	def setOffset(self, offset):
-		self.setPosition(self._offset_base + offset)
-
-	def readToOffset(self, offset, allow_content=True):
-		count = offset - self.offset()
-		assert (count >= 0)
-		x = self.read(count).replace(b"\0", b"")
-		if not allow_content and x:
-			raise ValueError("Invalid content: {}".format(x))
-		return x
-
-	def offsetToPos(self, offset):
-		return offset + self._offset_base
-
-	def posToOffset(self, pos):
-		return pos - self._offset_base
 
 
 def _readString(f, offset):
@@ -128,7 +95,7 @@ def _readEntry(f, offset):
 
 
 def computerDb(file_path):
-	f = _DatabaseFile(file_path)
+	f = DatabaseFile(file_path)
 
 	n_entries = f.readUInt32()
 	entries_offsets = [f.readUInt32() for i in range(n_entries)]
