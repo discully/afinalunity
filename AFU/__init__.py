@@ -2,7 +2,6 @@ __all__ = [
 	"Astro",
 	"Background",
 	"Computer",
-	"Database",
 	"File",
 	"Font",
 	"Image",
