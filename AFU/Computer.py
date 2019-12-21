@@ -2,12 +2,6 @@ from AFU.File import DatabaseFile
 
 
 
-def _readString(f, offset):
-	assert(offset != 0x0)
-	f.setOffset(offset)
-	return f.readString().replace("\r", "\n")
-
-
 def _readImage(f, offset):
 	assert(offset != 0)
 	f.setOffset(offset)
@@ -72,9 +66,9 @@ def _readEntry(f, offset):
 
 	entry = {
 		"flags": data_flag,
-		"title": _readString(f, title_offset).strip(),
-		"heading": _readString(f, heading_offset).strip(),
-		"text": _readString(f, text_offset),
+		"title": f.readOffsetString(title_offset).strip(),
+		"heading": f.readOffsetString(heading_offset).replace("\r", "\n").strip(),
+		"text": f.readOffsetString(text_offset).replace("\r", "\n"),
 		"subentries": subentries_offsets,
 	}
 

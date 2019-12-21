@@ -160,3 +160,10 @@ class DatabaseFile(File):
 
 	def posToOffset(self, pos):
 		return pos - self._offset_base
+
+	def readOffsetString(self, offset):
+		pos = self.pos()
+		self.setOffset(offset)
+		s = self.readString()
+		self.setPosition(pos)
+		return s
