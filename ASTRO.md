@@ -66,7 +66,7 @@ String offsets will either be null (0xFFFFFFFF) or, in astro.db, may be an offse
 |  Offset | Offset | Name           | Type        | Description |
 |  ---:   | ---:   | :---           | ---:        | :---        |
 |    0x00 |      0 | sector_offsets | 32u[512]    | Offsets into the file of all the sector structs |
-|  0x4000 |  16384 | sectors        | SECTOR[512] | 512 sector data, arranged as per table below |
+|  0x4000 |  16384 | sectors        | sectors[512] | 512 sector data, arranged as per table below |
 
 At each of the sector_offsets, you will find the following data for a given sector:
 
