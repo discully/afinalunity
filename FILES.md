@@ -22,7 +22,7 @@
 | &vellip; |                           |    126 | w####obj.bst      |
 | &vellip; |                           |      1 | worlname.bst      |
 | DAT |                           |     15 |                   |
-| DB  | database                  |      3 | astro.db, astromap.db, computer.db |
+| DB  | database                  |      3 | [astro.db, astromap.db](ASTRO.md), computer.db |
 | IMG | images (3d textures)      |    197 |                   |
 | DMG |                           |      7 |                   |
 | --- |                           |      2 | list, compstat    |
