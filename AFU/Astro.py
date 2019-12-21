@@ -1,6 +1,6 @@
 from enum import IntEnum
 from pathlib import Path
-from AFU.File import File
+from AFU.File import File, DatabaseFile
 
 
 
@@ -11,9 +11,8 @@ from AFU.File import File
 
 N_SECTORS = 512 # 8x8x8
 
-
 def globalCoords(major_coords, minor_coords):
-	return major_coords * 20 + minor_coords
+	return tuple(major*20 + minor for major,minor in zip(major_coords,minor_coords))
 
 
 def minorCoords(global_coords):
@@ -24,20 +23,11 @@ def majorCoords(global_coords):
 	return (global_coords[0] // 20, global_coords[1] // 20, global_coords[2] // 20)
 
 
-
-#
-# Identification
-#
-
-
-PLANET_CLASSES = "STABGMNFEDCJKLHI" #"ABCDEFGHIJKLMNST"
+PLANET_CLASSES = "STABGMNFEDCJKLHI"
 STAR_CLASSES = "OBAFGKM-."
 ALIGNMENTS = ["FEDERATION", "ROMULAN", "NEUTRAL", "NEBULA", "NONALIGNED"]
 DWARF_NAMES = ["black", "brown", "red", "white"]
-
-
-def planetDescription(planet):
-	descriptions = [
+PLANET_DESCRIPTIONS = [
 		"Gas supergiant planet within its star's cold zone. Thick atmosphere of hydrogen and hydrogen compounds. High core temperature. No known lifeforms.",
 		"Gas giant planet within its star's cold zone. Thick atmosphere of hydrogen and hydrogen compounds. No known lifeforms.",
 		"Within its star's habitable zone. Dense carbon dioxide atmosphere. Very hot surface, water only found in vapor form. No known lifeforms.",
@@ -55,8 +45,11 @@ def planetDescription(planet):
 		"Gas ultragiant within its star's cold zone. High core temperature causes it to radiate visible light. Thick atmosphere of hydrogen and hydrogen compounds. No known lifeforms.",
 		"Gas supergiant within its star's cold zone. High core temperature. Some liquid water is present on surface. Thick atmosphere of hydrogen and hydrogen compounds. No known lifeforms.",
 	]
-	return descriptions[planet]
-	
+
+
+def planetDescription(planet):
+	return PLANET_DESCRIPTIONS[planet]
+
 
 class Alignment (IntEnum):
 	FEDERATION = 0
@@ -72,6 +65,7 @@ class SectorObjects (IntEnum):
 	QUASAROID = 66
 	BLACK_HOLE = 68
 	SUBSPACE_VORTEX = 69
+	UNITY_DEVICE = 72
 	SPECIAL_ITEM = 73
 	DEEP_SPACE_STATION = 128
 	COMM_RELAY = 129
@@ -86,6 +80,7 @@ SECTOR_OBJECTS = {
 	66: "Quasaroid",
 	68: "Black Hole",
 	69: "Subspace Vortex",
+	72: "Unity Device",
 	73: "Special item", # Alien device, Unity device, Ruinore sector, Ayers, Singelea sector
 	128: "Deep Space Station",
 	129: "Comm Relay",
@@ -101,18 +96,19 @@ SECTOR_OBJECTS = {
 #
 
 
+
 def readSector(f):
 	sector_id = f.readUInt32()
 	sector_n_systems = f.readUInt32()
 	sector_n_bodies = f.readUInt32()
-	sector_n_stations = f.readUInt32() # always 0 in astro.db, used in astromap.db
+	sector_n_stations = f.readUInt32() # Only used in astromap.db, always 0 in astro.db
 	sector_alignment = f.readUInt32()
 	sector_unknown = [f.readUInt8() for x in range(16)]  # todo: astromap.db: last 4 bytes 0 for all but first system, astro.db: [0x0,0x0,0x0,0xffffffff]
-	
+
 	sector_z = (sector_id >> 6) & 0b111
 	sector_x = (sector_id >> 0) & 0b111
 	sector_y = (sector_id >> 3) & 0b111
-	
+
 	return {
 		"id": sector_id,
 		"coords": (sector_x, sector_y, sector_z),
@@ -120,10 +116,7 @@ def readSector(f):
 		"n_bodies": sector_n_bodies,
 		"n_stations": sector_n_stations,
 		"alignment": Alignment(sector_alignment),
-		
 		"unknown": sector_unknown,
-		
-		"name": "<name unavailable>",
 		"systems": [],
 		"bodies": [],
 		"stations": [],
@@ -146,22 +139,6 @@ def sectorDescription(sector):
 		raise ValueError("Invalid sector alignment: {}".format(sector["alignment"]))
 	d += "."
 	return d
-
-
-def printSector(sector, recursive=False):
-	print("""
-[Sector {0[id]}] {0[name]}
-	{0[coords]}
-	{1}
-	- u {0[unknown]}""".format(sector, sectorDescription(sector)))
-	
-	if recursive:
-		for system in sector["systems"]:
-			printSystem(system, recursive)
-		for body in sector["bodies"]:
-			printBody(body)
-		for station in sector["stations"]:
-			printStation(station)
 
 
 #
@@ -209,16 +186,16 @@ def systemTitle(system):
 def systemDescription(system):
 	stellar = "white dwarf" if system["white_dwarf"] else "star"
 	d = "This is a class {0[class]} {1} with an absolute magnitude of {0[magnitude]}.".format(system, stellar)
-	
+
 	if system["binary"]:
 		d += " It belongs to a binary star system, with a class ??? sister star of absolute magnitude ???.".format(
 			system)
-	
+
 	if system["planets"] == 0:
 		d += " It posesses {} planets."
 	else:
 		d += " It posesses {} planets, ".format(system["planets"])
-	
+
 	if system["inhabited"]:
 		d += "one of which"  # todo: Are there any systems with more than one inhabited planet?
 	elif len(system["planets"]) == 1:
@@ -228,33 +205,44 @@ def systemDescription(system):
 	else:
 		d += "none of which"
 	d += " is known to be inhabited."
-	
+
 	for station in system["stations"]:
 		d += " {0[name]} orbits this system.".format(station)
-	
+
 	if not system["scanned"]:
 		d += " This star is currently unscanned."
-	
+
 	if system["asteroid_belt"]:
 		d += " This star system has an asteroid belt."
-	
+
 	return d
 
 
 def readSystem(f):
+	system_file_offset = f.pos()
+
 	# Have not identified where the following information is stored:
 	# - Presence of an asteroid belt
 	# - Whether the system has been scanned
 	# - Number of planets it contains
-	
+
 	system_index = f.readUInt32()
 	system_id = f.readUInt16()
 	system_type = f.readUInt16() # SectorObjects.STAR_SYSTEM
+
 	system_unknown0 = f.readUInt8()
-	system_unknown1 = f.readUInt8()
-	# todo:
+	# todo: system unknown field 0
 	# [0] 255 (x1488), 0 (x1367), 101, 173, 189, 253, 247. One-off values could indicate events on arrival at these coords?
+	#   Darien Beta             101
+	#   Byrn Beta               173
+	#   Shonoisho Epsilon 5     189     Cut-scene on arrival at Shonoisho Epsilon VI (Frigis)
+	#   Polynya Delta           253
+	#   Cashat Delta (Joward)   247     Go to Joward III in search of Ferengi trader. Upon arrival, crew advises going to Nigold System
+
+	system_unknown1 = f.readUInt8()
+	# todo: system unknown field 1
 	# [1] Lots of different values, none stand-out values
+
 	assert(f.readUInt16() == 0)
 	system_x = f.readUInt32()
 	system_y = f.readUInt32()
@@ -262,8 +250,8 @@ def readSystem(f):
 	assert(f.readUInt32() == 0)
 	system_name_offset = f.readUInt32() # todo: this is set in astromap.db, but not clear what it relates to
 	system_state = f.readUInt16()
-	system_station_orbit = f.readUInt8() # 0, or in astromap.db... 0: between first and second planet, 1: between second and third, etc.
-	system_station_type = f.readUInt8() # 0, or in astromap.db... could also be either station (131) or outpost (132)
+	system_station_orbit = f.readUInt8() # In astromap.db the orbit of the station (0 is between first and second planet, 1: between second and third, etc). 0 in astro.db.
+	system_station_type = f.readUInt8() # In astromap.db could also be either station (131) or outpost (132). 0 in astro.db.
 	system_class = f.readUInt16()
 	system_magnitude = f.readSInt16()
 	system_unknown2 = f.readUInt32()  # todo: Values between 0 and 255. No stand-out values
@@ -273,12 +261,12 @@ def readSystem(f):
 	system_description_offset = f.readUInt32()
 	assert(f.readUInt32() == 0)
 	system_station_offset = f.readUInt32()  # todo: Only in astromap.db for systems with stations. Separation is 36bytes == sizeof(station). Offset? But what file?
-	
+
 	system_global_coords = (system_x, system_y, system_z)
 	systemStateValidate(system_state)
-	
+
 	system = {
-		"type": system_type,
+		"type": SectorObjects(system_type),
 		"index": system_index,
 		"id": system_id,
 		"global_coords": system_global_coords,
@@ -289,29 +277,28 @@ def readSystem(f):
 		"binary": systemBinary(system_state),
 		"white_dwarf": systemWhiteDwarf(system_state),
 		"magnitude": system_magnitude / 10.0,
-		"offsets": {
-			"name": system_name_offset,
-			"alias": system_alias_offset,
-			"notable": system_notable_offset,
-			"description": system_description_offset,
-			"station": system_station_offset,
-		},
-		
+
+		"name_offset": system_name_offset,
+		"alias_offset": system_alias_offset,
+		"notable_offset": system_notable_offset,
+		"description_offset": system_description_offset,
+		"station_offset": system_station_offset,
+
 		"unknown0": system_unknown0,
 		"unknown1": system_unknown1,
 		"unknown2": system_unknown2,
-		
+
 		"name": "<name unavailable>",
 		"stations": [],
-		"planets": "???",  # todo: determine how many planets there are
-		"asteroid_belt": False,  # todo
-		"scanned": True,  # todo: Determine how to know if a system is unscanned
+		"planets": None,  # todo: determine how many planets there are
+		"asteroid_belt": None,  # todo: determine where asteroid belt is specified
+		"scanned": None,  # todo: Determine how to know if a system is unscanned
 	}
-	
+
 	if systemStation(system_state):
 		system["stations"].append({
 			"id": "<id unavailable>",
-			"type": system_station_type,
+			"type": SectorObjects(system_station_type),
 			"global_coords": system_global_coords,
 			"coords": minorCoords(system_global_coords),
 			#"sector_id": system_sector_id,
@@ -322,22 +309,8 @@ def readSystem(f):
 			},
 			"name": "<name unavailable>",
 		})
-	
+
 	return system
-
-
-def printSystem(system, recursive=False):
-	print("""
-	[System {0[id]}] {1}
-		{0[global_coords]} = {3} > {0[coords]}
-		{2}
-		- u0 {0[unknown0]}
-		- u1 {0[unknown1]:>3} {0[unknown1]:>08b}
-		- u2 {0[unknown2]:>3} {0[unknown2]:>08b}""".format(system, systemTitle(system), systemDescription(system), majorCoords(system["global_coords"])))
-	
-	if recursive:
-		for station in system["stations"]:
-			printStation(station)
 
 
 
@@ -349,7 +322,7 @@ def printSystem(system, recursive=False):
 def bodyDescription(body):
 	if body["type"] == SectorObjects.SPECIAL_ITEM:  # Special item (Alien device, Unity device, Ruinore sector, Ayers, Singelea sector)
 		return ""
-	
+
 	d = "{0[name]}: ".format(body)
 	if body["type"] == SectorObjects.ION_STORM:
 		d += "Reduced sensor range, Hull Erosion danger -- use caution -- possible systems damage in high-gradient areas."
@@ -375,30 +348,19 @@ def readBody(f):
 	body_name_offset = f.readUInt32()
 	body_zone_radius = f.readUInt32()  # radius of known zone of influence, in LY
 	body_unknown0 = f.readUInt32() # todo: 0 in astro.db, non-zero in astromap.db
-	
+
 	body_global_coords = (body_x, body_y, body_z)
-	
+
 	return {
 		"index": body_index,
 		"id": body_id,
-		"type": body_type,
+		"type": SectorObjects(body_type),
 		"global_coords": body_global_coords,
 		"coords": minorCoords(body_global_coords),
 		"zone_radius": body_zone_radius,
-		"offsets": {
-			"name": body_name_offset,
-		},
-		
 		"unknown0": body_unknown0,
-		
-		"name": "<name unavailable>",
+		"name_offset": body_name_offset,
 	}
-
-def printBody(body):
-	print("""
-	[Body {0[id]}] {0[name]}
-		{0[global_coords]} = {2} > {0[coords]}
-		{1}""".format(body, bodyDescription(body), majorCoords(body["global_coords"])))
 
 
 
@@ -407,8 +369,8 @@ def printBody(body):
 #
 
 
+
 def readStation(f):
-	# 36 bytes long
 	assert (f.readUInt32() == 0)
 	station_id = f.readUInt16()
 	station_type = f.readUInt16()
@@ -421,22 +383,18 @@ def readStation(f):
 	station_sector_id = f.readUInt16()
 	station_sector_index = f.readUInt8()  # index of the system within the sector this belongs to
 	station_orbit = f.readUInt8()  # location of outpost within system (0: between first and second planet, 1: between second and third, etc.)
-	
+
 	station_global_coords = (station_x, station_y, station_z)
-	
+
 	return {
 		"id": station_id,
-		"type": station_type,
+		"type": SectorObjects(station_type),
 		"global_coords": station_global_coords,
 		"coords": minorCoords(station_global_coords),
 		"sector_id": station_sector_id,
 		"orbit": station_orbit,
 		"sector_index": station_sector_index,
-		"offsets": {
-			"name": station_name_offset
-		},
-		
-		"name": "<name unavailable>",
+		"name_offset": station_name_offset,
 	}
 
 
@@ -464,105 +422,90 @@ def stationDescription(station):
 	# 1384989:Unknown -- contact lost.
 
 
-def printStation(station):
-	if station["type"] in [SectorObjects.STARBASE, SectorObjects.OUTPOST]:
-		print("""
-		[Station {0[id]}] {0[name]}
-			{1}
-			Orbit:{0[orbit]} Index:{0[sector_index]}""".format(station, stationDescription(station)))
-	else:
-		print("""
-	[Station {0[id]}] {0[name]}
-		{0[global_coords]} = {2} > {0[coords]}
-		{1}""".format(station, stationDescription(station), majorCoords(station["global_coords"])))
-
 
 #
 # Files
 #
 
 
-def astroDb(dir):
-	sector_names = sectorAst(dir)
-	f = File(dir.joinpath("astro.db"))
-	
+
+def astroDb(file_path):
+
 	OFFSET_SECTORS = 0x0
+	OFFSET_SYSTEMS = 0x4800
+	OFFSET_BODIES = 0x33fb0
+	OFFSET_STATIONS = 0x3dad8
 	OFFSET_STRINGS = 0x3e3e0
-	
-	strings = {}
-	f.setPosition(OFFSET_STRINGS)
-	try:
-		while True:
-			offset = f.pos() - OFFSET_STRINGS
-			strings[offset] = f.readString()
-	except EOFError:
-		pass
-	f.setPosition(0)
-	
+
+	f = DatabaseFile(file_path)
+	f.setOffsetBase(OFFSET_STRINGS)
+
 	sectors = []
 	for i in range(N_SECTORS):
 		sector = readSector(f)
-		sector["name"] = sector_names[sector["id"]]
 		sectors.append(sector)
-	
-	ref = {}
+
+	assert (f.pos() == OFFSET_SYSTEMS)
+
 	for sector in sectors:
 		for i in range(sector["n_systems"]):
 			system = readSystem(f)
-			
-			system["name"] = strings[system["offsets"]["name"]]
-			if system["offsets"]["alias"] != 0xFFFFFFFF:  # Special name for notable (main story line) systems
-				system["alias"] = strings[system["offsets"]["alias"]]
-			if system["offsets"]["notable"] != 0xFFFFFFFF:  # Name of a notable (main story line) planet
-				system["notable"] = strings[system["offsets"]["notable"]]
-			if system["offsets"]["description"] != 0xFFFFFFFF:
-				system["description"] = strings[system["offsets"]["description"]]
-			
+
+			offset = system.pop("name_offset")
+			if offset != 0xFFFFFFFF: system["name"] = f.readOffsetString(offset)
+			offset = system.pop("alias_offset")
+			if offset != 0xFFFFFFFF: system["alias"] = f.readOffsetString(offset)
+			offset = system.pop("notable_offset")
+			if offset != 0xFFFFFFFF: system["notable"] = f.readOffsetString(offset)
+			offset = system.pop("description_offset")
+			if offset != 0xFFFFFFFF: system["description"] = f.readOffsetString(offset)
+
 			sector["systems"].append(system)
-			ref[system["id"]] = system
-	
-	assert (f.pos() == 0x33fb0)
-	
+
+	assert (f.pos() == OFFSET_BODIES)
+
 	for sector in sectors:
 		for i in range(sector["n_bodies"]):
 			body = readBody(f)
-			
-			body["name"] = strings[body["offsets"]["name"]]
-			
+
+			offset = body.pop("name_offset")
+			if offset != 0xFFFFFFFF: body["name"] = f.readOffsetString(offset)
+
 			sector["bodies"].append(body)
-			ref[body["id"]] = body
-	
-	assert (f.pos() == 0x3dad8)
-	
+
+	assert (f.pos() == OFFSET_STATIONS)
+
 	n_stations_sector = f.readUInt32()
 	n_stations_system = f.readUInt32()
-	
 	for i in range(n_stations_sector):
 		station = readStation(f)
-		
-		station["name"] = strings[station["offsets"]["name"]]
-		
+
+		offset = station.pop("name_offset")
+		if offset != 0xFFFFFFFF: station["name"] = f.readOffsetString(offset)
+
 		sectors[station["sector_id"]]["stations"].append(station)
-		ref[station["id"]] = station
-	
+		sectors[station["sector_id"]]["n_stations"] += 1
+
 	for i in range(n_stations_system):
 		station = readStation(f)
-		
-		station["name"] = strings[station["offsets"]["name"]]
-		
-		sectors[station["sector_id"]]["systems"][station["sector_index"]]["stations"].append(station)
-		ref[station["id"]] = station
-	
+
+		offset = station.pop("name_offset")
+		if offset != 0xFFFFFFFF: station["name"] = f.readOffsetString(offset)
+
+		system = sectors[station["sector_id"]]["systems"][station["sector_index"]]
+		station["global_coords"] = system["global_coords"]
+		station["coords"] = system["coords"]
+		system["stations"].append(station)
+
 	assert (f.pos() == OFFSET_STRINGS)
-	
+
 	return sectors
 
 
 
-def astromapDb(dir):
-	sector_names = sectorAst(dir)
-	f = File(dir.joinpath("astromap.db"))
-	
+def astromapDb(file_path):
+	f = File(file_path)
+
 	eof = len(f)
 	offsets = []
 	while True:
@@ -570,52 +513,37 @@ def astromapDb(dir):
 		if offset == eof:
 			break
 		offsets.append(offset)
-	
+
 	sectors = []
 	for offset in offsets:
 		assert (f.pos() == offset)
-		
+
 		sector = readSector(f)
-		sector["name"] = sector_names[sector["id"]]
-		
+
 		for j in range(sector["n_systems"]):
 			system = readSystem(f)
+			system.pop("name_offset")
+			system.pop("alias_offset")
+			system.pop("notable_offset")
+			system.pop("description_offset")
 			sector["systems"].append(system)
-		
+
 		for j in range(sector["n_bodies"]):
 			body = readBody(f)
+			body.pop("name_offset")
 			sector["bodies"].append(body)
-		
+
 		for j in range(sector["n_stations"]):
 			station = readStation(f)
+			station.pop("name_offset")
 			sector["stations"].append(station)
-		
+
 		sectors.append(sector)
-	
+
 	return sectors
 
 
 
-def sectorAst(dir):
-	f = File(dir.joinpath("sector.ast"))
+def sectorAst(file_path):
+	f = File(file_path)
 	return [f.readLine() for x in range(N_SECTORS)]
-
-
-
-def astrogation(dir):
-	astro_sectors = astroDb(dir)
-	astromap_sectors = astromapDb(dir)
-	
-	for i_sector,sector in enumerate(astromap_sectors):
-		assert(sector["id"] == astro_sectors[i_sector]["id"])
-		assert(len(sector["systems"]) == len(astro_sectors[i_sector]["systems"]))
-		assert(sector["coords"] == astro_sectors[i_sector]["coords"])
-		
-		for i_system,system in enumerate(sector["systems"]):
-			try:
-				assert(system["coords"] == astro_sectors[i_sector]["systems"][i_system]["coords"])
-			except:
-				printSystem(system)
-				printSystem(astro_sectors[i_sector]["systems"][i_system])
-	
-	return astromap_sectors

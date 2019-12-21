@@ -14,6 +14,10 @@ def main():
 	if file_type == "database":
 		if args.file.stem == "computer":
 			data = AFU.Computer.computerDb(args.file)
+		elif args.file.stem == "astro":
+			data = AFU.Astro.astroDb(args.file)
+		elif args.file.stem == "astromap":
+			data = AFU.Astro.astromapDb(args.file)
 		else:
 			print("Unsupported database file: {}".format(args.file.name))
 	else:
