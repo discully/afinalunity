@@ -17,6 +17,7 @@ class Menu:
 		standard_palette = Palette(File(self.file_path.with_name("standard.pal")))
 		self.palette = FullPalette()
 		self.palette.setGlobalPalette(standard_palette)
+		# todo: This is certainly the wrong local pallette.
 		self.palette.setLocalPalette(standard_palette)
 
 		self.offsets = []
