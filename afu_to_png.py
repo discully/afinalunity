@@ -62,35 +62,35 @@ def main():
 
 	afu_file = AFU.File.File(args.image_file)
 	output_file_name = args.image_file.name
-	
+
 	file_type = AFU.Utils.identify( args.image_file )
-	
+
 	if file_type == "sprite":
-		
+
 		if args.background is None:
 			print("Path to background image required for sprite but not provided.")
 			parser.print_help()
 			return
-		
+
 		afu_sprite = AFU.Sprite.read(args.image_file, args.background)
 		for index,image in afu_sprite.images.items():
 			export("{0}.{1}".format(output_file_name, index), image)
-		
+
 	elif file_type == "background":
 		afu_background = AFU.Background.Background(afu_file)
 		export(output_file_name, afu_background.image)
-	
+
 	elif file_type == "font":
-		
+
 		if args.background is None:
 			print("Path to background image required for font but not provided.")
 			parser.print_help()
 			return
-		
+
 		p = AFU.Palette.FullPalette()
 		p.setGlobalPalette( AFU.Palette.standard() )
 		p.setLocalPalette( AFU.Palette.Palette( AFU.File.File(args.background) ) )
-		
+
 		afu_font = AFU.Font.Font(p, afu_file)
 		for char,afu_character in afu_font.characters.items():
 			export("{0}.{1}".format(output_file_name,ord(char)), afu_character.image)
@@ -99,7 +99,7 @@ def main():
 	elif file_type == "texture":
 		afu_texture = AFU.Texture.Texture(afu_file)
 		export(output_file_name, afu_texture.image)
-		
+
 	elif file_type == "menu":
 		path = args.image_file
 		afu_menu = AFU.Menu.Menu(path)
@@ -108,7 +108,29 @@ def main():
 			image = afu_menu.images[i]
 			output_file_name = "{}_{}".format(path.stem, offset)
 			export(output_file_name, image)
-	
+
+	elif file_type == "database":
+		if args.image_file.stem == "computer":
+
+			if args.background is None:
+				background_file = args.image_file.with_name("compupnl.ast")
+			else:
+				background_file = args.background
+
+			p = AFU.Palette.FullPalette()
+			p.setGlobalPalette( AFU.Palette.standard() )
+			p.setLocalPalette( AFU.Palette.Palette( AFU.File.File(background_file) ) )
+
+			computer = AFU.Computer.computerDb(args.image_file)
+			for offset,entry in computer.items():
+				if "image" in entry:
+					image = AFU.Image.Image(entry["image"]["width"], entry["image"]["height"])
+					for i,b in enumerate(entry["image"]["data"]):
+						image.set(p[b], i)
+					image.export("computer.db.{}".format(offset))
+		else:
+			print("Unsupported database file: {}".format(args.image_file.name))
+
 	else:
 		print("Unsupported file type: {}".format(file_type))
 

@@ -7,11 +7,12 @@ def _readImage(f, offset):
 	f.setOffset(offset)
 	image_width = f.readUInt16()
 	image_height = f.readUInt16()
-	image_data = f.read(image_height*image_width)
+	image_data = [f.readUInt8() for i in range(image_height*image_width)]
 	return {
+		"offset": offset,
 		"width": image_width,
 		"height": image_height,
-	#	"data": image_data,
+		"data": image_data,
 	}
 
 
@@ -41,6 +42,7 @@ def _readAstrogation(f, offset):
 
 
 def _readUnknown(f, offset):
+	# possibly some kind of reference to an image elsewhere?
 	f.setOffset(offset)
 	pos = f.pos()
 	data = [f.readUInt16() for i in range(4)]

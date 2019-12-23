@@ -8,7 +8,7 @@ and [ASTRO.md](ASTRO.md) contains information specifically on the astrogation fi
 ## Image Files
 
 The `afu_to_png.py` application converts `.spr` and `.spt` sprites, `.rm` and `.scr` backgrounds, `.fon` fonts, and `.mrg` menus to PNG.
-However, not all of those files are currently supported.
+However, not all of those files are currently supported. It will also export images from `computer.db`.
 
 The application requires the [Pillow](http://python-pillow.github.io) module to be installed.
 
@@ -32,6 +32,13 @@ Another example:
 python3 afu_to_png.py font2.fon --background bridge.rm
 ```
 will output a png for each character in font number 2.
+
+Finally, you can export all the images within `computer.db`, provided that `compupnl.ast` is in the same
+directory or provided via the `--background` argument. For example:
+```sh
+python3 afu_to_png.py computer.db
+```
+will output a png for all 49 images used to illustrate various computer entries.
 
 
 ## Audio Files
