@@ -1,23 +1,23 @@
-import sys
+from argparse import ArgumentParser
+from pathlib import Path
 import AFU
 
 
 
 def main():
 	
-	if( len(sys.argv) != 2 ):
-		print("[USAGE]", __file__, "<file>")
-		return
+	parser = ArgumentParser()
+	parser.add_argument("file", help="Path to the file to be identified", type=Path)
+	args = parser.parse_args()
 
-	file_path = sys.argv[1]
-	file_type = AFU.Utils.identify(file_path)
+	file_type = AFU.Utils.identify(args.file)
 
 	print("AFU File Type:", file_type)
 
 	if( file_type == "unknown"):
 		return
 
-	afu_file = AFU.File.File(file_path)
+	afu_file = AFU.File.File(args.file)
 
 	afu_object = None
 	if( file_type == "sprite" ):
