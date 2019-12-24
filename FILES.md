@@ -49,8 +49,8 @@
 | RM        | background image (room?)  |      5 | bridge.rm, transp.rm, viewscr.rm | :heavy_check_mark: |                    |                    |
 | SCR       |                           |    153 |                            |                    |                    |                    |
 | &vellip;  | world screen background   |     73 | sb{world}{screen}.scr      | :heavy_check_mark: |                    |                    |
-| &vellip;  | world                     |      6 | sl{world}.scr              |                    |                    |                    |
-| &vellip;  | world screen polygons     |     74 | st{world}{screen}.scr      |                    |                    |                    |
+| &vellip;  | world                     |      6 | sl{world}.scr              |                    | :heavy_check_mark: |                    |
+| &vellip;  | world screen polygons     |     74 | st{world}{screen}.scr      |                    | :heavy_check_mark: |                    |
 | SPR       | sprite                    |    666 |                            | :heavy_check_mark: |                    |                    |
 | SPT       | sprite (transporter room) |      9 |                            | :heavy_check_mark: |                    |                    |
 | TXT       | text (credits)            |      2 |                            |                    |                    |                    |
