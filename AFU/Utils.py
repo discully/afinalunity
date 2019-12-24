@@ -1,5 +1,7 @@
 from pathlib import PurePath
 from enum import Enum
+from json import JSONEncoder
+from AFU import Image
 
 # All the file extensions in AFU:
 # {'', '.3dv', '.img', '.pc4', '.rm', '.pc1', '.pc6', '.db',
@@ -59,3 +61,10 @@ def identify(file_path):
 	return "unknown"
 
 
+
+class Encoder (JSONEncoder):
+	def default(self, obj):
+		if isinstance(obj, Image.Image):
+			return str(obj)
+		# Let the base class default method raise the TypeError
+		return json.JSONEncoder.default(self, obj)

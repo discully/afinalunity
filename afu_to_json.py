@@ -29,10 +29,12 @@ def main():
 		data = AFU.World.worldSlScr(args.file)
 	elif file_type == "polygons":
 		data = AFU.World.worldStScr(args.file)
+	elif file_type == "sprite":
+		data = AFU.Sprite.sprite(args.file, args.file.with_name("standard.pal"), args.file.with_name("standard.pal"))
 	else:
 		print("Unsupported file type: {}".format(file_type))
 
-	json.dump(data, open("{}.json".format(args.file.name), "w"), indent="\t")
+	json.dump(data, open("{}.json".format(args.file.name), "w"), indent="\t", cls=AFU.Utils.Encoder)
 
 
 if __name__ == "__main__":

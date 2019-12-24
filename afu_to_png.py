@@ -72,9 +72,9 @@ def main():
 			parser.print_help()
 			return
 
-		afu_sprite = AFU.Sprite.read(args.image_file, args.background)
-		for index,image in afu_sprite.images.items():
-			export("{0}.{1}".format(output_file_name, index), image)
+		afu_sprite = AFU.Sprite.sprite(args.image_file, args.background, args.palette)
+		for offset,image in afu_sprite["images"].items():
+			export("{0}.{1}".format(output_file_name, offset), image["image"])
 
 	elif file_type == "background":
 		afu_background = AFU.Background.Background(afu_file)
