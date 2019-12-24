@@ -1,88 +1,123 @@
-from pathlib import Path
 from AFU.File import File
 
 
 
-class World:
+def worldSlScr(file_path):
+	f = File(file_path)
 
-	def __init__(self, file_path):
-		
-		self.file_path = Path(file_path)
-		
-		if( self.file_path.suffix != ".scr" or self.file_path.name[:2] != "sl" ):
-			raise ValueError("World only supports sl*.scr files")
-		
-		self.id = int(self.file_path.stem[2:])
-		self._screens = []
-		
-		self._read()
-	
-	
-	def __getitem__(self, item):
-		return self._screens[item]
-	
-	
-	def __len__(self):
-		return len(self._screens)
+	n_screens = f.readUInt16()
+	screens = []
+	for i in range(n_screens):
+		screen_id = f.readUInt32()
+		screen_offset = f.readUInt32()
+		screens.append( (screen_id,screen_offset) )
+
+	assert( f.readUInt32() == 0xFF )
+	eof = f.readUInt32()
+
+	world_screens = []
+	for screen_id,screen_offset in screens:
+		assert( f.pos() == screen_offset )
+
+		screen = {
+			"id": screen_id,
+			"entrances": [],
+		}
+
+		background_file_length = f.readUInt8()
+		background_file = f.readString()
+		assert(len(background_file) + 1 == background_file_length)
+		screen["background"] = background_file
+
+		polygons_file_length = f.readUInt8()
+		polygons_file = f.readString()
+		assert(len(polygons_file) + 1 == polygons_file_length)
+		screen["polygons"] = polygons_file
+
+		n_entrances = f.readUInt8()
+		for i in range(n_entrances):
+			entrance_id = f.readUInt8()
+
+			# unknown is 0x1 for every single screen in every world except
+			# screen 11 in world 2, where it's 0x8d.
+			# If you don't unwind by one byte then, you end up overrunning
+			# the block, and the entrance positions are nonsense.
+			entrance_unknown = f.readUInt8()
+			if( entrance_unknown != 0x1 ):
+				f.setPosition(f.pos() - 1)
+
+			entrance_vertices = []
+			for j in range(4):
+				entrance_vertices.append({"x": f.readUInt16(), "y": f.readUInt16()})
+			entrance = {
+				"entrance_id": entrance_id,
+				"unknown": entrance_unknown,
+				"vertices": entrance_vertices,
+			}
+			screen["entrances"].append(entrance)
+		world_screens.append(screen)
+
+	assert(f.pos() == eof)
+
+	return { "screens": world_screens }
 
 
-	def __str__(self):
-		s = "World {0}:\n".format(self.id)
-		s += "  File: {0}\n".format(self.file_path.name)
-		s += "  Screens ({0}):\n".format(len(self))
-		for screen in self._screens:
-			s += "    Screen {0}:\n".format(screen["screen_id"])
-			s += "      Background: {0}\n".format(screen["background"])
-			s += "      Polygons:   {0}\n".format(screen["polygons"])
-			s += "      Entrances:  {0}\n".format(len(screen["entrances"]))
-		return s
 
+def worldStScr(file_path):
+	f = File(file_path)
 
-	def _read(self):
-		f = File(self.file_path)
+	n_entries = f.readUInt16()
+	entries = []
+	for i in range(n_entries):
+		id = f.readUInt32()
+		offset = f.readUInt32()
+		entries.append( (id,offset) )
 
-		n_screens = f.readUInt16()
+	assert(f.readUInt32() == 0xFF)
+	eof = f.readUInt32()
 
-		screens = []
-		for i in range(n_screens):
-			screen_id = f.readUInt32()
-			offset = f.readUInt32()
-			screens.append({"screen_id":screen_id, "offset":offset})
+	n_screen_unknown = f.readUInt8()
+	screen_unknown = [f.readUInt16() for x in range(n_screen_unknown)]
 
-		unknown = f.readUInt32()
-		unknown = f.readUInt32()
+	screen_polygons = []
+	for id,offset in entries:
+		assert(f.pos() == offset)
 
-		for screen in screens:
-			if( f.pos() != screen["offset"] ):
-				raise RuntimeError("Expected to start block at {0} not {1}".format(screen["offset"], f.pos()))
+		poly_type = f.readUInt8()
+		assert(poly_type in [0,1,3,4])
 
-			background_file_name_length = f.readUInt8()
-			background_file_name = ""
-			screen["background"] = f.readString()
+		assert(f.readUInt16() == 0)
 
-			polygons_file_nane_length = f.readUInt8()
-			polygons_file_name = ""
-			screen["polygons"] = f.readString()
+		n_vertices = f.readUInt8()
+		poly_vertices = []
+		for i in range(n_vertices):
+			x = f.readUInt16()
+			y = f.readUInt16()
+			distance = f.readUInt16()
+			poly_vertices.append({
+				"x": x,
+				"y": y,
+				"distance": distance,
+				})
 
-			n_entrances = f.readUInt8()
-			entrances = []
-			for i in range(n_entrances):
-				entrance_id = f.readUInt8()
+		n_poly_unknown = f.readUInt8()
+		poly_unknown = []
+		for i in range(n_poly_unknown):
+			poly_unknown.append((f.readUInt8(), f.readUInt8()))
 
-				# unknown is 0x1 for every single screen in every world except
-				# screen 11 in world 2, where it's 0x8d.
-				# If you don't unwind by one byte then, you end up overrunning
-				# the block, and the entrance positions are nonsense.
-				unknown = f.readUInt8()
-				if( unknown != 0x1 ):
-					f.setPosition(f.pos() - 1)
+		assert(f.readUInt16() == 0)
 
-				position = []
-				for j in range(4):
-					position.append( (f.readUInt16(), f.readUInt16()) )
-				entrance = {"entrance_id":entrance_id, "unknown":unknown, "position":position}
-				entrances.append(entrance)
+		screen_polygons.append({
+			"type": poly_type,
+			"vertices": poly_vertices,
+			"unknown": poly_unknown,
+		})
 
-			screen["entrances"] = entrances
+	assert(f.pos() == eof)
 
-		self._screens = screens
+	screen = {
+		"unknown": screen_unknown,
+		"polgons": screen_polygons,
+	}
+
+	return screen

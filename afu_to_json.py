@@ -25,6 +25,10 @@ def main():
 			data = AFU.Astro.astromapDb(args.file)
 		else:
 			print("Unsupported database file: {}".format(args.file.name))
+	elif file_type == "world":
+		data = AFU.World.worldSlScr(args.file)
+	elif file_type == "polygons":
+		data = AFU.World.worldStScr(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 
