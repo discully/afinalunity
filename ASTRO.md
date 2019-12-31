@@ -1,6 +1,6 @@
 # Astrogation
 
-The game space consists of an 8x8x8 grid of sectors.
+The game space consists of an 8x8x8 grid of 512 sectors.
 Each sector has a 20x20x20 co-ordinate grid, some of which will contain a star system.
 This means everything can be located within a 160x160x160 grid (global co-ordinates).
 
@@ -36,7 +36,7 @@ Useful when examining the astrogation files.
 
 ### Places of Interest
 
-| Sector | Co-ordinates | System | Co-ordinates | Notes |
+| Name | Sector | System | Co-ordinates | Notes |
 | :---   | :---         | :---   | :---         | :---  |
 | Al'din | 5-6-3        |        |              | Location from which the Gombara Pulsar can be viewed |
 | Thang  | 3-1-3        |        | 9-14-16      | Location of the Unity device |
@@ -118,11 +118,11 @@ I have not identified where the following information is stored:
 |   0x14 |     20 | system_z             |  32u | Global co-ordinate z |
 |   0x18 |     24 |                      |  32u | Always zero |
 |   0x1C |     28 | system_name          |  32u | String offset |
-|   0x20 |     32 | system_state         |  16u |  |
+|   0x20 |     32 | system_state         |  16u | Bitfield, see "System State" below |
 |   0x22 |     34 | system_station_orbit |   8u | 0 or, in astromap.db if a station is present, the index of the planet after which the station orbits |
 |   0x23 |     35 | system_station_type  |   8u | 0 or, in astromap.db is a station is present, either 131 (station) or 132 (outpost) |
-|   0x24 |     36 | system_class         |  16u |  |
-|   0x26 |     38 | system_magnitude     |  16s |  |
+|   0x24 |     36 | system_class         |  16u | See "System Class" below. |
+|   0x26 |     38 | system_magnitude     |  16s | Divide by 10.0 to get the magnitude of the primary star |
 |   0x28 |     40 | \<unknown 2>         |  32u | Values between 0 and 255 |
 |   0x2C |     44 |                      |  32u | Always zero |
 |   0x30 |     48 | system_alias         |  32u | String offset to an alternative name (e.g. "Frigis" for _______) |
@@ -132,6 +132,28 @@ I have not identified where the following information is stored:
 |   0x40 |     64 | system_station       |  32u | Only in astromap.db for systems with stations. Separation is 36bytes == sizeof(station). Offset? But what file? |
 
 Total length: 70 bytes.
+
+#### System State
+
+The system_state field is a bitfield encoding the following values: 
+ * 0b1 - Primary star is a White Dwarf
+ * 0b10 - A binary star system
+ * 0b1100 - Contains a starbase
+ * 0b0100 - Contains an outpost
+ * 0b10000 - Contains an inhabited planet
+
+
+#### System Class
+
+The system_class field defines the class of the system's primary star.
+
+The first part of the star's class comes from the result of integer
+division by 10, which is an index into this array: \['O', 'B', 'A', 'F', 'G', 'K', 'M'].
+
+The second part of the star's class comes from th remainder
+when divided by 10.
+
+For example, 34 would mean the system contains a class "F4" star.
 
 
 ### Struct: STATION
@@ -168,7 +190,7 @@ Represents astronomical bodies: Ion Storms, Quasaroids, Black Holes, Subspace Vo
 |   0x10 |   16 | body_y           | 32u  | Global co-ordinate y |
 |   0x14 |   20 | body_z           | 32u  | Global co-ordinate z |
 |   0x18 |   24 |                  | 32u  | Always zero |
-|   0x1C |   28 | body_name        | 32u  |  |
+|   0x1C |   28 | body_name        | 32u  | String offset of name of body |
 |   0x22 |   32 | body_zone_radius | 32u  | Radius of known zone of influence, in LY |
 |   0x26 |   36 | \<unknown>       | 32u  | 0 in astro.db, non-zero in astromap.db |
 
