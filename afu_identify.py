@@ -31,7 +31,7 @@ def main():
 	elif( file_type == "database" ):
 		afu_object = None
 	elif( file_type == "texture" ):
-		afu_object = AFU.Texture.Texture(file_path)
+		afu_object = None
 	elif( file_type == "world" ):
 		afu_object = None
 	elif( file_type == "list" ):

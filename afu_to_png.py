@@ -97,8 +97,8 @@ def main():
 			print("Exporting",char,ord(char))
 
 	elif file_type == "texture":
-		afu_texture = AFU.Texture.Texture(afu_file)
-		export(output_file_name, afu_texture.image)
+		img = PIL.Image.open(args.image_file)
+		img.save(args.image_file.with_suffix(".png").name, "PNG")
 
 	elif file_type == "menu":
 		path = args.image_file

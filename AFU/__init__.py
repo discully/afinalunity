@@ -9,7 +9,6 @@ __all__ = [
 	"Menu",
 	"Palette",
 	"Sprite",
-	"Texture",
 	"Utils",
 	"World",
 	]
