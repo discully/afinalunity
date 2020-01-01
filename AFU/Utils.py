@@ -13,7 +13,7 @@ from AFU import Image
 
 def identify(file_path):
 	file_path = PurePath(file_path)
-	file_extension = file_path.suffix
+	file_extension = file_path.suffix.lower()
 	file_name = file_path.stem
 	if( file_extension in [".spr",".spt"] ):
 		return "sprite"
