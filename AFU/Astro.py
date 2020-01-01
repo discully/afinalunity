@@ -429,6 +429,16 @@ def stationDescription(station):
 
 
 
+def _addSectorNames(sectors, file_path):
+	try:
+		sector_names = sectorAst(file_path.with_name("sector.ast"))
+		for sector in sectors:
+			sector["name"] = sector_names[sector["id"]]
+	except FileNotFoundError:
+		pass
+
+
+
 def astroDb(file_path):
 
 	OFFSET_SECTORS = 0x0
@@ -498,6 +508,8 @@ def astroDb(file_path):
 		system["stations"].append(station)
 
 	assert (f.pos() == OFFSET_STRINGS)
+	
+	_addSectorNames(sectors, file_path)
 
 	return sectors
 
@@ -539,6 +551,8 @@ def astromapDb(file_path):
 			sector["stations"].append(station)
 
 		sectors.append(sector)
+	
+	_addSectorNames(sectors, file_path)
 
 	return sectors
 
@@ -546,4 +560,4 @@ def astromapDb(file_path):
 
 def sectorAst(file_path):
 	f = File(file_path)
-	return [f.readLine() for x in range(N_SECTORS)]
+	return { i: f.readLine() for i in range(N_SECTORS) }

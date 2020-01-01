@@ -20,7 +20,9 @@ def identify(file_path):
 	elif( file_extension == ".rm" ):
 		return "background"
 	elif( file_extension == ".ast" ):
-		if file_name != "sector":
+		if file_name == "sector":
+			return "sector_names"
+		else:
 			return "background"
 	elif( file_extension == ".scr" ):
 		prefix = file_name[:2]
@@ -67,4 +69,4 @@ class Encoder (JSONEncoder):
 		if isinstance(obj, Image.Image):
 			return str(obj)
 		# Let the base class default method raise the TypeError
-		return json.JSONEncoder.default(self, obj)
+		return JSONEncoder.default(self, obj)

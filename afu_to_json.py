@@ -31,6 +31,8 @@ def main():
 		data = AFU.World.worldStScr(args.file)
 	elif file_type == "sprite":
 		data = AFU.Sprite.sprite(args.file, args.file.with_name("standard.pal"), args.file.with_name("standard.pal"))
+	elif file_type == "sector_names":
+		data = AFU.Astro.sectorAst(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 

@@ -9,7 +9,7 @@
 | ANM       |                           |      1 |                            |                    |                    |                    |
 | AST       | `multiple (see below)`    |      3 |                            |                    |                    |                    |
 | &vellip;  | Panel background image    |      2 | astropnl.ast, compupnl.ast | :heavy_check_mark: |                    |                    |
-| &vellip;  | List of sector names      |      1 | sector.ast                 |                    |                    |                    |
+| &vellip;  | List of sector names      |      1 | sector.ast                 |                    | :heavy_check_mark: |                    |
 | BIN       |                           |     17 |                            |                    |                    |                    |
 | BST       | `multiple (see below)`    |   3003 |                            |                    |                    |                    |
 | &vellip;  | objects                   |   2561 | o_######.bst               |                    |                    |                    |
