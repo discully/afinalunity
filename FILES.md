@@ -6,23 +6,27 @@
 | :---      | :---                      | ---:   | :---                       | :---               | :---               | :---               |
 | 3DR       |                           |      9 |                            |                    |                    |                    |
 | 3DV       |                           |     49 |                            |                    |                    |                    |
-| ANM       |                           |      1 |                            |                    |                    |                    |
+| ANM       |                           |      1 | phaser.anm                 |                    |                    |                    |
 | AST       | `multiple (see below)`    |      3 |                            |                    |                    |                    |
 | &vellip;  | Panel background image    |      2 | astropnl.ast, compupnl.ast | :heavy_check_mark: |                    |                    |
 | &vellip;  | List of sector names      |      1 | sector.ast                 |                    | :heavy_check_mark: |                    |
-| BIN       |                           |     17 |                            |                    |                    |                    |
+| BIN       | tactics?                  |     17 |                            |                    |                    |                    |
 | BST       | `multiple (see below)`    |   3003 |                            |                    |                    |                    |
 | &vellip;  | objects                   |   2561 | o_######.bst               |                    |                    |                    |
-| &vellip;  |                           |     97 | p_######.bst               |                    |                    |                    |
-| &vellip;  |                           |     10 | t_######.bst               |                    |                    |                    |
+| &vellip;  | character data?           |     97 | p_######.bst               |                    |                    |                    |
+| &vellip;  | terminal display text     |     10 | t_######.bst               |                    |                    |                    |
 | &vellip;  | conversations             |    182 | w{world}c###.bst           |                    |                    |                    |
 | &vellip;  |                           |      8 | w###con.bst                |                    |                    |                    |
 | &vellip;  |                           |      9 | w##strt.bst                |                    |                    |                    |
 | &vellip;  |                           |      9 | w##scrn.bst                |                    |                    |                    |
 | &vellip;  |                           |    126 | w####obj.bst               |                    |                    |                    |
 | &vellip;  |                           |      1 | worlname.bst               |                    |                    |                    |
-| DAT       |                           |     15 |                            |                    |                    |                    |
-| DB        | database                  |      3 |                            |                    |                    |                    |
+| DAT       | `multiple (see below)`    |     15 |                            |                    |                    |                    |
+| &vellip;  | cursors                   |      2 | cursor.dat, waitcurs.dat   |                    |                    |                    |
+| &vellip;  | level data                |      5 | level{level}.dat           |                    |                    |                    |
+| &vellip;  | world data                |      6 | w{world}a000.dat           |                    |                    |                    |
+| &vellip;  | others                    |      2 | ast_stat.dat, trigger.dat  |                    |                    |                    |
+| DB        | `multiple (see below)`    |      3 |                            |                    |                    |                    |
 | &vellip;  | astrogation database      |      2 | [astro.db, astromap.db](ASTRO.md) |                    | :heavy_check_mark: |                    |
 | &vellip;  | computer database         |      1 | computer.db                | :heavy_check_mark: | :heavy_check_mark: |                    |
 | IMG       | image (mostly 3d textures)|    197 |                            | :heavy_check_mark: |                    |                    |
