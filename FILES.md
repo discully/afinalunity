@@ -25,7 +25,7 @@
 | DB        | database                  |      3 |                            |                    |                    |                    |
 | &vellip;  | astrogation database      |      2 | [astro.db, astromap.db](ASTRO.md) |                    | :heavy_check_mark: |                    |
 | &vellip;  | computer database         |      1 | computer.db                | :heavy_check_mark: | :heavy_check_mark: |                    |
-| IMG       | images (3d textures)      |    197 |                            |                    |                    |                    |
+| IMG       | image (mostly 3d textures)|    197 |                            | :heavy_check_mark: |                    |                    |
 | DMG       |                           |      7 |                            |                    |                    |                    |
 | ---       |                           |      2 | list, compstat             |                    |                    |                    |
 | FON       | font                      |     10 |                            | :heavy_check_mark: |                    |                    |
