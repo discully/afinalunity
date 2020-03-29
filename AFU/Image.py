@@ -1,4 +1,4 @@
-import PIL
+from PIL import Image as PIL_Image
 
 
 class Image:
@@ -51,7 +51,7 @@ class Image:
 				
 				self.transparent = img.blank
 				
-				self.image = PIL.Image.new("RGBA", (img.width, img.height))
+				self.image = PIL_Image.new("RGBA", (img.width, img.height))
 				self.pixels = self.image.load()
 				
 				for x in range(img.width):
@@ -76,4 +76,4 @@ class Image:
 				self.pixels[row, column] = colour
 		
 		png_image = PILImage(self)
-		png_image.save("{0}.png".format(name))
+		png_image.save(name)
