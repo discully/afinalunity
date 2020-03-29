@@ -130,9 +130,10 @@ def sprite(sprite_path, background_path, palette_path=None):
 
 		elif block["name"] == "RGBP":
 			p.setLocalPalette(Palette(f))
+			p.setGlobalPalette(Palette(f))
 
 		else:
-			raise ValueError("Unknown block {} at {:#x}".format(black["name"], start))
+			raise ValueError("Unknown block {} at {:#x}".format(block["name"], block["start"]))
 
 		offset = block.pop("start")
 		block.pop("length")
