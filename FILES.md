@@ -81,3 +81,4 @@
 * 005 - Frigis (Shonoisho Epsilon VI)
 * 006 -
 * 007 -
+* 05f - Enterprise Bridge
