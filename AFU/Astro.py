@@ -5,8 +5,8 @@ from AFU.File import File, DatabaseFile
 
 
 # Functions for handling co-ordinates
-# The game space consists of an 8x8x8 grid (major co-ordinates), each cube in the grid is a "sector".
-# Each sector has a 20*20*20 grid (minor co-ordinates), some of which will contain a star "system".
+# The game space consists of an 8x8x8 grid (512 major co-ordinates), each cube in the grid is a "sector".
+# Each sector has a 20*20*20 grid (8000 minor co-ordinates), some of which will contain a star "system".
 
 
 N_SECTORS = 512 # 8x8x8
@@ -103,7 +103,7 @@ def readSector(f):
 	sector_n_bodies = f.readUInt32()
 	sector_n_stations = f.readUInt32() # Only used in astromap.db, always 0 in astro.db
 	sector_alignment = f.readUInt32()
-	sector_unknown = [f.readUInt8() for x in range(16)]  # todo: astromap.db: last 4 bytes 0 for all but first system, astro.db: [0x0,0x0,0x0,0xffffffff]
+	sector_unknown = [f.readUInt32() for x in range(4)]  # todo: astromap.db: last value 0 for all but first system, astro.db: [0x0,0x0,0x0,0xffffffff]
 
 	sector_z = (sector_id >> 6) & 0b111
 	sector_x = (sector_id >> 0) & 0b111
@@ -232,35 +232,60 @@ def readSystem(f):
 
 	system_unknown0 = f.readUInt8()
 	# todo: system unknown field 0
-	# [0] 255 (x1488), 0 (x1367), 101, 173, 189, 253, 247. One-off values could indicate events on arrival at these coords?
-	#   Darien Beta             101
-	#   Byrn Beta               173
-	#   Shonoisho Epsilon 5     189     Cut-scene on arrival at Shonoisho Epsilon VI (Frigis)
-	#   Polynya Delta           253
-	#   Cashat Delta (Joward)   247     Go to Joward III in search of Ferengi trader. Upon arrival, crew advises going to Nigold System
+	# Astro.db: 255 (x1488), 0 (x1367), 101, 173, 189, 253, 247.
+	# Astromap.db: Agrees with astro.db, except for one-off values.
+	# One-off values could indicate events on arrival at these coords?
+	#
+	#   <<< system >>>                astro.db  astromap.db
+	#   Darien Beta                   101         0
+	#   Byrn Beta                     173       255
+	#   Shonoisho Epsilon 5 (Frigis)  189         0            Cut-scene on arrival
+	#   Polynya Delta                 253         0
+	#   Cashat Delta (Joward)         247         0            Go to Joward III in search of Ferengi trader. Upon arrival, crew advises going to Nigold System.
 
 	system_unknown1 = f.readUInt8()
 	# todo: system unknown field 1
-	# [1] Lots of different values, none stand-out values
+	# Lots of different values, none stand-out values
+	# Astro.db and astromap.db agree except for seven systems below
+	#
+	# <<< system >>>                astro.db    astromap.db
+	# Darien Beta                   87          16
+	# Byrn Beta                     115         202
+	# Linore Iota                   29          20
+	# Tothe Delta                   171         33
+	# Euterpe Epsilon               71          87
+	# Shonoisho Epsilon             0           62
+	# Polynya Delta                 100         101
 
 	assert(f.readUInt16() == 0)
 	system_x = f.readUInt32()
 	system_y = f.readUInt32()
 	system_z = f.readUInt32()
 	assert(f.readUInt32() == 0)
-	system_name_offset = f.readUInt32() # todo: this is set in astromap.db, but not clear what it relates to
-	system_state = f.readUInt16()
+	system_name_offset = f.readUInt32() # todo: this is set in astromap.db, but isn't an offset within the file
+	system_state = f.readUInt16() # todo: the inhabited flag means something different in astromap.db
 	system_station_orbit = f.readUInt8() # In astromap.db the orbit of the station (0 is between first and second planet, 1: between second and third, etc). 0 in astro.db.
 	system_station_type = f.readUInt8() # In astromap.db could also be either station (131) or outpost (132). 0 in astro.db.
 	system_class = f.readUInt16()
 	system_magnitude = f.readSInt16()
-	system_unknown2 = f.readUInt32()  # todo: Values between 0 and 255. No stand-out values
+	
+	system_unknown2 = f.readUInt32()
+	# todo: system unknown field 2
+	# Values between 0 and 255. No stand-out values
+	# Astro.db and astromap.db agree except for four systems below
+	#
+	# <<< system >>>                astro.db    astromap.db
+	# Steger Delta                  49          140
+	# Tothe Delta                   104         231
+	# Euterpe Epsilon               175         177
+	# Shonoisho Epsilon             18          53
+	
 	assert(f.readUInt32() == 0)
 	system_alias_offset = f.readUInt32()
 	system_notable_offset = f.readUInt32()  # notable planet within system
 	system_description_offset = f.readUInt32()
 	assert(f.readUInt32() == 0)
-	system_station_offset = f.readUInt32()  # todo: Only in astromap.db for systems with stations. Separation is 36bytes == sizeof(station). Offset? But what file?
+	system_station_offset = f.readUInt32()  # todo: Only in astromap.db for systems with stations. Separation is 36bytes == sizeof(station).
 
 	system_global_coords = (system_x, system_y, system_z)
 	systemStateValidate(system_state)
@@ -288,7 +313,7 @@ def readSystem(f):
 		"unknown1": system_unknown1,
 		"unknown2": system_unknown2,
 
-		"name": "<name unavailable>",
+		"name": None,
 		"stations": [],
 		"planets": None,  # todo: determine how many planets there are
 		"asteroid_belt": None,  # todo: determine where asteroid belt is specified
@@ -469,6 +494,7 @@ def astroDb(file_path):
 			if offset != 0xFFFFFFFF: system["notable"] = f.readOffsetString(offset)
 			offset = system.pop("description_offset")
 			if offset != 0xFFFFFFFF: system["description"] = f.readOffsetString(offset)
+			assert( system.pop("station_offset") == 0 )
 
 			sector["systems"].append(system)
 
@@ -537,7 +563,8 @@ def astromapDb(file_path):
 			system.pop("name_offset")
 			system.pop("alias_offset")
 			system.pop("notable_offset")
-			system.pop("description_offset")
+			assert( system.pop("description_offset") == 0 )
+			#system.pop("station_offset")
 			sector["systems"].append(system)
 
 		for j in range(sector["n_bodies"]):
