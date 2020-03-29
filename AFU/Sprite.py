@@ -16,13 +16,13 @@ from AFU.Palette import Palette, FullPalette
 #	MASK - switch to mask mode
 #	POSN - change position of sprite/object?
 #	SETF - set flag (0, 1, 2, 3, 4)
-#	MARK - TODO: store info
+#	MARK - store the current position
 #	RAND - wait for a random time
-#	JUMP - Jump to another place in the sprite. Specifies an index into the array of offsets in LIST.
+#	JUMP - jump to another place in the sprite. Specifies an index into the array of offsets in LIST.
 #	SCOM - compressed image data representing speech
-#	DIGI - audio?! :(
+#	DIGI - unknown. audio?!
 #	SNDW - wait for sound to finish
-#	SNDF - TODO: unknown is always 75, 95 or 100. volume?
+#	SNDF - unknown. is always 75, 95 or 100. could be volume?
 #	PLAY -
 #	RPOS - relative position change(?)
 #	MPOS - mouth position (relative to parent)
@@ -174,7 +174,7 @@ def _readImage(f, block, palette):
 			else:
 				raise ValueError("Unknown image type {:#x}".format(image_type))
 		else:
-			raise ValueError("Unknown image encoding {:#x}".format(encoding))
+			raise ValueError("Unknown image encoding {:#x}".format(image_encoding))
 
 	return {
 		"offset": image_offset,
@@ -219,7 +219,7 @@ def _readImage1(f, width, height, palette):
 			# bit 1 set: 2 bit colour offset, 3 bit length (+1)
 			offset = f.readBitsToInt(2)
 			length = f.readBitsToInt(3) + 1
-			if ((offset & 0x2) == 0):
+			if (offset & 0x2) == 0:
 				colour = colour + 1 + offset
 			else:
 				colour = colour + 1 - offset
@@ -263,7 +263,6 @@ def _readImage2(f, width, height, palette):
 	image = Image(width, height)
 	n_pixels = len(image)
 	curr_pixel = 0
-	colour = 0
 
 	while curr_pixel < n_pixels:
 
