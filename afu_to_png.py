@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from pathlib import Path
-import PIL
+from PIL import Image as PIL_Image
 import AFU
 
 
@@ -11,7 +11,7 @@ class PILImage:
 
 		self.transparent = img.blank
 
-		self.image = PIL.Image.new("RGBA", (img.width, img.height) )
+		self.image = PIL_Image.new("RGBA", (img.width, img.height) )
 		self.pixels = self.image.load()
 
 		for x in range(img.width):
@@ -97,7 +97,7 @@ def main():
 			print("Exporting",char,ord(char))
 
 	elif file_type == "texture":
-		img = PIL.Image.open(args.image_file)
+		img = PIL_Image.open(args.image_file)
 		img.save(args.image_file.with_suffix(".png").name, "PNG")
 
 	elif file_type == "menu":
