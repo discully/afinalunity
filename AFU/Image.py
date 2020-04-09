@@ -8,6 +8,7 @@ class Image:
 		self.width = width
 		self.height = height
 		self.pixels = [ [self.blank for x in range(height)] for x in range(width) ]
+		self.name = None
 	
 	
 	def __getitem__(self, x):
@@ -21,7 +22,10 @@ class Image:
 	
 	
 	def __str__(self):
-		return "Image (width={0}, height={1})".format(self.width, self.height)
+		if self.name:
+			return self.name
+		else:
+			return "Image (width={0}, height={1})".format(self.width, self.height)
 	
 	
 	def nPixels(self):

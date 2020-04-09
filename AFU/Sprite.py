@@ -32,6 +32,35 @@ from AFU.Palette import Palette, FullPalette
 #	BSON - used only in legaleze.spr
 
 
+def combine(spr):
+	
+	# Create a single image
+	combined_image = Image(0,0)
+	for offset,image in spr["images"].items():
+		offset_x = combined_image.width
+		offset_y = 0
+		combined_width = combined_image.width + image["width"]
+		combined_height = max(combined_image.height, image["height"])
+		new_combined_image = Image(combined_width, combined_height)
+		for x in range(combined_image.width):
+			for y in range(combined_image.height):
+				new_combined_image.set(combined_image[x][y], x, y)
+		for x in range(image["width"]):
+			for y in range(image["height"]):
+				new_combined_image.set(image["image"][x][y], offset_x + x, offset_y + y)
+		combined_image = new_combined_image
+		image["offset_x"] = offset_x
+		image["offset_y"] = offset_y
+		image.pop("image")
+	combined_image.name = spr["name"]
+	spr["image"] = combined_image
+	
+	# Put the image info directly into the blocks
+	for block in spr["blocks"]:
+		if "image_offset" in block:
+			block.update(spr["images"][block["image_offset"]])
+
+
 def sprite(sprite_path, background_path, palette_path=None):
 	f = File(sprite_path)
 
@@ -42,43 +71,43 @@ def sprite(sprite_path, background_path, palette_path=None):
 	p.setGlobalPalette(Palette(File(palette_path)))
 	p.setLocalPalette(Palette(File(background_path)))
 
-	s = {
-		"blocks": OrderedDict(),
+	spr = {
+		"name": sprite_path.name,
+		"blocks": [],
 		"images": {},
 	}
 
 	block = _readBlockHeader(f)
 	assert(block["name"] == "SPRT")
 	assert(f.readUInt32() == 0x100)
-	eof = block["start"] + block["length"]
+	eof = block["offset"] + block["length"]
+	
+	block_offsets = []
 
 	while f.pos() < eof:
 		block = _readBlockHeader(f)
 
 		if block["name"] == "LIST":
-			block["offsets"] = []
+			block["entries"] = []
 			length = f.readUInt32()
 			for i in range(length):
 				offset = f.readUInt32()
-				block["offsets"].append(block["start"] + offset)
+				block["entries"].append({"offset": block["offset"] + offset})
 
 		elif block["name"] == "SETF":
 			block["flag"] = f.readUInt32() # 0, 1, 2, 3 or 4
 
 		elif block["name"] == "POSN":
-			x = f.readUInt32()
-			y = f.readUInt32()
-			block["data"] = {
-				"x": x,
-				"y": y,
-			}
+			block["x"] = f.readUInt32()
+			block["y"] = f.readUInt32()
 
 		elif block["name"] == "COMP":
 			image = _readImage(f, block, p)
 			offset = image.pop("offset")
-			block["offset"] = offset
+			block["image_offset"] = offset
 			if image["image"] is not None:
-				s["images"][offset] = image
+				image["image"].name = _imageName(sprite_path, offset)
+				spr["images"][offset] = image
 
 		elif block["name"] == "TIME":
 			block["time"] = f.readUInt32()
@@ -92,9 +121,10 @@ def sprite(sprite_path, background_path, palette_path=None):
 		elif block["name"] == "SCOM":
 			image = _readImage(f, block, p)
 			offset = image.pop("offset")
-			block["offset"] = offset
+			block["image_offset"] = offset
 			if image["image"] is not None:
-				s["images"][offset] = image
+				image["image"].name = _imageName(sprite_path, offset)
+				spr["images"][offset] = image
 
 		elif block["name"] == "RAND":
 			rand_extra = f.readUInt32()
@@ -134,20 +164,29 @@ def sprite(sprite_path, background_path, palette_path=None):
 
 		else:
 			raise ValueError("Unknown block {} at {:#x}".format(block["name"], block["start"]))
+		
+		block_offsets.append(block["offset"])
+		block.pop("length") # we don't need this any more
+		spr["blocks"].append(block)
+	
+	for block in spr["blocks"]:
+		if block["name"] == "LIST":
+			for entry in block["entries"]:
+				entry["index"] = block_offsets.index(entry["offset"])
 
-		offset = block.pop("start")
-		block.pop("length")
-		s["blocks"][offset] = block
+	return spr
 
-	return s
+
+def _imageName(sprite_path, image_offset):
+	return "{}.{}{}".format(sprite_path.stem, image_offset, sprite_path.suffix)
 
 
 def _readBlockHeader(f):
-	start = f.pos()
+	offset = f.pos()
 	name = "".join(reversed([chr(c) for c in f.read(4)]))
 	length = f.readUInt32()
 	return {
-		"start": start,
+		"offset": offset,
 		"name": name,
 		"length": length
 	}
@@ -161,10 +200,10 @@ def _readImage(f, block, palette):
 
 	if image_type == 0x3:
 		offset = f.readUInt32()
-		image_offset = block["start"] - offset
+		image_offset = block["offset"] - offset
 		image_image = None
 	else:
-		image_offset = block["start"]
+		image_offset = block["offset"]
 
 		if image_encoding == 0xd:
 			if image_type == 0x1:
