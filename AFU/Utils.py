@@ -14,46 +14,46 @@ def identify(file_path):
 	file_path = PurePath(file_path)
 	file_extension = file_path.suffix.lower()
 	file_name = file_path.stem
-	if( file_extension in [".spr",".spt"] ):
+	if file_extension in [".spr",".spt"]:
 		return "sprite"
-	elif( file_extension == ".rm" ):
+	elif file_extension == ".rm":
 		return "background"
-	elif( file_extension == ".ast" ):
+	elif file_extension == ".ast":
 		if file_name == "sector":
 			return "sector_names"
 		else:
 			return "background"
-	elif( file_extension == ".scr" ):
+	elif file_extension == ".scr":
 		prefix = file_name[:2]
-		if( prefix == "sb" ):
+		if prefix == "sb":
 			return "background"
-		elif( prefix == "sl" ):
+		elif prefix == "sl":
 			return "world"
-		elif( prefix == "st" ):
+		elif prefix == "st":
 			return "polygons"
-	elif( file_extension in [".mac",".rac",".vac"] ):
+	elif file_extension in [".mac", ".rac", ".vac"]:
 		return "audio"
-	elif( file_extension == ".img" ):
+	elif file_extension == ".img":
 		return "texture"
-	elif( file_extension == ".fon" ):
+	elif file_extension == ".fon":
 		return "font"
-	elif( file_extension == ".pal" ):
+	elif file_extension == ".pal":
 		return "palette"
-	elif( file_extension == ".db" ):
+	elif file_extension == ".db":
 		return "database"
-	elif( file_extension == ".txt" ):
+	elif file_extension == ".txt":
 		return "text"
-	elif( file_extension == ".lst" ):
+	elif file_extension == ".lst":
 		return "list"
-	elif( file_extension == ".mrg" ):
+	elif file_extension == ".mrg":
 		return "menu"
-	elif( file_extension == ".bst" ):
-		if( file_name.startswith("o_") ):
+	elif file_extension == ".bst":
+		if file_name.startswith("o_"):
 			return "object"
-		elif( file_name.startswith("p_") ):
+		elif file_name.startswith("p_"):
 			return "phaser"
-		elif( file_name.startswith("w") ):
-			if( len(file_name) == 8 and file_name[4] == 'c' ): # wXXXcXXX.bst
+		elif file_name.startswith("w"):
+			if len(file_name) == 8 and file_name[4] == 'c': # wXXXcXXX.bst
 				return "conversation"
 			# elif( file_name.endswith("obj") ): # wXXXXobj.bst - object with sprite
 			# elif( file_name.endswith("con") ): # w_DDDcon.bst
