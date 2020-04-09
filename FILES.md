@@ -37,7 +37,7 @@
 | LBM       |                           |      4 |                            |                    |                    |                    |
 | MAP       |                           |      3 | icon.map, movie.map, phaser.map |                    |                    |                    |
 | MAC       | audio (sound effects)     |    103 |                            |                    |                    | :heavy_check_mark: |
-| LST       | list (index of sprites)   |      1 | sprites.lst                |                    |                    |                    |
+| LST       | list (index of sprites)   |      1 | sprites.lst                |                    | :heavy_check_mark: |                    |
 | MRG       | menu graphics             |     11 |                            | :heavy_check_mark: |                    |                    |
 | MTL       |                           |     55 |                            |                    |                    |                    |
 | MTR       |                           |      9 |                            |                    |                    |                    |
