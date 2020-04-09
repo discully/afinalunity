@@ -12,10 +12,10 @@
 | &vellip;  | List of sector names      |      1 | sector.ast                 |                    | :heavy_check_mark: |                    |
 | BIN       | tactics?                  |     17 |                            |                    |                    |                    |
 | BST       | `multiple (see below)`    |   3003 |                            |                    |                    |                    |
-| &vellip;  | objects                   |   2561 | o_######.bst               |                    |                    |                    |
-| &vellip;  | phaser info               |     97 | p_######.bst               |                    |                    |                    |
+| &vellip;  | objects                   |   2561 | o_######.bst               |                    | :heavy_check_mark: |                    |
+| &vellip;  | phaser info               |     97 | p_######.bst               |                    | :heavy_check_mark: |                    |
 | &vellip;  | terminal display text     |     10 | t_######.bst               |                    |                    |                    |
-| &vellip;  | conversations             |    182 | w{world}c###.bst           |                    |                    |                    |
+| &vellip;  | conversations             |    182 | w{world}c###.bst           |                    | :heavy_check_mark: |                    |
 | &vellip;  |                           |      8 | w###con.bst                |                    |                    |                    |
 | &vellip;  |                           |      9 | w##strt.bst                |                    |                    |                    |
 | &vellip;  |                           |      9 | w##scrn.bst                |                    |                    |                    |
