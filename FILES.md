@@ -13,7 +13,7 @@
 | BIN       | tactics?                  |     17 |                            |                    |                    |                    |
 | BST       | `multiple (see below)`    |   3003 |                            |                    |                    |                    |
 | &vellip;  | objects                   |   2561 | o_######.bst               |                    |                    |                    |
-| &vellip;  | character data?           |     97 | p_######.bst               |                    |                    |                    |
+| &vellip;  | phaser info               |     97 | p_######.bst               |                    |                    |                    |
 | &vellip;  | terminal display text     |     10 | t_######.bst               |                    |                    |                    |
 | &vellip;  | conversations             |    182 | w{world}c###.bst           |                    |                    |                    |
 | &vellip;  |                           |      8 | w###con.bst                |                    |                    |                    |

@@ -33,6 +33,8 @@ def main():
 		data = AFU.Sprite.sprite(args.file, args.file.with_name("standard.pal"), args.file.with_name("standard.pal"))
 	elif file_type == "sector_names":
 		data = AFU.Astro.sectorAst(args.file)
+	elif file_type in ["conversation", "object", "phaser"]:
+		data = AFU.Block.bst(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 

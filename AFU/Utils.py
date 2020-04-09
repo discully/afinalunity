@@ -1,5 +1,4 @@
 from pathlib import PurePath
-from enum import Enum
 from json import JSONEncoder
 from AFU import Image
 
@@ -48,18 +47,24 @@ def identify(file_path):
 		return "list"
 	elif( file_extension == ".mrg" ):
 		return "menu"
-	#elif( file_extension == ".bst" ):
-		# o_XXXXXX.bst - object
-		# p_XXXXXX.bst
-		# t_XXXXXX.bst
-		# wXXXXobj.bst - object with sprite
-		# wXXXcXXX.bst - conversation
+	elif( file_extension == ".bst" ):
+		if( file_name.startswith("o_") ):
+			return "object"
+		elif( file_name.startswith("p_") ):
+			return "phaser"
+		elif( file_name.startswith("w") ):
+			if( len(file_name) == 8 and file_name[4] == 'c' ): # wXXXcXXX.bst
+				return "conversation"
+			# elif( file_name.endswith("obj") ): # wXXXXobj.bst - object with sprite
+			# elif( file_name.endswith("con") ): # w_DDDcon.bst
+			# elif( file_name.endswith("scrn") ):# w_DDscrn.bst
+			# elif( file_name.endswith("strt") ): # w_DDstrt.bst - startup screens for world
+		#if( file_name == "worlname" ):
+		#	return "worlds"
+		#elif( file_name.startswith("t_" ) ):
+		#	return "terminal"
+		
 		# wXXXXXXX.bst
-		# worlname.bst
-		# w_DDDcon.bst
-		# w_DDscrn.bst
-		# w_DDstrt.bst - startup screens for world
-
 	return "unknown"
 
 

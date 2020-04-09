@@ -10,6 +10,7 @@ class File:
 		self.f = open(self.file_name, "rb")
 		self.start = self.pos()
 		self.bits = deque()
+		self._size = None
 
 
 	def __len__(self):
@@ -22,6 +23,10 @@ class File:
 
 	def name(self):
 		return self.file_name
+	
+	
+	def eof(self):
+		return not self.pos() < self.size()
 
 
 	def pos(self):
@@ -114,14 +119,25 @@ class File:
 			s += chr(c)
 			c = self.readUInt8()
 		return s
+	
+	
+	def readStringBuffer(self, length):
+		b = self.read(length)
+		s = ""
+		for x in b:
+			if x == 0:
+				break
+			s += chr(x)
+		return s
 
 
 	def size(self):
-		current_position = self.pos()
-		self.f.seek(0,2) # go to the end of the file
-		size = self.pos()
-		self.f.seek(current_position, 0) # go back to where we were
-		return size
+		if self._size == None:
+			current_position = self.pos()
+			self.f.seek(0,2) # go to the end of the file
+			self._size = self.pos()
+			self.f.seek(current_position, 0) # go back to where we were
+		return self._size
 
 
 	def setPosition(self, pos):
