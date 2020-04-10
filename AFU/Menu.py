@@ -1,8 +1,5 @@
 from pathlib import Path
-from AFU.File import File
-from AFU.Image import Image
-from AFU.Palette import Palette
-from AFU.Palette import FullPalette
+from AFU import Palette, Image, File
 
 
 class Menu:
@@ -14,11 +11,8 @@ class Menu:
 		if self.file_path.suffix != ".mrg":
 			raise ValueError("Menu only supports .mrg files")
 
-		standard_palette = Palette(File(self.file_path.with_name("standard.pal")))
-		self.palette = FullPalette()
-		self.palette.setGlobalPalette(standard_palette)
-		# todo: This is certainly the wrong local pallette.
-		self.palette.setLocalPalette(standard_palette)
+		global_palette_path = Palette.getGlobalPalettePath(file_path)
+		self.palette = Palette.fullPalette(global_palette_path, global_palette_path) # todo: This is certainly the wrong local pallette.
 
 		self.offsets = []
 		self.images = []
@@ -36,11 +30,11 @@ class Menu:
 
 
 	def __str__(self):
-		return "Menu ({0}) {} images".format(self.file_path, len(self))
+		return "Menu ({}) {} images".format(self.file_path, len(self))
 
 
 	def _read(self):
-		f = File(self.file_path)
+		f = File.File(self.file_path)
 
 		n_entries = f.readUInt16()
 		for i in range(n_entries):
@@ -53,7 +47,7 @@ class Menu:
 
 			width = f.readUInt16()
 			height = f.readUInt16()
-			image = Image(width, height)
+			image = Image.Image(width, height)
 
 			for y in range(height):
 				for x in range(width):

@@ -1,112 +1,94 @@
-import os.path
+from pathlib import Path
+from AFU.File import File
 
 
-
-class Palette:
-	
-	def __init__(self, input_file = None):
-		self._palette = [None for i in range(128)]
-		if( input_file != None ):
-			self.read(input_file)
-	
-	
-	def __getitem__(self, index):
-		if( index < 0 or index >= len(self) ):
-			raise IndexError( "Palette index {0} out of range [0,{1})".format(index, len(self)) )
-		return self._palette[index]
-	
-	
-	def __len__(self):
-		return len(self._palette)
-	
-	
-	def __str__(self):
-		s = "Palette:\n"
-		for i in range(len(self)):
-			s += "  {0} {1}\n".format(i, self[i])
-		return s
-	
-	
-	def read(self, f):
-		for i in range(len(self)):
-			r = f.readUInt8() * 4
-			g = f.readUInt8() * 4
-			b = f.readUInt8() * 4
-			self._palette[i] = (r,g,b)
+_LENGTH_SINGLE = 128
+_LENGTH_FULL = 2*_LENGTH_SINGLE
 
 
+def readFullPalette(f):
+	"""Read a full (256 colour) palette from the current position in an open file"""
+	return readSinglePalette(f) + readSinglePalette(f)
 
-class FullPalette:
-	
-	def __init__(self):
-		self.global_palette = None
-		self.local_palette   = None
-	
-	def __getitem__(self, index):
-		if( index < 0 or index >= len(self) ):
-			raise IndexError( "Palette index {0} out of range [0,{1})".format(index, len(self)) )
-		elif( index >= len(self.local_palette) ):
-			return self.global_palette[index-len(self.local_palette)]
-		else:
-			return self.local_palette[index]
-	
-	
-	def __len__(self):
-		return len(self.global_palette) + len(self.local_palette)
-	
-	
-	def __str__(self):
-		for i in range(len(self)):
-			print(i, self[i])
-	
-	
-	def setGlobalPalette(self, global_palette):
-		self.global_palette = global_palette
-	
-	
-	def setLocalPalette(self, local_palette):
-		self.local_palette = local_palette
 
+def readSinglePalette(f):
+	"""Read a single (128 colour) palette from the current position in an open file"""
+	palette = []
+	for i in range(_LENGTH_SINGLE):
+		r = f.readUInt8() * 4
+		g = f.readUInt8() * 4
+		b = f.readUInt8() * 4
+		palette.append( (r, g, b) )
+	return palette
+
+
+def fullPalette(local_path, global_path):
+	"""Read a full (256 colour) palette, getting the local and global parts from two separate files"""
+	local_palette = readSinglePalette(File(local_path))
+	global_palette = readSinglePalette(File(global_path))
+	return local_palette + global_palette
+
+
+def singlePalette(palette_path):
+	"""Read a single (128 colour) palette from a file"""
+	return readSinglePalette(File(palette_path))
+
+
+def combinePalettes(local_palette, global_palette):
+	"""Combine two single (128 colour) palettes into one full (256 colour) palette"""
+	return local_palette + global_palette
+
+
+def replaceLocalPalette(full_palette, new_local_palette):
+	if not len(new_local_palette) == _LENGTH_SINGLE:
+		raise ValueError("New local palette's length ({}) does not match the required size ({})", len(new_local_palette), _LENGTH_SINGLE)
+	full_palette[:_LENGTH_SINGLE] = new_local_palette
+
+
+def replaceGlobalPalette(full_palette, new_global_palette):
+	if not len(new_global_palette) == _LENGTH_SINGLE:
+		raise ValueError("New global palette's length ({}) does not match the required size ({})", len(new_global_palette), _LENGTH_SINGLE)
+	full_palette[_LENGTH_SINGLE:] = new_global_palette
 
 
 def standard():
-	global standard_file_path
-	global _standard_palette
+	pass
+#	global standard_file_path
+#	global _standard_palette
+#
+#	if( standard_file_path == None ):
+#		if( os.path.isfile("standard.pal") ):
+#			standard_file_path = "standard.pal"
+#		else:
+#			raise RuntimeError("The location of the palette file standard.pal is not set and it cannot be found.")
+#
+#	if( _standard_palette == None ):
+#		import AFU.File as File
+#		f = File.File(standard_file_path)
+#		_standard_palette = Palette(f)
+#
+#	return _standard_palette
+#
+#standard_file_path = None
+#_standard_palette = None
 
-	if( standard_file_path == None ):
-		if( os.path.isfile("standard.pal") ):
-			standard_file_path = "standard.pal"
+
+def getGlobalPalettePath(image_path, palette_path=None):
+	# First, if a palette path was explicitly provided, check that
+	if not palette_path is None:
+		if palette_path.is_file():
+			return palette_path
 		else:
-			raise RuntimeError("The location of the palette file standard.pal is not set and it cannot be found.")
-
-	if( _standard_palette == None ):
-		import AFU.File as File
-		f = File.File(standard_file_path)
-		_standard_palette = Palette(f)
-
-	return _standard_palette
-
-standard_file_path = None
-_standard_palette = None
-
-
-
-def main():
+			raise ValueError("Palette provided is not a file: {}".format(palette_path))
 	
-	import sys
-	if( len(sys.argv) != 2 ):
-		print("[USAGE]",__file__,"<filename.pal>")
-		return 0
+	# Second, look alongside the image for the usual standard palette
+	palette_path = image_path.with_name("standard.pal")
+	if palette_path.is_file():
+		return palette_path
 	
-	import AFU.File as File
-	f = File.File(sys.argv[1])
+	# Finally, look in the working directory for the usual standard palette
+	palette_path = Path("standard.pal")
+	if palette_path.is_file():
+		return palette_path
 	
-	pal = Palette(f)
-	print(pal)
-
-
-if __name__ == "__main__":
-	main()
-
-
-
+	raise RuntimeError("Could not find the palette standard.pal and no alternative was provided")

@@ -1,9 +1,6 @@
-from argparse import ArgumentParser
-from collections import OrderedDict
-from pathlib import Path
 from AFU.File import File
 from AFU.Image import Image
-from AFU.Palette import Palette, FullPalette
+from AFU import Palette
 
 
 #	SPRT - appears at start, indicates sprite file
@@ -30,6 +27,9 @@ from AFU.Palette import Palette, FullPalette
 #	OBJS - set parent object state
 #	RGBP - palette (256*3 bytes, each 0-63)
 #	BSON - used only in legaleze.spr
+
+
+
 
 
 def combine(spr):
@@ -62,14 +62,13 @@ def combine(spr):
 
 
 def sprite(sprite_path, background_path, palette_path=None):
+	
+	palette_path = Palette.getGlobalPalettePath(sprite_path, palette_path)
+	global_palette = Palette.singlePalette(palette_path)
+	local_palette = Palette.singlePalette(background_path)
+	palette = Palette.combinePalettes(local_palette, global_palette)
+	
 	f = File(sprite_path)
-
-	if palette_path is None:
-		palette_path = sprite_path.with_name("standard.pal")
-
-	p = FullPalette()
-	p.setGlobalPalette(Palette(File(palette_path)))
-	p.setLocalPalette(Palette(File(background_path)))
 
 	spr = {
 		"name": sprite_path.name,
@@ -102,7 +101,7 @@ def sprite(sprite_path, background_path, palette_path=None):
 			block["y"] = f.readUInt32()
 
 		elif block["name"] == "COMP":
-			image = _readImage(f, block, p)
+			image = _readImage(f, block, palette)
 			offset = image.pop("offset")
 			block["image_offset"] = offset
 			if image["image"] is not None:
@@ -119,7 +118,7 @@ def sprite(sprite_path, background_path, palette_path=None):
 			pass
 
 		elif block["name"] == "SCOM":
-			image = _readImage(f, block, p)
+			image = _readImage(f, block, palette)
 			offset = image.pop("offset")
 			block["image_offset"] = offset
 			if image["image"] is not None:
@@ -159,8 +158,7 @@ def sprite(sprite_path, background_path, palette_path=None):
 			pass
 
 		elif block["name"] == "RGBP":
-			p.setLocalPalette(Palette(f))
-			p.setGlobalPalette(Palette(f))
+			palette = Palette.readFullPalette(f)
 
 		else:
 			raise ValueError("Unknown block {} at {:#x}".format(block["name"], block["start"]))

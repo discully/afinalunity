@@ -46,6 +46,17 @@ def export(name, afu_image):
 		png_image.save("{0}.png".format(name))
 
 
+def getFilePath(file_name, image_path, argument):
+	if argument is not None:
+		return argument
+	file_path = image_path.with_name(file_name)
+	if file_path.is_file():
+		return file_path
+	file_path = Path(file_name)
+	if file_path.is_file():
+		return file_path
+	return None
+
 
 def main():
 
@@ -56,10 +67,7 @@ def main():
 	parser.add_argument("-o", "--output_dir", type=Path, help="Output directory to place images in", default=".")
 	args = parser.parse_args()
 
-	if args.palette is None:
-		AFU.Palette.standard_file_path = args.image_file.with_name("standard.pal")
-	else:
-		AFU.Palette.standard_file_path = args.palette
+	global_palette_path = AFU.Palette.getGlobalPalettePath(args.image_file, args.palette)
 
 	afu_file = AFU.File.File(args.image_file)
 	output_file_name = args.output_dir.joinpath(args.image_file.name)
@@ -78,57 +86,53 @@ def main():
 			export("{0}.{1}".format(output_file_name, offset), image["image"])
 
 	elif file_type == "background":
-		afu_background = AFU.Background.Background(afu_file)
-		export(output_file_name, afu_background.image)
+		afu_background = AFU.Background.background(args.image_file)
+		export(output_file_name, afu_background["image"])
 
 	elif file_type == "font":
-
-		if args.background is None:
-			print("Path to background image required for font but not provided.")
+		
+		background_path = getFilePath("bridge.rm", args.image_file, args.background)
+		if background_path is None:
+			print("Path to background image required for font, but was not provided and could not be guessed.")
 			parser.print_help()
 			return
+		
+		palette = AFU.Palette.fullPalette(args.background, global_palette_path)
 
-		p = AFU.Palette.FullPalette()
-		p.setGlobalPalette( AFU.Palette.standard() )
-		p.setLocalPalette( AFU.Palette.Palette( AFU.File.File(args.background) ) )
-
-		afu_font = AFU.Font.Font(p, afu_file)
+		afu_font = AFU.Font.Font(palette, afu_file)
 		for char,afu_character in afu_font.characters.items():
 			export("{0}.{1}".format(output_file_name,ord(char)), afu_character.image)
-			print("Exporting",char,ord(char))
+			#print("Exporting",char,ord(char))
 
 	elif file_type == "texture":
 		img = PIL_Image.open(args.image_file)
-		img.save(args.image_file.with_suffix(".png").name, "PNG")
+		img.save("{}.png".format(output_file_name), "PNG")
 
 	elif file_type == "menu":
-		path = args.image_file
-		afu_menu = AFU.Menu.Menu(path)
+		afu_menu = AFU.Menu.Menu(args.image_file)
 		for i in range(len(afu_menu)):
 			offset = afu_menu.offsets[i]
 			image = afu_menu.images[i]
-			output_file_name = "{}_{}".format(path.stem, offset)
-			export(output_file_name, image)
+			export("{}.{}".format(output_file_name, offset), image)
 
 	elif file_type == "database":
 		if args.image_file.stem == "computer":
 
-			if args.background is None:
-				background_file = args.image_file.with_name("compupnl.ast")
-			else:
-				background_file = args.background
-
-			p = AFU.Palette.FullPalette()
-			p.setGlobalPalette( AFU.Palette.standard() )
-			p.setLocalPalette( AFU.Palette.Palette( AFU.File.File(background_file) ) )
+			background_path = getFilePath("compupnl.ast", args.image_file, args.background)
+			if background_path is None:
+				print("Path to background image required for computer database, but was not provided and could not be guessed.")
+				parser.print_help()
+				return
+			
+			palette = AFU.Palette.fullPalette(background_path, global_palette_path)
 
 			computer = AFU.Computer.computerDb(args.image_file)
 			for offset,entry in computer.items():
 				if "image" in entry:
 					image = AFU.Image.Image(entry["image"]["width"], entry["image"]["height"])
 					for i,b in enumerate(entry["image"]["data"]):
-						image.set(p[b], i)
-					image.export("computer.db.{}".format(offset))
+						image.set(palette[b], i)
+					image.export("{}.{}.png".format(output_file_name, offset))
 		else:
 			print("Unsupported database file: {}".format(args.image_file.name))
 

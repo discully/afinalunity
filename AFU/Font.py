@@ -85,7 +85,7 @@ class Font:
 		elif( unknown3 == 0x0 ):
 			raise ValueError("Font type {0:#x} not currently supported".format(unknown3))
 		
-		self.pitch = f.readUInt8();
+		self.pitch = f.readUInt8()
 		
 		if( unknown3 == 0 ):
 			expected_size = 1
@@ -95,12 +95,12 @@ class Font:
 		if( size != expected_size ):
 			raise ValueError("Size reported in file ({0}) does not match that expected ({1}).".format(size, expected_size))
 		
-		print(self)
+		#print(self)
 		
 		for char_int in range(self.start, self.end+1):
 			char_character = chr(char_int)
 			char_width =  f.readUInt8()
-			print(char_width)
+			#print(char_width)
 			char_image = Image.Image(self.pitch, self.height)
 			
 			for y in range(self.height):
@@ -116,27 +116,3 @@ class Font:
 	
 	def string(self, string):
 		chars = [ self.character(char) for char in string ]
-
-
-
-def main():
-	
-	import sys
-	if( len(sys.argv) != 3 ):
-		print("[USAGE]",__file__,"<filename.fon> <user palette file>")
-		return 0
-	
-	import AFU.File as File
-	f = File.File(sys.argv[1])
-	
-	import AFU.Palette as Palette
-	p = Palette.FullPalette()
-	p.setGlobalPalette( Palette.standard() )
-	p.setLocalPalette( Palette.Palette(File.File(sys.argv[2])) )
-	
-	fon = Font(p, f)
-	print(fon)
-
-
-if __name__ == "__main__":
-	main()
