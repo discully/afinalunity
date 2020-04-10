@@ -42,7 +42,7 @@ def main():
 	else:
 		print("Unsupported file type: {}".format(file_type))
 
-	output_path = "{}.json".format(args.output_dir.joingpath(args.file.name))
+	output_path = "{}.json".format(args.output_dir.joinpath(args.file.name))
 	json.dump(data, open(output_path, "w"), indent="\t", cls=AFU.Utils.Encoder)
 
 
