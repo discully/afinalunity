@@ -7,7 +7,8 @@ import json
 def main():
 	parser = ArgumentParser()
 	parser.add_argument("file", type=Path, help="Path to the file to be converted")
-	parser.add_argument("--image_data", "-i", action="store_true", default=False, help='Include image data in export of computer.db')
+	parser.add_argument("-i", "--image_data", action="store_true", help='Include image data in export of computer.db', default=False)
+	parser.add_argument("-o", "--output_dir", type=Path, help="Output directory to place json in", default=".")
 	args = parser.parse_args()
 
 	file_type = AFU.Utils.identify( args.file )
@@ -41,7 +42,8 @@ def main():
 	else:
 		print("Unsupported file type: {}".format(file_type))
 
-	json.dump(data, open("{}.json".format(args.file.name), "w"), indent="\t", cls=AFU.Utils.Encoder)
+	output_path = "{}.json".format(args.output_dir.joingpath(args.file.name))
+	json.dump(data, open(output_path, "w"), indent="\t", cls=AFU.Utils.Encoder)
 
 
 if __name__ == "__main__":

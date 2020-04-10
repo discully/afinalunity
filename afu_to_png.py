@@ -53,6 +53,7 @@ def main():
 	parser.add_argument("image_file", type=Path, help="Path to the image file")
 	parser.add_argument("-p", "--palette", type=Path, help="Path to standard.pal")
 	parser.add_argument("-b", "--background", type=Path, help="Path to a background image on which the sprite is drawn (required for Sprites and Fonts)")
+	parser.add_argument("-o", "--output_dir", type=Path, help="Output directory to place images in", default=".")
 	args = parser.parse_args()
 
 	if args.palette is None:
@@ -61,7 +62,7 @@ def main():
 		AFU.Palette.standard_file_path = args.palette
 
 	afu_file = AFU.File.File(args.image_file)
-	output_file_name = args.image_file.name
+	output_file_name = args.output_dir.joinpath(args.image_file.name)
 
 	file_type = AFU.Utils.identify( args.image_file )
 
