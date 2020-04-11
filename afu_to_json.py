@@ -40,6 +40,8 @@ def main():
 		data = AFU.Block.bst(args.file)
 	elif file_type == "list":
 		data = AFU.Sprite.lst(args.file)
+	elif file_type == "advice":
+		data = AFU.World.adviceDat(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 		return

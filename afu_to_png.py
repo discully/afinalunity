@@ -114,6 +114,11 @@ def main():
 			offset = afu_menu.offsets[i]
 			image = afu_menu.images[i]
 			export("{}.{}".format(output_file_name, offset), image)
+	
+	elif file_type == "cursor":
+		cursors = AFU.Cursor.cursor(args.image_file, global_palette_path)
+		for cursor in cursors:
+			export(output_file_name.with_name(cursor.name), cursor)
 
 	elif file_type == "database":
 		if args.image_file.stem == "computer":

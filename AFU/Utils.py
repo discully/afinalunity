@@ -23,6 +23,12 @@ def identify(file_path):
 			return "sector_names"
 		else:
 			return "background"
+	elif file_extension == ".dat":
+		if file_name.endswith("a000"):
+			return "advice"
+		elif file_name in ("cursor", "waitcurs"):
+			return "cursor"
+		# todo	ast_stat.dat, level#.dat, trigger.dat
 	elif file_extension == ".scr":
 		prefix = file_name[:2]
 		if prefix == "sb":
