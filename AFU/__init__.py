@@ -6,7 +6,6 @@ __all__ = [
 	"File",
 	"Font",
 	"Image",
-	"List",
 	"Menu",
 	"Palette",
 	"Sprite",
