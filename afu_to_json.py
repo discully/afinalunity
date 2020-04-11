@@ -38,7 +38,7 @@ def main():
 	elif file_type in ["conversation", "object", "phaser"]:
 		data = AFU.Block.bst(args.file)
 	elif file_type == "list":
-		data = AFU.List.lst(args.file)
+		data = AFU.Sprite.lst(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 

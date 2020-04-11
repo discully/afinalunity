@@ -29,7 +29,14 @@ from AFU import Palette
 #	BSON - used only in legaleze.spr
 
 
-
+def lst(file_path):
+	f = File(file_path)
+	n = f.readUInt32()
+	entries = []
+	while not f.eof():
+		entries.append(f.readString())
+	assert(n == len(entries))
+	return entries
 
 
 def combine(spr):
