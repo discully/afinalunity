@@ -26,6 +26,7 @@ def main():
 			data = AFU.Astro.astromapDb(args.file)
 		else:
 			print("Unsupported database file: {}".format(args.file.name))
+			return
 	elif file_type == "world":
 		data = AFU.World.worldSlScr(args.file)
 	elif file_type == "polygons":
@@ -41,6 +42,7 @@ def main():
 		data = AFU.Sprite.lst(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
+		return
 
 	output_path = "{}.json".format(args.output_dir.joinpath(args.file.name))
 	json.dump(data, open(output_path, "w"), indent="\t", cls=AFU.Utils.Encoder)
