@@ -27,7 +27,13 @@ class File:
 	
 	def eof(self):
 		return not self.pos() < self.size()
-
+	
+	
+	def peek(self):
+		value = self.readUInt8()
+		self.setPosition(self.pos() - 1)
+		return value
+	
 
 	def pos(self):
 		return self.f.tell()
@@ -79,7 +85,7 @@ class File:
 
 
 	def readBits(self, n_bits):
-		if( len(self.bits) < n_bits):
+		if len(self.bits) < n_bits:
 			self.bits += list("{0:08b}".format(self.readUInt8()))
 		bits = []
 		for i in range(n_bits):
@@ -97,7 +103,7 @@ class File:
 	def read(self, length):
 		"""Read `length` bytes from the file"""
 		got = self.f.read(length)
-		if( len(got) != length ): raise EOFError("End of file {}".format(self.pos()))
+		if len(got) != length: raise EOFError("End of file {}".format(self.pos()))
 		return got
 
 
@@ -115,7 +121,7 @@ class File:
 		"""Read string up to a null byte"""
 		s = ""
 		c = self.readUInt8()
-		while( c != 0x0 ):
+		while c != 0x0:
 			s += chr(c)
 			c = self.readUInt8()
 		return s
@@ -132,7 +138,7 @@ class File:
 
 
 	def size(self):
-		if self._size == None:
+		if not self._size is None:
 			current_position = self.pos()
 			self.f.seek(0,2) # go to the end of the file
 			self._size = self.pos()

@@ -58,6 +58,8 @@ def identify(file_path):
 			return "object"
 		elif file_name.startswith("p_"):
 			return "phaser"
+		elif file_name.startswith("t_"):
+			return "terminal"
 		elif file_name.startswith("w"):
 			if len(file_name) == 8 and file_name[4] == 'c': # wXXXcXXX.bst
 				return "conversation"

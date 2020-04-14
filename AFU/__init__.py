@@ -2,6 +2,7 @@ __all__ = [
 	"Astro",
 	"Background",
 	"Block",
+	"Cursor",
 	"Computer",
 	"File",
 	"Font",
@@ -9,6 +10,7 @@ __all__ = [
 	"Menu",
 	"Palette",
 	"Sprite",
+	"Terminal",
 	"Utils",
 	"World",
 	]

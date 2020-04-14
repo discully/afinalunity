@@ -42,6 +42,8 @@ def main():
 		data = AFU.Sprite.lst(args.file)
 	elif file_type == "advice":
 		data = AFU.World.adviceDat(args.file)
+	elif file_type == "terminal":
+		data = AFU.Terminal.terminal(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 		return
