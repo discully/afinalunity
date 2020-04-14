@@ -138,7 +138,7 @@ class File:
 
 
 	def size(self):
-		if not self._size is None:
+		if self._size is None:
 			current_position = self.pos()
 			self.f.seek(0,2) # go to the end of the file
 			self._size = self.pos()
