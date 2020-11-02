@@ -16,9 +16,10 @@
 | &vellip;  | phaser info               |     97 | p_######.bst               |                    | :heavy_check_mark: |                    |
 | &vellip;  | terminal display text     |     10 | t_######.bst               |                    |                    |                    |
 | &vellip;  | conversations             |    182 | w{world}c###.bst           |                    | :heavy_check_mark: |                    |
-| &vellip;  |                           |      8 | w###con.bst                |                    |                    |                    |
-| &vellip;  |                           |      9 | w##strt.bst                |                    |                    |                    |
-| &vellip;  |                           |      9 | w##scrn.bst                |                    |                    |                    |
+| &vellip;  |                           |      8 | w_###con.bst               |                    |                    |                    |
+| &vellip;  |                           |      9 | w_##strt.bst               |                    |                    |                    |
+| &vellip;  |                           |      9 | w_##scrn.bst               |                    |                    |                    |
+| &vellip;  |                           |      9 | w_##scrn.bst               |                    |                    |                    |
 | &vellip;  |                           |    126 | w####obj.bst               |                    |                    |                    |
 | &vellip;  |                           |      1 | worlname.bst               |                    |                    |                    |
 | DAT       | `multiple (see below)`    |     15 |                            |                    |                    |                    |
