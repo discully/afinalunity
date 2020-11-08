@@ -1,6 +1,6 @@
 from pathlib import PurePath
 from json import JSONEncoder
-from AFU import Image
+from AFU import Image, Block
 
 # All the file extensions in AFU:
 # {'', '.3dv', '.img', '.pc4', '.rm', '.pc1', '.pc6', '.db',
@@ -79,6 +79,8 @@ def identify(file_path):
 
 class Encoder (JSONEncoder):
 	def default(self, obj):
+		if isinstance(obj, Block.BlockType) or isinstance(obj, Block.ConversationResponseState) or isinstance(obj, Block.ObjectWalkType):
+			return obj.name
 		if isinstance(obj, Image.Image):
 			return str(obj)
 		# Let the base class default method raise the TypeError
