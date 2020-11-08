@@ -60,7 +60,11 @@
 | SPT       | sprite (transporter room) |      9 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
 | TXT       | text (credits)            |      2 |                            |                    |                    |                    |
 | VAC       | audio (voice)             |  10182 |                            |                    |                    | :heavy_check_mark: |
-| &vellip;  |                           |   7235 | fe{character}####.vac      |                    |                    | :heavy_check_mark: |
+| &vellip;  | computer status alerts    |     23 | cm_###.vac                 |                    |                    | :heavy_check_mark: |
+| &vellip;  | object descriptions       |   1170 | ##l#{character}##.vac      |                    |                    | :heavy_check_mark: |
+| &vellip;  | ???                       |     63 | ##t#{character}##.vac      |                    |                    | :heavy_check_mark: |
+| &vellip;  | conversation              |   7235 | fe{character}####.vac      |                    |                    | :heavy_check_mark: |
+| &vellip;  | conversation              |   1691 | ####{character}##.vac      |                    |                    | :heavy_check_mark: |
 
 ### Characters
 * 00 - Picard
@@ -73,13 +77,13 @@
 * 07 - Carlstrom
 * 08 - Butler
 * 09 - Computer
-* ff -
+* ff - other characters
 
 ### Worlds
-* 002 -
-* 003 - Morassia
-* 004 - Mertens Orbital Station
-* 005 - Frigis (Shonoisho Epsilon VI)
-* 006 -
-* 007 -
-* 05f - Enterprise Bridge
+* 02 - Allanor
+* 03 - Morassia
+* 04 - Mertens Orbital Station
+* 05 - Frigis (Shonoisho Epsilon VI)
+* 06 -
+* 07 -
+* 5f - Enterprise Bridge
