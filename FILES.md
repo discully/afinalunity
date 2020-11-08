@@ -62,7 +62,7 @@
 | VAC       | audio (voice)             |  10182 |                            |                    |                    | :heavy_check_mark: |
 | &vellip;  | computer status alerts    |     23 | cm_###.vac                 |                    |                    | :heavy_check_mark: |
 | &vellip;  | object descriptions       |   1170 | ##l#{character}##.vac      |                    |                    | :heavy_check_mark: |
-| &vellip;  | ???                       |     63 | ##t#{character}##.vac      |                    |                    | :heavy_check_mark: |
+| &vellip;  | triggered speech          |     63 | ##t#{character}##.vac      |                    |                    | :heavy_check_mark: |
 | &vellip;  | conversation              |   7235 | fe{character}####.vac      |                    |                    | :heavy_check_mark: |
 | &vellip;  | conversation              |   1691 | ####{character}##.vac      |                    |                    | :heavy_check_mark: |
 
