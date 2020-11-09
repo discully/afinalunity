@@ -1,5 +1,43 @@
 from AFU.File import File
+from AFU.Block import _readObjectId
 
+
+def worldStrt(file_path):
+	f = File(file_path)
+	data = []
+	while not f.eof():
+		screen = {}
+		screen["advice_id"] = f.readUInt16()
+		screen["advice_timer"] = f.readUInt16()
+		screen["unknown1"] = f.readUInt8()
+		screen["unknown2"] = f.readUInt8()
+		screen["id"] = f.readUInt16()
+		assert (screen["id"] == len(data))
+		screen["target"] = _readObjectId(f)
+		screen["action_type"] = f.readUInt8()
+		screen["who"] = _readObjectId(f)
+		screen["other"] = _readObjectId(f)
+		assert(f.readUInt32() == 0xffffffff) # unknown3
+		screen["unknown4"] = f.readUInt16()
+		assert(screen["unknown4"] in (0xff, 0x1, 0x0))
+		assert(f.readUInt16() == 0x0) # unknown5
+		assert(f.readUInt8() == 0x0) # unknown6
+		for i in range(15):
+			assert (f.readUInt8() == 0)
+		data.append(screen)
+	return data
+
+
+def worldList(file_path):
+	f = File(file_path)
+	data = {}
+	while not f.eof():
+		scene_id = f.readUInt16()
+		assert(f.readUInt16() == scene_id)
+		assert(f.readUInt16() == 0)
+		comment = f.readStringBuffer(21)
+		data[scene_id] = comment
+	return data
 
 
 def worldSlScr(file_path):

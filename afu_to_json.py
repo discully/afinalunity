@@ -44,6 +44,10 @@ def main():
 		data = AFU.World.adviceDat(args.file)
 	elif file_type == "terminal":
 		data = AFU.Terminal.terminal(args.file)
+	elif file_type == "start":
+		data = AFU.World.worldStrt(args.file)
+	elif file_type == "world_list":
+		data = AFU.World.worldList(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 		return

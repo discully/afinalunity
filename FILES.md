@@ -16,19 +16,19 @@
 | &vellip;  | phaser info               |     97 | p_######.bst               |                    | :heavy_check_mark: |                    |
 | &vellip;  | terminal display text     |     10 | t_######.bst               |                    |                    |                    |
 | &vellip;  | conversations             |    182 | w{world}c###.bst           |                    | :heavy_check_mark: |                    |
-| &vellip;  |                           |      8 | w_###con.bst               |                    |                    |                    |
-| &vellip;  |                           |      9 | w_##strt.bst               |                    |                    |                    |
-| &vellip;  |                           |      9 | w_##scrn.bst               |                    |                    |                    |
-| &vellip;  |                           |      9 | w_##scrn.bst               |                    |                    |                    |
+| &vellip;  | conversations index       |      8 | w_{world}con.bst           |                    | :heavy_check_mark: |                    |
+| &vellip;  | screens index             |      9 | w_{world}scrn.bst          |                    | :heavy_check_mark: |                    |
+| &vellip;  | screen startups           |      9 | w_{world}strt.bst          |                    | :heavy_check_mark: |                    |
 | &vellip;  |                           |    126 | w####obj.bst               |                    |                    |                    |
 | &vellip;  |                           |      1 | worlname.bst               |                    |                    |                    |
 | DAT       | `multiple (see below)`    |     15 |                            |                    |                    |                    |
 | &vellip;  | cursors                   |      2 | cursor.dat, waitcurs.dat   |                    |                    |                    |
 | &vellip;  | level data                |      5 | level{level}.dat           |                    |                    |                    |
-| &vellip;  | world data                |      6 | w{world}a000.dat           |                    |                    |                    |
+| &vellip;  | advice index*             |      6 | w{world}a000.dat           |                    |                    |                    |
+| &vellip;  |                           |      9 | w_##strt.bst               |                    | :heavy_check_mark: |                    |
 | &vellip;  | others                    |      2 | ast_stat.dat, trigger.dat  |                    |                    |                    |
 | DB        | `multiple (see below)`    |      3 |                            |                    |                    |                    |
-| &vellip;  | astrogation database      |      2 | [astro.db, astromap.db](ASTRO.md) |                    | :heavy_check_mark: |                    |
+| &vellip;  | astrogation database      |      2 | [astro.db, astromap.db](ASTRO.md) |             | :heavy_check_mark: |                    |
 | &vellip;  | computer database         |      1 | computer.db                | :heavy_check_mark: | :heavy_check_mark: |                    |
 | IMG       | image (mostly 3d textures)|    197 |                            | :heavy_check_mark: |                    |                    |
 | DMG       |                           |      7 |                            |                    |                    |                    |
@@ -36,7 +36,7 @@
 | FON       | font                      |     10 |                            | :heavy_check_mark: |                    |                    |
 | FVF       |                           |     27 |                            |                    |                    |                    |
 | LBM       |                           |      4 |                            |                    |                    |                    |
-| MAP       |                           |      3 | icon.map, movie.map, phaser.map |                    |                    |                    |
+| MAP       |                           |      3 | icon.map, movie.map, phaser.map |               |                    |                    |
 | MAC       | audio (sound effects)     |    103 |                            |                    |                    | :heavy_check_mark: |
 | LST       | list (index of sprites)   |      1 | sprites.lst                |                    | :heavy_check_mark: |                    |
 | MRG       | menu graphics             |     11 |                            | :heavy_check_mark: |                    |                    |
@@ -51,7 +51,7 @@
 | PC6       |                           |      9 |                            |                    |                    |                    |
 | PIC       |                           |      4 |                            |                    |                    |                    |
 | RAC       | audio                     |     69 |                            |                    |                    | :heavy_check_mark: |
-| RM        | background image (room?)  |      5 | bridge.rm, transp.rm, viewscr.rm | :heavy_check_mark: |                    |                    |
+| RM        | background image (room?)  |      5 | bridge.rm, transp.rm, viewscr.rm | :heavy_check_mark: |              |                    |
 | SCR       |                           |    153 |                            |                    |                    |                    |
 | &vellip;  | world screen background   |     73 | sb{world}{screen}.scr      | :heavy_check_mark: |                    |                    |
 | &vellip;  | world                     |      6 | sl{world}.scr              |                    | :heavy_check_mark: |                    |
@@ -80,10 +80,12 @@
 * ff - other characters
 
 ### Worlds
+* 00 - 
 * 02 - Allanor
 * 03 - Morassia
 * 04 - Mertens Orbital Station
 * 05 - Frigis (Shonoisho Epsilon VI)
 * 06 -
 * 07 -
+* 10 - 
 * 5f - Enterprise Bridge
