@@ -63,17 +63,16 @@ def identify(file_path):
 		elif file_name.startswith("w"):
 			if len(file_name) == 8 and file_name[4] == 'c': # wXXXcXXX.bst
 				return "conversation"
-			# elif( file_name.endswith("obj") ): # wXXXXobj.bst - object with sprite
+			elif( file_name.endswith("obj") ): # wXXXXobj.bst
+				return "world_objects"
 			elif( file_name.endswith("con") ): # w_DDDcon.bst
 				return "world_list"
 			elif( file_name.endswith("scrn") ):# w_DDscrn.bst
 				return "world_list"
-			elif( file_name.endswith("strt") ): # w_DDstrt.bst - startup screens for world
+			elif( file_name.endswith("strt") ): # w_DDstrt.bst
 				return "start"
-		#if( file_name == "worlname" ):
-		#	return "worlds"
-		
-		# wXXXXXXX.bst
+			elif( file_name == "worlname" ):
+				return "world_list"
 	return "unknown"
 
 

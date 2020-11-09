@@ -100,6 +100,22 @@ def worldSlScr(file_path):
 	return { "screens": world_screens }
 
 
+def worldObj(file_path):
+	f = File(file_path)
+	screen = []
+	while not f.eof():
+		counter = f.readUInt16()
+		object_id = _readObjectId(f)
+		assert(object_id["id"] == counter)
+		name = f.readStringBuffer(30).strip()
+		description = f.readStringBuffer(260).strip()
+		screen.append({
+			"id": object_id,
+			"name": name,
+			"description": description,
+		})
+	return screen
+
 
 def worldStScr(file_path):
 	f = File(file_path)

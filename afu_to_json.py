@@ -48,6 +48,8 @@ def main():
 		data = AFU.World.worldStrt(args.file)
 	elif file_type == "world_list":
 		data = AFU.World.worldList(args.file)
+	elif file_type == "world_objects":
+		data = AFU.World.worldObj(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 		return

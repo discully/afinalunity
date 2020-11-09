@@ -19,7 +19,7 @@
 | &vellip;  | conversations index       |      8 | w_{world}con.bst           |                    | :heavy_check_mark: |                    |
 | &vellip;  | screens index             |      9 | w_{world}scrn.bst          |                    | :heavy_check_mark: |                    |
 | &vellip;  | screen startups           |      9 | w_{world}strt.bst          |                    | :heavy_check_mark: |                    |
-| &vellip;  |                           |    126 | w####obj.bst               |                    |                    |                    |
+| &vellip;  | screen objects            |    126 | w{world}##obj.bst          |                    | :heavy_check_mark: |                    |
 | &vellip;  |                           |      1 | worlname.bst               |                    |                    |                    |
 | DAT       | `multiple (see below)`    |     15 |                            |                    |                    |                    |
 | &vellip;  | cursors                   |      2 | cursor.dat, waitcurs.dat   |                    |                    |                    |
