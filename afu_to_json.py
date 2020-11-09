@@ -50,6 +50,8 @@ def main():
 		data = AFU.World.worldList(args.file)
 	elif file_type == "world_objects":
 		data = AFU.World.worldObj(args.file)
+	elif file_type == "triggers":
+		data = AFU.Data.triggers(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 		return

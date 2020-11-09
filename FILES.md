@@ -22,15 +22,16 @@
 | &vellip;  | screen objects            |    126 | w{world}##obj.bst          |                    | :heavy_check_mark: |                    |
 | &vellip;  |                           |      1 | worlname.bst               |                    | :heavy_check_mark: |                    |
 | DAT       | `multiple (see below)`    |     15 |                            |                    |                    |                    |
-| &vellip;  | cursors                   |      2 | cursor.dat, waitcurs.dat   |                    |                    |                    |
+| &vellip;  | cursors                   |      2 | cursor.dat, waitcurs.dat   | :heavy_check_mark: |                    |                    |
 | &vellip;  | level data                |      5 | level{level}.dat           |                    |                    |                    |
 | &vellip;  | advice index              |      6 | w{world}a000.dat           |                    | :heavy_check_mark: |                    |
-| &vellip;  | others                    |      2 | ast_stat.dat, trigger.dat  |                    |                    |                    |
+| &vellip;  | triggers                  |      1 | trigger.dat                |                    | :heavy_check_mark: |                    |
+| &vellip;  | astrogation state?        |      1 | ast_stat.dat               |                    |                    |                    |
 | DB        | `multiple (see below)`    |      3 |                            |                    |                    |                    |
 | &vellip;  | astrogation database      |      2 | [astro.db, astromap.db](ASTRO.md) |             | :heavy_check_mark: |                    |
 | &vellip;  | computer database         |      1 | computer.db                | :heavy_check_mark: | :heavy_check_mark: |                    |
 | IMG       | image (mostly 3d textures)|    197 |                            | :heavy_check_mark: |                    |                    |
-| DMG       |                           |      7 |                            |                    |                    |                    |
+| DMG       | list of .img files        |      7 | enterprs.dmg               |                    |                    |                    |
 | ---       |                           |      2 | list, compstat             |                    |                    |                    |
 | FON       | font                      |     10 |                            | :heavy_check_mark: |                    |                    |
 | FVF       |                           |     27 |                            |                    |                    |                    |
@@ -49,9 +50,9 @@
 | PC5       |                           |      9 |                            |                    |                    |                    |
 | PC6       |                           |      9 |                            |                    |                    |                    |
 | PIC       |                           |      4 |                            |                    |                    |                    |
-| RAC       | audio                     |     69 |                            |                    |                    | :heavy_check_mark: |
+| RAC       | audio (ambient)           |     69 |                            |                    |                    | :heavy_check_mark: |
 | RM        | background image (room?)  |      5 | bridge.rm, transp.rm, viewscr.rm | :heavy_check_mark: |              |                    |
-| SCR       |                           |    153 |                            |                    |                    |                    |
+| SCR       | `multiple (see below)`    |    153 |                            |                    |                    |                    |
 | &vellip;  | world screen background   |     73 | sb{world}{screen}.scr      | :heavy_check_mark: |                    |                    |
 | &vellip;  | world                     |      6 | sl{world}.scr              |                    | :heavy_check_mark: |                    |
 | &vellip;  | world screen polygons     |     74 | st{world}{screen}.scr      |                    | :heavy_check_mark: |                    |

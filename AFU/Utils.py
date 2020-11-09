@@ -1,6 +1,7 @@
 from pathlib import PurePath
 from json import JSONEncoder
 from AFU import Image, Block
+from enum import Enum
 
 # All the file extensions in AFU:
 # {'', '.3dv', '.img', '.pc4', '.rm', '.pc1', '.pc6', '.db',
@@ -28,6 +29,8 @@ def identify(file_path):
 			return "advice"
 		elif file_name in ("cursor", "waitcurs"):
 			return "cursor"
+		elif file_name == "trigger":
+			return "triggers"
 		# todo	ast_stat.dat, level#.dat, trigger.dat
 	elif file_extension == ".scr":
 		prefix = file_name[:2]
@@ -80,6 +83,8 @@ def identify(file_path):
 class Encoder (JSONEncoder):
 	def default(self, obj):
 		if isinstance(obj, Block.BlockType) or isinstance(obj, Block.ConversationResponseState) or isinstance(obj, Block.ObjectWalkType):
+			return obj.name
+		if isinstance(obj, Enum):
 			return obj.name
 		if isinstance(obj, Image.Image):
 			return str(obj)
