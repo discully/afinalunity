@@ -14,7 +14,7 @@
 | BST       | `multiple (see below)`    |   3003 |                            |                    |                    |                    |
 | &vellip;  | objects                   |   2561 | o_######.bst               |                    | :heavy_check_mark: |                    |
 | &vellip;  | phaser info               |     97 | p_######.bst               |                    | :heavy_check_mark: |                    |
-| &vellip;  | terminal display text     |     10 | t_######.bst               |                    |                    |                    |
+| &vellip;  | terminal display text     |     10 | t_######.bst               |                    | :heavy_check_mark: |                    |
 | &vellip;  | conversations             |    182 | w{world}c###.bst           |                    | :heavy_check_mark: |                    |
 | &vellip;  | conversations index       |      8 | w_{world}con.bst           |                    | :heavy_check_mark: |                    |
 | &vellip;  | screens index             |      9 | w_{world}scrn.bst          |                    | :heavy_check_mark: |                    |
@@ -24,8 +24,7 @@
 | DAT       | `multiple (see below)`    |     15 |                            |                    |                    |                    |
 | &vellip;  | cursors                   |      2 | cursor.dat, waitcurs.dat   |                    |                    |                    |
 | &vellip;  | level data                |      5 | level{level}.dat           |                    |                    |                    |
-| &vellip;  | advice index*             |      6 | w{world}a000.dat           |                    |                    |                    |
-| &vellip;  |                           |      9 | w_##strt.bst               |                    | :heavy_check_mark: |                    |
+| &vellip;  | advice index              |      6 | w{world}a000.dat           |                    | :heavy_check_mark: |                    |
 | &vellip;  | others                    |      2 | ast_stat.dat, trigger.dat  |                    |                    |                    |
 | DB        | `multiple (see below)`    |      3 |                            |                    |                    |                    |
 | &vellip;  | astrogation database      |      2 | [astro.db, astromap.db](ASTRO.md) |             | :heavy_check_mark: |                    |
