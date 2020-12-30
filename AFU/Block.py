@@ -239,12 +239,18 @@ def _getVoiceFile(speaker, voice, file_type=None):
 		speaker_id = 0xff
 
 	if voice["group"] == 0xfe:
-		return "{1[group]:02x}{0:02x}{1[subgroup]:02x}{1[id]:02x}.vac".format(speaker_id, voice)
+		file_name = "{1[group]:02x}{0:02x}{1[subgroup]:02x}{1[id]:02x}.vac".format(speaker_id, voice)
+	elif voice["group"] == 0xfd:
+		file_name = "{1[group]:02x}_{0:02x}_{1[subgroup]:02x}_{1[id]:02x}.vac".format(speaker_id, voice)
+	elif not file_type is None:
+		file_name = "{1[group]:02x}{2}{1[subgroup]:01x}{0:02x}{1[id]:02x}.vac".format(speaker_id, voice, file_type)
+	else:
+		file_name = "{1[group]:02x}{1[subgroup]:02x}{0:02x}{1[id]:02x}.vac".format(speaker_id, voice)
 	
-	if not file_type is None:
-		return "{1[group]:02x}{2}{1[subgroup]:01x}{0:02x}{1[id]:02x}.vac".format(speaker_id, voice, file_type)
+	if voice["group"] == 0xfd:
+		print(speaker, voice, file_name, file_type)
 	
-	return "{1[group]:02x}{1[subgroup]:02x}{0:02x}{1[id]:02x}.vac".format(speaker_id, voice)
+	return file_name
 
 
 def _readVoiceId(f):
@@ -256,6 +262,12 @@ def _readVoiceId(f):
 		"group": voice_group,
 		"subgroup": voice_subgroup,
 	}
+
+
+def _getTextTargets(t):
+	assert( len(t) % 4 == 0 )
+	tt = { int(t[x]) : t[x+1:x+4] for x in range(0, len(t), 4) }
+	return { k: "fe0{}0{}.vac".format(k,v) for k,v in tt.items() }
 
 
 ########################################################################################################################
@@ -274,7 +286,13 @@ def _readConvResponse(f, block):
 	
 	block["id"] = f.readUInt16()
 	block["state"] = f.readUInt16()
-	block["text1"] = f.readStringBuffer(255)
+	
+	txts = f.readStringBuffer(255).split("@")
+	assert(len(txts) in (1,3))
+	block["text1"] = txts[0].strip()
+	if len(txts) == 3:
+		block["text1_vacs"] = _getTextTargets(txts[1])
+	
 	block["response_state"] = ConversationResponseState(f.readUInt8())
 	block["unknown"].append([f.readUInt16() for i in range(3)])
 	block["next_situation"] = f.readUInt16()
@@ -312,10 +330,13 @@ def _readConvResponse(f, block):
 		block["text"][0]["text1"] = block["text"][0]["text1"][:-1] + extra["text1"]
 	
 	#assert(len(block["text"]) == 1) # w006c035.bst, w05fc034.bst
-	if block["voice"]["group"] != 0xcc:
+	if block["voice"]["id"] != 0xffffffff and block["voice"]["group"] != 0xcc:
 		if len(block["text1"]) > 0:
 			for who in block["whocansay"]:
-				who["file"] = _getVoiceFile(who, block["voice"])
+				if block["voice"]["group"] == 0xfd:
+					who["file"] = block["text1_vacs"][who["id"]]
+				else:
+					who["file"] = _getVoiceFile(who, block["voice"])
 	for text in block["text"]:
 		if len(text["text1"]) > 0 and text["voice"]["group"] != 0xcc:
 			text["file"] = _getVoiceFile(block["target"], text["voice"])
