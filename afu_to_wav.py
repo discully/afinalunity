@@ -1,36 +1,48 @@
 import os
 import sys
-import pathlib
-import subprocess
+from argparse import ArgumentParser
+from pathlib import Path
+from subprocess import call as subproc_call
 
-# This works for .mac and .vac files.
+
+# This works for .mac and .rac and .vac files.
 # The .rac files are stereo, and sox (currently) refuses to deal with 2 channels.
-# Instead, you must first pass it through afu_stereo_to_mono.py
+# Instead, we split the .rac into left/right files, convert them both to wavs,
+# then merge the two wavs into a final stereo file.
 
 
+def _toWav(input_file_path, output_dir):
+	output_file_path = output_dir.joinpath(input_file_path.with_suffix(".wav").name)
+	subproc_call(["sox", "-N", "-t", "ima", "-r", "22050", str(input_file_path), str(output_file_path)])
+	return output_file_path
 
-def _toWav(input_file_path, output_file_name = None):
-	if( output_file_name == None ):
-		output_file_name = input_file_path.with_suffix(".wav").name
-	subprocess.call(["sox", "-N", "-t", "ima", "-r", "22050", str(input_file_path), str(output_file_name)])
-	return output_file_name
 
+def _toStereoWav(input_file_path, output_dir):
+	output_file_path = output_dir.joinpath(input_file_path.with_suffix(".wav").name)
+	rac_l,rac_r = _splitStereo(input_file_path, output_dir)
+	wav_l = _toWav(rac_l, output_dir)
+	wav_r = _toWav(rac_r, output_dir)
+	_toStereo(wav_l, wav_r, output_file_path)
+	rac_l.unlink()
+	rac_r.unlink()
+	wav_l.unlink()
+	wav_r.unlink()
+	return output_file_path
 
 
 def _toStereo(left_file_path, right_file_path, stereo_file_path):
-	subprocess.call(["sox", "-M", str(left_file_path), str(right_file_path), str(stereo_file_path)])
+	subproc_call(["sox", "-M", str(left_file_path), str(right_file_path), str(stereo_file_path)])
 
 
-
-def _splitStereo(input_file_path):
+def _splitStereo(input_file_path, output_dir):
 	input_file = open(str(input_file_path), "rb")
-	output_file_names = (
-		input_file_path.with_suffix(".L.rac"),
-		input_file_path.with_suffix(".R.rac")
+	output_file_paths = (
+		output_dir.joinpath(input_file_path.with_suffix(".L.rac").name),
+		output_dir.joinpath(input_file_path.with_suffix(".R.rac").name)
 		)
 	output_files = (
-		open(str(output_file_names[0]), "wb"),
-		open(str(output_file_names[1]), "wb")
+		open(str(output_file_paths[0]), "wb"),
+		open(str(output_file_paths[1]), "wb")
 		)
 
 	while True:
@@ -44,42 +56,40 @@ def _splitStereo(input_file_path):
 	output_files[0].close()
 	output_files[1].close()
 
-	return output_file_names
+	return output_file_paths
 
 
 
 def main():
 
-	supported_extensions = [".mac", ".rac", ".vac"]
+	parser = ArgumentParser(
+		description="Converts '.mac', '.rac' and '.vac' audio files to '.wav'.",
+		epilog="Application expects sox to be installed and in PATH."
+		)
+	parser.add_argument("audio_file", type=Path, help="Path to the audio file(s)", nargs="+")
+	parser.add_argument("-o", "--output_dir", type=Path, help="Output directory to place wav files in", default=".")
+	args = parser.parse_args()
 
-	if( len(sys.argv) != 2 ):
-		print("[USAGE]", __file__, "<audio file path>")
-		print("")
-		print("Converts", supported_extensions, "audio files to .wav format.")
-		print("Expects sox to be installed and in PATH.")
+	if not args.output_dir.is_dir():
+		print("Output directory path is not a valid directory:", args.output_dir)
 		return
 
-	input_file_path = pathlib.PurePath(sys.argv[1])
-	output_file_name = input_file_path.with_suffix(".wav").name
+	for input_file_path in args.audio_file:
 
-	if( input_file_path.suffix not in supported_extensions ):
-		print("Input file", input_file_path.name, "is not one of the supported types:", supported_extensions)
-		return
+		if not input_file_path.is_file():
+			print("{} is not a file".format(input_file_path.name))
+			continue
 
-	if( input_file_path.suffix == ".rac" ):
-		rac_l,rac_r = _splitStereo(input_file_path)
-		wav_l = _toWav(rac_l)
-		wav_r = _toWav(rac_r)
-		_toStereo(wav_l, wav_r, output_file_name)
-		os.remove(str(rac_l))
-		os.remove(str(rac_r))
-		os.remove(str(wav_l))
-		os.remove(str(wav_r))
-	else:
-		_toWav(input_file_path, output_file_name)
+		if not input_file_path.suffix in [".mac", ".rac", ".vac"]:
+			print("{} is not a supported file type ('.mac', '.rac', '.vac')".format(input_file_path.name))
+			continue
 
-	print("Converted from:", input_file_path)
-	print("Converted to:", output_file_name)
+		if( input_file_path.suffix == ".rac" ):
+			output_file_path = _toStereoWav(input_file_path, args.output_dir)
+		else:
+			output_file_path = _toWav(input_file_path, args.output_dir)
+
+		print("{} -> {}".format(input_file_path.name, output_file_path.name))
 
 
 
