@@ -1,7 +1,6 @@
-import os
-import sys
 from argparse import ArgumentParser
 from pathlib import Path
+from shutil import which as shutil_which
 from subprocess import call as subproc_call
 
 
@@ -59,6 +58,10 @@ def _splitStereo(input_file_path, output_dir):
 	return output_file_paths
 
 
+def _checkSox():
+	return shutil_which("sox")
+
+
 
 def main():
 
@@ -69,6 +72,10 @@ def main():
 	parser.add_argument("audio_file", type=Path, help="Path to the audio file(s)", nargs="+")
 	parser.add_argument("-o", "--output_dir", type=Path, help="Output directory to place wav files in", default=".")
 	args = parser.parse_args()
+
+	if shutil_which("sox") is None:
+		print("Sox is not installed and in PATH.")
+		return
 
 	if not args.output_dir.is_dir():
 		print("Output directory path is not a valid directory:", args.output_dir)
