@@ -58,10 +58,6 @@ def _splitStereo(input_file_path, output_dir):
 	return output_file_paths
 
 
-def _checkSox():
-	return shutil_which("sox")
-
-
 
 def main():
 
