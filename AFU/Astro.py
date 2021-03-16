@@ -1,4 +1,4 @@
-from enum import IntEnum
+from enum import IntEnum, Enum
 from pathlib import Path
 from AFU.File import File, DatabaseFile
 
@@ -51,7 +51,7 @@ def planetDescription(planet):
 	return PLANET_DESCRIPTIONS[planet]
 
 
-class Alignment (IntEnum):
+class Alignment (Enum):
 	FEDERATION = 0
 	ROMULAN = 1
 	NEUTRAL = 2
@@ -59,14 +59,14 @@ class Alignment (IntEnum):
 	NONALIGNED = 4
 
 
-class SectorObjects (IntEnum):
+class SectorObjects (Enum): # todo: rename to AstroObjects or similar (some of these things exist in systems)
 	STAR_SYSTEM = 32
 	ION_STORM = 65
 	QUASAROID = 66
 	BLACK_HOLE = 68
 	SUBSPACE_VORTEX = 69
 	UNITY_DEVICE = 72
-	SPECIAL_ITEM = 73
+	SPECIAL_ITEM = 73 # Alien device, Unity device, Ruinore sector, Ayers, Singelea sector
 	DEEP_SPACE_STATION = 128
 	COMM_RELAY = 129
 	BUOY = 130
@@ -74,7 +74,7 @@ class SectorObjects (IntEnum):
 	OUTPOST = 132
 
 
-SECTOR_OBJECTS = {
+SECTOR_OBJECTS = { # todo: remove
 	32: "Star System",
 	65: "Ion Storm",
 	66: "Quasaroid",
@@ -124,27 +124,29 @@ def readSector(f):
 
 
 def sectorDescription(sector):
-	d = "This sector is "
+	d = "This sector is {}."
 	if sector["alignment"] == Alignment.FEDERATION:
-		d += "aligned with the Federation"
+		return d.format("aligned with the Federation")
 	elif sector["alignment"] == Alignment.ROMULAN:
-		d += "aligned with the Romulans."
+		return d.format("aligned with the Romulans")
 	elif sector["alignment"] == Alignment.NEUTRAL:
-		d += "in the neutral zone"
+		return d.format("in the neutral zone")
 	elif sector["alignment"] == Alignment.NEBULA:
-		d += "in the Z'Tarnis Nebula"
+		return d.format("in the Z'Tarnis Nebula")
 	elif sector["alignment"] == Alignment.NONALIGNED:
-		d += "nonaligned"
-	else:
-		raise ValueError("Invalid sector alignment: {}".format(sector["alignment"]))
-	d += "."
-	return d
+		return d.format("nonaligned")
+	raise ValueError("Invalid sector alignment: {}".format(sector["alignment"]))
 
 
 #
 # Star Systems
 #
 
+# todo: Check these bitfields more
+# They appear to mean different things in astro.db and astromap.db
+# For example, the Inhabited bit:
+#    - astro.db: Morassia and Cymkoe only. But Horst, Frigis and Allanor are also inhabited/habitable, so this means something else.
+#    - astromap.db: About 543 systems - so clearly not meaning inhabited.
 
 def systemInhabited(state):
 	return (0b0000000000010000 & state) != 0
@@ -192,19 +194,21 @@ def systemDescription(system):
 			system)
 
 	if system["planets"] == 0:
-		d += " It posesses {} planets."
+		d += " It posesses no planets."
+	elif systemp["planets"] == 1:
+		d += " It posesses 1 planet, "
 	else:
 		d += " It posesses {} planets, ".format(system["planets"])
 
 	if system["inhabited"]:
-		d += "one of which"  # todo: Are there any systems with more than one inhabited planet?
+		assert(system["planets"] > 1)
+		d += "one of which is known to be inhabited."  # todo: Are there any systems with more than one inhabited planet?
 	elif len(system["planets"]) == 1:
-		d += "?????"  # todo: Are there any systems with only one planet?
+		d += "which is known to be uninhabited."
 	elif len(system["planets"]) == 2:
-		d += "neither of which"
+		d += "neither of which is known to be inhabited."
 	else:
-		d += "none of which"
-	d += " is known to be inhabited."
+		d += "none of which is known to be inhabited."
 
 	for station in system["stations"]:
 		d += " {0[name]} orbits this system.".format(station)
@@ -268,7 +272,7 @@ def readSystem(f):
 	system_station_type = f.readUInt8() # In astromap.db could also be either station (131) or outpost (132). 0 in astro.db.
 	system_class = f.readUInt16()
 	system_magnitude = f.readSInt16()
-	
+
 	system_unknown2 = f.readUInt32()
 	# todo: system unknown field 2
 	# Values between 0 and 255. No stand-out values
@@ -279,7 +283,7 @@ def readSystem(f):
 	# Tothe Delta                   104         231
 	# Euterpe Epsilon               175         177
 	# Shonoisho Epsilon             18          53
-	
+
 	assert(f.readUInt32() == 0)
 	system_alias_offset = f.readUInt32()
 	system_notable_offset = f.readUInt32()  # notable planet within system
@@ -534,7 +538,7 @@ def astroDb(file_path):
 		system["stations"].append(station)
 
 	assert (f.pos() == OFFSET_STRINGS)
-	
+
 	_addSectorNames(sectors, file_path)
 
 	return sectors
@@ -564,7 +568,7 @@ def astromapDb(file_path):
 			system.pop("alias_offset")
 			system.pop("notable_offset")
 			assert( system.pop("description_offset") == 0 )
-			#system.pop("station_offset")
+			system.pop("station_offset")
 			sector["systems"].append(system)
 
 		for j in range(sector["n_bodies"]):
@@ -578,7 +582,7 @@ def astromapDb(file_path):
 			sector["stations"].append(station)
 
 		sectors.append(sector)
-	
+
 	_addSectorNames(sectors, file_path)
 
 	return sectors
@@ -588,3 +592,67 @@ def astromapDb(file_path):
 def sectorAst(file_path):
 	f = File(file_path)
 	return { i: f.readLine() for i in range(N_SECTORS) }
+
+
+
+def astStatDat(file_path):
+	f = File(file_path)
+
+	unknown = []
+	while f.pos() < 738: # 0x2E2
+		unknown.append(f.readUInt16())
+
+	sector_end = []
+	for i in range(N_SECTORS):
+		sector_end.append(f.readUInt16())
+
+	object_id = 0
+
+	systems_bodies = {}
+	for sector_id,end in enumerate(sector_end):
+		while object_id < end:
+			systems_bodies[object_id] = f.readUInt16()
+			object_id += 1
+			# What does this value mean...
+			#  0      0000 invisible, unscanned
+			#  1      0001 visible,  unscanned
+			#  4      0100 invisible, only Lethe Beta
+			#  5      0101 Only stellar bodies (no star systems)
+			#  6      0110 invisible, only Lethe Zeta
+			#  9      1001
+			# 13      1101
+			# 29 0001 1101 13 + story planet  (x5: M'kyru Zeta (Palmyra), Tothe Delta (horst), Euterpe Epsilon (Morassia), Steger Delta (Cymkoe), Kamyar Delta)
+
+			#  0000 0000
+			#          ^---- visible?
+			#         ^----- 4: Lethe Zeta only
+			#        ^------ 5,6: ???
+			#       ^------- scanned?
+			#     ^--------- story point?
+
+			# M'kyru Zeta (Palmyra)      - If you don't fight the original Garidian warbird, the scout ship self destructs, and you detect escape pods here
+			# Tothe Delta (Horst)        - Where Vulcan archeologist Shanok is based
+			# Euterpe Epsilon (Morassia) - Location where Vie Hunfrsch goes missing
+			# Steger Delta (Cymkoe IV)   - Location of Mertens Orbital Station
+			# Kamyar Delta               - ?????
+
+	stations = {}
+	try:
+		while True:
+			stations[object_id] = f.readUInt16()
+			object_id += 1
+			# What does this value mean...
+			# Each station type has only one value:
+			# starbase: 0
+			# outpost: 0
+			# buoy: 1
+			# comm relay: 13
+			# deep space station: 1
+	except EOFError:
+		pass
+
+	return {
+		"unknown": unknown,
+		"systems_bodies": systems_bodies,
+		"stations": stations,
+	}

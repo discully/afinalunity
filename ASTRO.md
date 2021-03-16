@@ -3,6 +3,7 @@
 The game space consists of an 8x8x8 grid of 512 sectors.
 Each sector has a 20x20x20 co-ordinate grid, some of which will contain a star system.
 This means everything can be located within a 160x160x160 grid (global co-ordinates).
+There are 2860 star systems in total.
 
 ## In-Game Space
 
@@ -10,6 +11,8 @@ Information on a subset of locations in the game.
 Useful when examining the astrogation files.
 
 ### Starbases
+
+There are 2 starbases in total.
 
 | Starbase     | Sector | Planet |
 | :---         | :---   | :---   |
@@ -19,19 +22,35 @@ Useful when examining the astrogation files.
 
 ### DS Stations
 
+There are 5 deep space stations in total.
+
 | Station                | Sector | Coordinates |
 | :---                   | :---   | :---        |
 | Deep Space Station 220 | 2-2-0  | 9-16-17     |
 | Deep Space Station 633 | 6-3-3  | 10-9-12     |
 | Deep Space Station 175 | 1-7-5  | 12-7-14     |
+| Deep Space Station 6   | 0-0-6  | 6-10-9      |
+| Deep Space Station 161 | 1-6-1  | 10-8-17     |
 
 
 ### Outposts
+
+There are 9 outposts in total.
 
 | Outpost     | Sector | Planet          |
 | :---        | :---   | :---            |
 | Outpost 341 | 3-4-1  | Vanuma Alpha II |
 | Outpost 146 | 1-4-6  | Zhalu Zeta I    |
+
+
+### Navigation and Scanning Buoys
+
+There are 14 navigational and scanning buoys in total.
+
+
+### Comm Relay
+
+There are 34 comm relays in total.
 
 
 ### Places of Interest
@@ -135,7 +154,7 @@ Total length: 70 bytes.
 
 #### System State
 
-The system_state field is a bitfield encoding the following values: 
+The system_state field is a bitfield encoding the following values:
  * 0b1 - Primary star is a White Dwarf
  * 0b10 - A binary star system
  * 0b1100 - Contains a starbase

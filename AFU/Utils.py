@@ -1,6 +1,6 @@
 from pathlib import PurePath
 from json import JSONEncoder
-from AFU import Image, Block
+from AFU import Image, Block, Astro
 from enum import Enum
 
 # All the file extensions in AFU:
@@ -82,7 +82,7 @@ def identify(file_path):
 
 class Encoder (JSONEncoder):
 	def default(self, obj):
-		if isinstance(obj, Block.BlockType) or isinstance(obj, Block.ConversationResponseState) or isinstance(obj, Block.ObjectWalkType):
+		if isinstance(obj, Block.BlockType) or isinstance(obj, Block.ConversationResponseState) or isinstance(obj, Block.ObjectWalkType) or isinstance(obj, Astro.Alignment) or isinstance(obj, Astro.SectorObjects):
 			return obj.name
 		if isinstance(obj, Enum):
 			return obj.name
