@@ -54,6 +54,18 @@ python3 afu_to_wav.py redalert.mac
 will output `readalert.wav`.
 
 
+### Finding Voice Files
+
+There are a lot of `.vac` voice files, and finding the one you want can be time consuming.
+The subtitles for what the voice says are mostly contained within the `.bst` object and world files,
+and there's a utility to output them all to a file.
+
+Run `afu_subtitles.py` with the path to a directory containing all the `.vac` and `.bst` files as the first argument.
+It will output `subtitles.json`, which maps `.vac` filenames to subtitles of what the voice says.
+
+It's not perfect yet, but the vast majority are correct.
+
+
 ## Database Files
 
 The `.db` files are databases.
