@@ -61,6 +61,9 @@ The subtitles for what the voice says are mostly contained within the `.bst` obj
 and there's a utility to output them all to a file.
 
 Run `afu_subtitles.py` with the path to a directory containing all the `.vac` and `.bst` files as the first argument.
+```sh
+python3 afu_subtitles.py path/to/bst_and_vac
+```
 It will output `subtitles.json`, which maps `.vac` filenames to subtitles of what the voice says.
 
 It's not perfect yet, but the vast majority are correct.
