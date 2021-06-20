@@ -1,4 +1,4 @@
-from AFU.File import DatabaseFile
+from AFU.File import DatabaseFile,File
 
 
 
@@ -99,3 +99,17 @@ def computerDb(file_path):
 	f.setOffsetBase(f.pos())
 
 	return { offset:_readEntry(f, offset) for offset in entries_offsets }
+
+
+def compstat(file_path):
+	f = File(file_path)
+	return readCompstat(f)
+
+
+def readCompstat(f):
+	unknown = [f.readUInt8() for i in range(44)]
+	dat_compstat = list(f.read(344))
+	return {
+		"unknown": unknown,
+		"state": dat_compstat
+	}
