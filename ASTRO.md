@@ -137,7 +137,7 @@ I have not identified where the following information is stored:
 |   0x14 |     20 | system_z             |  32u | Global co-ordinate z |
 |   0x18 |     24 |                      |  32u | Always zero |
 |   0x1C |     28 | system_name          |  32u | String offset |
-|   0x20 |     32 | system_state         |  16u | Bitfield, see "System State" below |
+|   0x20 |     32 | system_flags         |  16u | Bitfield, see "System Flags" below |
 |   0x22 |     34 | system_station_orbit |   8u | 0 or, in astromap.db if a station is present, the index of the planet after which the station orbits |
 |   0x23 |     35 | system_station_type  |   8u | 0 or, in astromap.db is a station is present, either 131 (station) or 132 (outpost) |
 |   0x24 |     36 | system_class         |  16u | See "System Class" below. |
@@ -152,9 +152,9 @@ I have not identified where the following information is stored:
 
 Total length: 70 bytes.
 
-#### System State
+#### System Flags
 
-The system_state field is a bitfield encoding the following values:
+The system_flags field is a bitfield encoding the following values:
  * 0b1 - Primary star is a White Dwarf
  * 0b10 - A binary star system
  * 0b1100 - Contains a starbase
