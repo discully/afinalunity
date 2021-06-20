@@ -5,6 +5,28 @@ from pathlib import Path
 from AFU import Block,Utils,Terminal
 
 
+def getSpeakerName(input_dir, speakers, speaker):
+	speaker_id = speaker["id"]
+	# 0x20 - 0x28 indicate the speaker is on the Enterprise speaking over comms
+	if speaker["world"] == 0 and speaker["screen"] == 0 and (speaker["id"] >= 0x20 and speaker["id"] <= 0x28):
+		speaker_id -= 0x20
+	elif speaker["world"] == 0 and speaker["screen"] == 0 and (speaker["id"] >= 0x30 and speaker["id"] <= 0x38):
+		speaker_id -= 0x30
+
+	sid = "{:02x}{:02x}{:02x}".format(speaker["world"], speaker["screen"], speaker_id)
+
+	if not sid in speakers:
+		file_name = "o_{}.bst".format(sid)
+		file_path = input_dir.joinpath(file_name)
+		if file_path.exists():
+			data = Block.bst(file_path)
+			assert(len(data) == 1)
+			speakers[sid] = data[0]["name"]
+		else:
+			speakers[sid] = "unknown-" + sid
+
+	return speakers[sid]
+
 
 def getVoiceFilesFromBst(path):
 	output = []
@@ -41,8 +63,9 @@ def getVoiceFilesFromBst(path):
 
 
 
-def subtitles(input_dir, output_dir):
-	subs = { vac.name:[] for vac in input_dir.glob("*.vac") }
+def subtitles(input_dir, output_dir, names=False):
+	speakers = {}
+	subs = { vac.name:{"text":[]} for vac in input_dir.glob("*.vac") }
 	for i,bst in enumerate(input_dir.glob("*.bst")):
 
 		if i % 300 == 0:
@@ -59,17 +82,26 @@ def subtitles(input_dir, output_dir):
 			if not vac["file"] in subs:
 				continue
 
-			if len(subs[vac["file"]]) == 0:
-				subs[vac["file"]].append(vac["text"])
+			vac["name"] = getSpeakerName(input_dir, speakers, vac["speaker"])
+			if not "name" in subs[vac["file"]]:
+				subs[vac["file"]]["name"] = vac["name"]
 
-			if SequenceMatcher(None, subs[vac["file"]][0], vac["text"]).ratio() < 0.8:
-				subs[vac["file"]].append(vac["text"])
+			if len(subs[vac["file"]]["text"]) == 0:
+				subs[vac["file"]]["text"].append(vac["text"])
+
+			if SequenceMatcher(None, subs[vac["file"]]["text"][0], vac["text"]).ratio() < 0.8:
+				subs[vac["file"]]["text"].append(vac["text"])
 
 	for vac,s in subs.items():
-		if len(s) == 0:
+		if len(s["text"]) == 0:
 			subs[vac] = None
-		if len(s) == 1:
-			subs[vac] = s[0]
+		if len(s["text"]) == 1:
+			subs[vac]["text"] = s["text"][0]
+
+	if not names:
+		for vac in subs.keys():
+			if subs[vac] is not None:
+				subs[vac] = subs[vac]["text"]
 
 	output_path = output_dir.joinpath("subtitles.json")
 
@@ -83,8 +115,9 @@ def main():
 	parser = ArgumentParser(description="Reads .bst files to determine the subtitles for .vac voice files")
 	parser.add_argument("input_dir", type=Path, help="Input directory containing 'vac' and 'bst' files")
 	parser.add_argument("-o", "--output_dir", type=Path, help="Output directory to place json in", default=".")
+	parser.add_argument("--names", action="store_true", help="Include the speaker's name in the output data")
 	args = parser.parse_args()
-	subtitles(args.input_dir, args.output_dir)
+	subtitles(args.input_dir, args.output_dir, args.names)
 
 
 if __name__ == "__main__":

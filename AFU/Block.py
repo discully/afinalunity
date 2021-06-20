@@ -55,7 +55,7 @@ def _readBlockHeader(f):
 	block_offset = f.pos()
 	block_type = BlockType(f.readUInt8())
 	assert (f.readUInt8() == 0x11)
-	
+
 	return {
 		"offset": block_offset,
 		"type": block_type,
@@ -64,14 +64,14 @@ def _readBlockHeader(f):
 
 def _readBlock(f):
 	blocks = []
-	
+
 	more = True
 	return_list = False
 	while more:
 		block = _readBlockHeader(f)
-		
+
 		if db: print("{:>6x} {}".format(f.pos(), block["type"]))
-		
+
 		handlers = {
 			BlockType.ALTER: _readAlter,
 			BlockType.OBJECT: _readObject,
@@ -103,7 +103,7 @@ def _readBlock(f):
 			BlockType.TRIGGER,
 			BlockType.CONV_CHANGEACT_UNKNOWN2,
 		]
-		
+
 		if block["type"] in handlers:
 			more = handlers[block["type"]](f, block)
 		else:
@@ -111,11 +111,11 @@ def _readBlock(f):
 			block["length"] = f.readUInt16()
 			f.setPosition(f.pos() + block["length"])
 			more = block["type"] in need_more #False
-		
+
 		if more:
 			return_list = True
 		blocks.append(block)
-	
+
 	if return_list:
 		if blocks[-1]["type"] == BlockType.BLOCK_END:
 			blocks.pop()
@@ -123,13 +123,13 @@ def _readBlock(f):
 			"type": blocks[0]["type"],
 			"blocks": blocks,
 		}
-	
+
 	return blocks[0]
 
 
 def _readEmptyBlock(f, block):
 	return False
-	
+
 
 ########################################################################################################################
 # Standard Blocks
@@ -148,11 +148,11 @@ def _readListEntry(f, entries_block):
 	entry_block = {
 		"list": [],
 	}
-	
+
 	begin_block = _readBlock(f)
 	assert (begin_block["type"] == BlockType.LIST_BEGIN_ENTRY)
 	entry_block["begin"] = begin_block
-	
+
 	while True:
 		block = _readBlock(f)
 		if block["type"] == BlockType.LIST_END_ENTRY:
@@ -160,7 +160,7 @@ def _readListEntry(f, entries_block):
 			break
 		else:
 			entry_block["list"].append(block)
-	
+
 	if db_data:
 		entries_block["entries"].append(entry_block)
 	else:
@@ -170,7 +170,7 @@ def _readListEntry(f, entries_block):
 def _readListEntryBegin(f, block):
 	block["length"] = f.readUInt16()
 	assert(block["length"] == 0xae)
-	
+
 	assert(f.readUInt16() == 9)
 	[f.readUInt32() for i in range(43)] # 172 bytes of unknown data. Offsets?
 	return False
@@ -197,7 +197,7 @@ def _readObjectId(f):
 
 def _readEntryHeader(f, expected_header_type):
 	header = {}
-	
+
 	internal = {}
 	internal["id"] = f.readUInt8()
 	internal["screen"] = f.readUInt8()
@@ -218,7 +218,7 @@ def _readEntryHeader(f, expected_header_type):
 	# the state/response of this conversation block?, or 0xffff in an object
 	header["response_counter"] = f.readUInt16()
 	header["state_counter"] = f.readUInt16()
-	
+
 	return header
 
 
@@ -231,6 +231,7 @@ def _readEntryHeader(f, expected_header_type):
 
 def _getVoiceFile(speaker, voice, file_type=None):
 	speaker_id = speaker["id"]
+	# 0x20 - 0x28 indicate the speaker is on the Enterprise speaking over comms
 	if speaker["world"] == 0 and speaker["screen"] == 0 and (speaker["id"] >= 0x20 and speaker["id"] <= 0x28):
 		speaker_id -= 0x20
 	elif speaker["world"] == 0 and speaker["screen"] == 0 and (speaker["id"] >= 0x30 and speaker["id"] <= 0x38):
@@ -246,10 +247,10 @@ def _getVoiceFile(speaker, voice, file_type=None):
 		file_name = "{1[group]:02x}{2}{1[subgroup]:01x}{0:02x}{1[id]:02x}.vac".format(speaker_id, voice, file_type)
 	else:
 		file_name = "{1[group]:02x}{1[subgroup]:02x}{0:02x}{1[id]:02x}.vac".format(speaker_id, voice)
-	
+
 	if voice["group"] == 0xfd:
 		print(speaker, voice, file_name, file_type)
-	
+
 	return file_name
 
 
@@ -283,16 +284,16 @@ class ConversationResponseState (Enum):
 
 def _readConvResponse(f, block):
 	block["unknown"] = []
-	
+
 	block["id"] = f.readUInt16()
 	block["state"] = f.readUInt16()
-	
+
 	txts = f.readStringBuffer(255).split("@")
 	assert(len(txts) in (1,3))
 	block["text1"] = txts[0].strip()
 	if len(txts) == 3:
 		block["text1_vacs"] = _getTextTargets(txts[1])
-	
+
 	block["response_state"] = ConversationResponseState(f.readUInt8())
 	block["unknown"].append([f.readUInt16() for i in range(3)])
 	block["next_situation"] = f.readUInt16()
@@ -300,17 +301,17 @@ def _readConvResponse(f, block):
 	block["target"] = _readObjectId(f)
 	block["unknown"].append([f.readUInt16() for i in range(5)])
 	block["voice"] = _readVoiceId(f)
-	
+
 	conv_actions = (BlockType.CONV_CHANGEACT_DISABLE, BlockType.CONV_CHANGEACT_ENABLE, BlockType.CONV_CHANGEACT_SET, BlockType.CONV_CHANGEACT_UNKNOWN2)
-	
+
 	block["whocansay"] = []
 	block["text"] = []
 	block["actions"] = []
 	block["results"] = []
-	
+
 	while True:
 		sub_block = _readBlock(f)
-		
+
 		if sub_block["type"] == BlockType.BLOCK_END:
 			break
 		if sub_block["type"] == BlockType.CONV_WHOCANSAY:
@@ -324,11 +325,11 @@ def _readConvResponse(f, block):
 			block["results"].append(sub_block)
 		else:
 			raise ValueError("Unexpected block type: {}".format(sub_block["type"]))
-	
+
 	if len(block["text"]) == 2 and block["text"][0]["text1"][-1] == '>':
 		extra = block["text"].pop()
 		block["text"][0]["text1"] = block["text"][0]["text1"][:-1] + extra["text1"]
-	
+
 	#assert(len(block["text"]) == 1) # w006c035.bst, w05fc034.bst
 	if block["voice"]["id"] != 0xffffffff and block["voice"]["group"] != 0xcc:
 		if len(block["text1"]) > 0:
@@ -337,7 +338,7 @@ def _readConvResponse(f, block):
 					who["file"] = block["text1_vacs"][who["id"]]
 					who["vac"] = {
 						"file": block["text1_vacs"][who["id"]],
-						"speaker": who["id"],
+						"speaker": {"id": who["id"], "world": who["world"], "screen": who["screen"], "unused": who["unused"]},
 						"voice": block["voice"],
 						"text": block["text1"]
 					}
@@ -345,7 +346,7 @@ def _readConvResponse(f, block):
 					who["file"] = _getVoiceFile(who, block["voice"])
 					who["vac"] = {
 						"file": _getVoiceFile(who, block["voice"]),
-						"speaker": who["id"],
+						"speaker": {"id": who["id"], "world": who["world"], "screen": who["screen"], "unused": who["unused"]},
 						"voice": block["voice"],
 						"text": block["text1"]
 					}
@@ -360,46 +361,46 @@ def _readConvResponse(f, block):
 			}
 	if not db_data:
 		block.pop("unknown")
-	
+
 	return False
-		
+
 
 
 def _readConvWhocansay(f, block):
 	block["length"] = f.readUInt16()
 	assert(block["length"] == 8)
-	
+
 	# An id of 0x10 means anyone in the away team
 	block["who"] = _readObjectId(f)
-	
+
 	unknown = [f.readUInt8() for i in range(4)] # looks like an offset?
 	if db: block["unknown"] = unknown
-	
+
 	return True
 
 
 def _readConvText(f, block):
 	block["length"] = f.readUInt16()
 	assert (block["length"] == 0x10d)
-	
+
 	block["text1"] = f.readStringBuffer(255)
 	#block["text2"] = f.readStringBuffer(4) # two files have text here: w006c035.bst, w05fc034.bst
 	block["text2"] = [f.readUInt8() for i in range(4)]
 	block["voice"] = _readVoiceId(f)
-	
+
 	return True
 
 
 def _readChangeAction(f, block):
 	assert(f.readUInt16() == 8)
-	
+
 	block["response_id"] = f.readUInt16()
 	block["state_id"] = f.readUInt16()
 	block["unknown"] = []
 	block["unknown"].append(f.readUInt8()) # unknown4
 	block["unknown"].append(f.readUInt8()) # unknown5
 	block["unknown"].append(f.readUInt16()) # unknown6
-	
+
 	return True
 
 
@@ -418,12 +419,12 @@ class ObjectWalkType (Enum):
 def _readObject(f, block):
 	block["length"] = f.readUInt16()
 	assert (block["length"] == 0x128)
-	
+
 	block["id"] = _readObjectId(f)
 	block["curr_screen"] = f.readUInt8()
-	
+
 	f.readUInt8()  # unknown3
-	
+
 	block["width"] = f.readSInt16()
 	block["height"] = f.readSInt16()
 	block["x"] = f.readSInt16()
@@ -432,7 +433,7 @@ def _readObject(f, block):
 	block["universe_x"] = f.readSInt16()
 	block["universe_y"] = f.readSInt16()
 	block["universe_z"] = f.readSInt16()
-	
+
 	block["y_adjust"] = f.readSInt16()  # TODO: this doesn't work properly (see DrawOrderComparison)
 	block["anim_index"] = f.readUInt16()
 	block["sprite_id"] = f.readUInt16()
@@ -442,52 +443,52 @@ def _readObject(f, block):
 	n_uses = f.readUInt8()
 	n_gets = f.readUInt8()
 	n_looks = f.readUInt8()
-	
+
 	assert (f.readUInt8() == 0)  # unknown11
-	
+
 	block["walk_type"] = ObjectWalkType(f.readUInt8()).name
 	n_descriptions = f.readUInt8()
 	block["name"] = f.readStringBuffer(20)
-	
+
 	for i, thing in enumerate(["DESCRIPTION", "USE", "LOOK", "WALK", "TIME"]):  # todo pointers to the relevant blocks?
 		f.readUInt16()  # unknowna
 		f.readUInt8()  # unknownb
 		f.readUInt8()  # unknownc
 		if i == 0:
 			block["transition"] = _readObjectId(f)
-	
+
 	block["skills"] = f.readUInt16()
 	block["timer"] = f.readUInt16()
 	block["talk"] = f.readStringBuffer(100)
-	
+
 	assert (f.readUInt16() == 0)  # unknown19
 	assert (f.readUInt16() == 0)  # unknown20
 	assert (f.readUInt16() == 0)  # zero16
 	f.readUInt16()  # unknown21, unused?
-	
+
 	block["voice"] = _readVoiceId(f)
-	
+
 	cursor_id = f.readUInt8()
 	cursor_flag = f.readUInt8()
 	block["cursor"] = {
 		"id": cursor_id,
 		"flag": cursor_flag,
 	}
-	
+
 	f.readUInt8()  # unknown26
 	f.readUInt8()  # unknown27
-	
+
 	assert (f.readUInt16() == 0x0)  # zero16
-	
+
 	for i in range(21):
 		assert (f.readUInt32() == 0)  # padding
-	
+
 	block["descriptions"] = []
 	if n_descriptions > 0:
 		description_blocks = _readBlock(f)
 		assert(description_blocks["type"] == BlockType.DESCRIPTION)
 		for description_block in description_blocks["blocks"]:
-			
+
 			speaker = description_block["speaker"]
 			if speaker["id"] == 0xff:
 				# Looks like 0xff means use a default speaker, though I'm not sure where that's set
@@ -495,7 +496,7 @@ def _readObject(f, block):
 				assert(speaker["world"] == 0)
 				assert(speaker["screen"] == 0)
 				speaker["id"] = len(block["descriptions"])
-			
+
 			block["descriptions"].append({
 				"speaker": description_block["speaker"],
 				"text": description_block["text"],
@@ -505,18 +506,12 @@ def _readObject(f, block):
 				block["descriptions"][-1]["file"] = _getVoiceFile(speaker, description_block["voice"], 'l')
 				block["descriptions"][-1]["vac"] = {
 					"file": _getVoiceFile(speaker, description_block["voice"], 'l'),
-					"vac": {
-						"file": _getVoiceFile(speaker, description_block["voice"], 'l'),
-						"speaker": speaker,
-						"voice": description_block["voice"],
-						"text": block["talk"]
-						},
 					"speaker": speaker,
 					"text": description_block["text"],
 					"voice": description_block["voice"]
 				}
 	assert(len(block["descriptions"]) == n_descriptions)
-	
+
 	block["uses"] = []
 	block["gets"] = []
 	block["looks"] = []
@@ -533,31 +528,31 @@ def _readObject(f, block):
 			block["looks"] += list_block["entries"]
 		elif list_block["type"] == BlockType.TIMER_ENTRIES:
 			block["timers"] += list_block["entries"]
-	
+
 	assert(len(block["uses"]) == n_uses)
 	assert(len(block["gets"]) == n_gets)
 	assert(len(block["looks"]) == n_looks)
 	assert(len(block["timers"]) <= 1) # timers can only have one result
-	
+
 	return False
 
 
 def _readDescription(f, block):
 	block["length"] = f.readUInt16()
 	assert (block["length"] == 0xa5)
-	
+
 	block["speaker"] = {"id": f.readUInt8(), "world": 0, "screen":0, "unused": 0}
-	
+
 	for i in range(7):
 		assert (f.readUInt16() == 0xffff)  # unknowna
-	
+
 	block["text"] = f.readStringBuffer(149)
 	f.readUInt8()  # unknown2. is this just corrupt entries and there should be a null byte here?
-	
+
 	voice = _readBlock(f)
 	assert(voice["type"] == BlockType.VOICE)
 	block["voice"] = voice["voice"]
-	
+
 	return True
 
 
@@ -566,7 +561,7 @@ def _readConversation(f, block):
 	block["length"] = f.readUInt16()
 	assert (block["length"] == 0x7c)
 	assert(f.readUInt16() == 9)
-	
+
 	_readEntryHeader(f, 0x49)
 	block["world_id"] = f.readUInt16()
 	block["conversation_id"] = f.readUInt16()
@@ -575,16 +570,16 @@ def _readConversation(f, block):
 	block["action_id"] = ConversationResponseState(f.readUInt16())
 	for i in range(99):
 		assert(f.readUInt8() == 0)
-	
+
 	block["file"] = "w{0:03x}c{1:03d}.bst".format(block["world_id"], block["conversation_id"])
-	
+
 	return True
 
 
 def _readSpeechInfo(f, block):
 	block["length"] = f.readUInt16()
 	assert(block["length"] == 0x0c)
-	
+
 	voice_id = f.readUInt32()
 	voice_group = f.readUInt32()
 	voice_subgroup = f.readUInt32()
@@ -593,7 +588,7 @@ def _readSpeechInfo(f, block):
 		"group": voice_group,
 		"subgroup": voice_subgroup,
 	}
-	
+
 	return False
 
 
@@ -601,12 +596,12 @@ def _readCondition(f, block):
 	block["length"] = f.readUInt16()
 	assert(block["length"] == 0xda)
 	assert(f.readUInt16() == 9)
-	
+
 	block["header"] = _readEntryHeader(f, 0xff)
-	
+
 	block["target"] = _readObjectId(f)
 	block["whocan"] = _readObjectId(f)
-	
+
 	entries = []
 	for i in range(4):
 		entry = {}
@@ -622,11 +617,11 @@ def _readCondition(f, block):
 		entry["check_state"] = f.readUInt8()
 		entries.append(entry)
 	#block["list"] = entries
-	
+
 	assert(f.readUInt16() == 0xffff) # unknown1
 	assert(f.readUInt16() == 0xffff) # unknown2
 	assert(f.readUInt16() == 0xffff) # unknown3
-	
+
 	block["how_close_x"] = f.readUInt16()
 	block["how_close_y"] = f.readUInt16()
 
@@ -640,7 +635,7 @@ def _readCondition(f, block):
 
 	for i in range(25):
 		assert(f.readUInt32() == 0)
-	
+
 	return False
 
 
@@ -648,7 +643,7 @@ def _readAlter(f, block):
 	block["length"] = f.readUInt16()
 	assert(block["length"] == 0x105)
 	assert(f.readUInt16() == 9)
-	
+
 	block["header"] = _readEntryHeader(f, 0x43)
 	block["target"] = _readObjectId(f)
 	block["alter_flags"] = f.readUInt8()
@@ -684,7 +679,7 @@ def _readAlter(f, block):
 
 	for i in range(21):
 		assert(f.readUInt32() == 0)
-	
+
 	if len(block["alter_hail"]) > 0 and block["voice"]["id"] != 0xffffffff:
 		block["alter_hail_immediate"] = block["alter_hail"][0] == '1'
 		if block["alter_hail_immediate"]:
@@ -707,19 +702,19 @@ def _readCommand(f, block):
 	block["length"] = f.readUInt16()
 	assert(block["length"] == 0x84)
 	assert(f.readUInt16() == 9)
-	
+
 	block["header"] = _readEntryHeader(f, 0x45)
-	
+
 	block["targets"] = [_readObjectId(f) for i in range(3)]
-	
+
 	# both usually 0xffff
 	block["target_x"] = f.readUInt16()
 	block["target_y"] = f.readUInt16()
 	block["command_id"] = f.readUInt32() # command_id >= 2 && command_id <= 6
-	
+
 	for i in range(97):
 		assert(f.readUInt8() == 0)
-	
+
 	return True
 
 
@@ -727,9 +722,9 @@ def _readGeneral(f, block):
 	block["length"] = f.readUInt16()
 	assert(block["length"] == 0x7b)
 	assert(f.readUInt16() == 9)
-	
+
 	block["header"] = _readEntryHeader(f, 0x48)
-	
+
 	block["movie_id"] = f.readUInt16()
 	block["unknown"] = [f.readUInt16() for i in range(3)]
 	for i in range(0x64):
@@ -749,9 +744,9 @@ def _readGeneral(f, block):
 
 def bst(file_path):
 	f = File.File(file_path)
-	
+
 	blocks = []
 	while not f.eof():
 		blocks.append(_readBlock(f))
-	
+
 	return blocks
