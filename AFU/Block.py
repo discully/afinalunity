@@ -335,12 +335,29 @@ def _readConvResponse(f, block):
 			for who in block["whocansay"]:
 				if block["voice"]["group"] == 0xfd:
 					who["file"] = block["text1_vacs"][who["id"]]
+					who["vac"] = {
+						"file": block["text1_vacs"][who["id"]],
+						"speaker": who["id"],
+						"voice": block["voice"],
+						"text": block["text1"]
+					}
 				else:
 					who["file"] = _getVoiceFile(who, block["voice"])
+					who["vac"] = {
+						"file": _getVoiceFile(who, block["voice"]),
+						"speaker": who["id"],
+						"voice": block["voice"],
+						"text": block["text1"]
+					}
 	for text in block["text"]:
 		if len(text["text1"]) > 0 and text["voice"]["group"] != 0xcc:
 			text["file"] = _getVoiceFile(block["target"], text["voice"])
-	
+			text["vac"] = {
+				"file": _getVoiceFile(block["target"], text["voice"]),
+				"speaker": block["target"],
+				"voice": text["voice"],
+				"text": text["text1"]
+			}
 	if not db_data:
 		block.pop("unknown")
 	
@@ -486,6 +503,18 @@ def _readObject(f, block):
 			})
 			if description_block["voice"]["id"] != 0xffffffff and description_block["voice"]["group"] != 0xcc:
 				block["descriptions"][-1]["file"] = _getVoiceFile(speaker, description_block["voice"], 'l')
+				block["descriptions"][-1]["vac"] = {
+					"file": _getVoiceFile(speaker, description_block["voice"], 'l'),
+					"vac": {
+						"file": _getVoiceFile(speaker, description_block["voice"], 'l'),
+						"speaker": speaker,
+						"voice": description_block["voice"],
+						"text": block["talk"]
+						},
+					"speaker": speaker,
+					"text": description_block["text"],
+					"voice": description_block["voice"]
+				}
 	assert(len(block["descriptions"]) == n_descriptions)
 	
 	block["uses"] = []
@@ -665,7 +694,12 @@ def _readAlter(f, block):
 		assert(block["unknown_talk2"] == 0xff)
 		if not block["alter_hail"].startswith("@") and block["voice"]["group"] != 0xcc:
 			block["voice_file"] = _getVoiceFile(block["target"], block["voice"], 't')
-	
+			block["vac"] = {
+				"file": _getVoiceFile(block["target"], block["voice"], 't'),
+				"speaker": block["target"],
+				"voice": block["voice"],
+				"text": block["alter_hail"]
+			}
 	return True
 
 

@@ -11,32 +11,32 @@ def getVoiceFilesFromBst(path):
 	data = Block.bst(path)
 	for entry in data:
 		if entry["type"] == Block.BlockType.OBJECT:
-			if "file" in entry:
-				output.append( (entry["file"], entry["talk"]) )
+			if "vac" in entry:
+				output.append(entry["vac"])
 			for description in entry["descriptions"]:
-				if "file" in description:
-					output.append( (description["file"], description["text"]) )
+				if "vac" in description:
+					output.append(description["vac"])
 			for action in ["uses", "gets", "looks", "timers"]:
 				for action_set in entry[action]:
 					for action_item in action_set:
 						if action_item["type"] == Block.BlockType.ALTER:
 							for action_block in action_item["blocks"]:
-								if "voice_file" in action_block:
-									output.append( (action_block["voice_file"], action_block["alter_hail"]) )
+								if "vac" in action_block:
+									output.append(action_block["vac"])
 		elif entry["type"] == Block.BlockType.CONV_RESPONSE:
 			for say in entry["whocansay"]:
-				if "file" in say:
-					output.append( (say["file"], entry["text1"]) )
+				if "vac" in say:
+					output.append(say["vac"])
 			for text in entry["text"]:
-				if "file" in text:
-					output.append( (text["file"], text["text1"]) )
+				if "vac" in text:
+					output.append(text["vac"])
 			for result in entry["results"]:
 				for result_set in result["entries"]:
 					for result_item in result_set:
 						if result_item["type"] == Block.BlockType.ALTER:
 							for action_block in result_item["blocks"]:
-								if "voice_file" in action_block:
-									output.append( (action_block["voice_file"], action_block["alter_hail"]) )
+								if "vac" in action_block:
+									output.append(action_block["vac"])
 	return output
 
 
@@ -55,15 +55,15 @@ def subtitles(input_dir, output_dir):
 		if bst.stem.endswith("obj") or bst.stem.endswith("con") or bst.stem.endswith("scrn") or bst.stem.endswith("strt"):
 			continue
 
-		for vac,subtitle in getVoiceFilesFromBst(bst):
-			if not vac in subs:
+		for vac in getVoiceFilesFromBst(bst):
+			if not vac["file"] in subs:
 				continue
 
-			if len(subs[vac]) == 0:
-				subs[vac].append(subtitle)
+			if len(subs[vac["file"]]) == 0:
+				subs[vac["file"]].append(vac["text"])
 
-			if SequenceMatcher(None, subs[vac][0], subtitle).ratio() < 0.8:
-				subs[vac].append(subtitle)
+			if SequenceMatcher(None, subs[vac["file"]][0], vac["text"]).ratio() < 0.8:
+				subs[vac["file"]].append(vac["text"])
 
 	for vac,s in subs.items():
 		if len(s) == 0:
