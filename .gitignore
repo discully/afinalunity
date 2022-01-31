@@ -58,3 +58,8 @@ target/
 
 # PyCharm:
 .idea/
+
+# Output Files
+*.json
+*.png
+*.wav
