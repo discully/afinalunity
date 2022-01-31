@@ -15,8 +15,11 @@ def identify(file_path):
 	file_path = PurePath(file_path)
 	file_extension = file_path.suffix.lower()
 	file_name = file_path.stem.lower()
-
-	if file_name == "compstat":
+	
+	if file_name == "savegame":
+		if file_extension != "idx":
+			return "savegame"
+	elif file_name == "compstat":
 		return "computer_state"
 	elif file_extension in [".spr",".spt"]:
 		return "sprite"

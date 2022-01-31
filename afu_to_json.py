@@ -56,6 +56,8 @@ def main():
 		data = AFU.World.worldObj(args.file)
 	elif file_type == "triggers":
 		data = AFU.Data.triggers(args.file)
+	elif file_type == "savegame":
+		data = AFU.SaveGame.savegame(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 		return
