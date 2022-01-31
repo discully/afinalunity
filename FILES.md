@@ -26,13 +26,15 @@
 | &vellip;  | level data                |      5 | level{level}.dat           |                    |                    |                    |
 | &vellip;  | advice index              |      6 | w{world}a000.dat           |                    | :heavy_check_mark: |                    |
 | &vellip;  | triggers                  |      1 | trigger.dat                |                    | :heavy_check_mark: |                    |
-| &vellip;  | astrogation state?        |      1 | ast_stat.dat               |                    |                    |                    |
+| &vellip;  | astrogation state         |      1 | ast_stat.dat               |                    | :heavy_check_mark: |                    |
 | DB        | `multiple (see below)`    |      3 |                            |                    |                    |                    |
 | &vellip;  | astrogation database      |      2 | [astro.db, astromap.db](ASTRO.md) |             | :heavy_check_mark: |                    |
 | &vellip;  | computer database         |      1 | computer.db                | :heavy_check_mark: | :heavy_check_mark: |                    |
 | IMG       | image (mostly 3d textures)|    197 |                            | :heavy_check_mark: |                    |                    |
 | DMG       | list of .img files        |      7 | enterprs.dmg               |                    |                    |                    |
-| ---       |                           |      2 | list, compstat             |                    |                    |                    |
+| `no ext`  | `multiple (see below)`    |      2 |                            |                    |                    |                    |
+| &vellip;  |                           |      1 | list                       |                    |                    |                    |
+| &vellip;  | computer state            |      1 | compstat                   |                    | :heavy_check_mark: |                    |
 | FON       | font                      |     10 |                            | :heavy_check_mark: |                    |                    |
 | FVF       |                           |     27 |                            |                    |                    |                    |
 | LBM       |                           |      4 |                            |                    |                    |                    |
@@ -80,12 +82,12 @@
 * ff - other characters
 
 ### Worlds
-* 00 - 
+* 00 -
 * 02 - Allanor
 * 03 - Morassia
 * 04 - Mertens Orbital Station
 * 05 - Frigis (Shonoisho Epsilon VI)
 * 06 -
 * 07 -
-* 10 - 
+* 10 -
 * 5f - Enterprise Bridge
