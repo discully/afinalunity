@@ -17,27 +17,18 @@ def _readImage(f, offset):
 
 
 def _readAstrogation(f, offset):
-	f.setOffset(offset)
-
-	debug = f.readString()
-	# A human readable string, probably used for debugging during development.
+	# A human readable string.
 	# Depending on the destination type, has four pieces of information and finishes with a 0.
-	# DS:       <sector_id> <          -1> <           -1> <    128    > <0>
-	# Outpost:  <sector_id> <system_index> <station_orbit> <    132    > <0>
-	# Starbase: <sector_id> <           0> <            0> <    131    > <0>
-
-	n_data1 = f.readUInt16()
-	n_data2 = f.readUInt16()
-
-	data0 = [] if n_data1 == 0 else [f.readUInt32() for i in range(4)]
-	data1 = [f.readUInt32() for i in range(n_data1)]
-	data2 = [f.readUInt32() for i in range(n_data2)]
-
+	# DS:       <sector_id> <          -1> <           -1> <object_type(128)> <0>
+	# Outpost:  <sector_id> <system_index> <station_orbit> <object_type(132)> <0>
+	# Starbase: <sector_id> <           0> <            0> <object_type(131)> <0>
+	s = f.readOffsetString(offset).replace("\r", "\n").split("\n")[0]
+	a = [int(i) for i in s.split()]
 	return {
-		"debug": debug,
-		"data0": data0,
-		"data1": data1,
-		"data2": data2,
+		"sector_id": a[0],
+		"system_index": a[1],
+		"orbit": a[2],
+		"object_type": a[3]
 	}
 
 
@@ -53,7 +44,7 @@ def _readUnknown(f, offset):
 	}
 
 
-def _readEntry(f, offset):
+def _readEntry(f, offset, index):
 	f.setOffset(offset)
 
 	n_subentries = f.readUInt16()
@@ -64,9 +55,11 @@ def _readEntry(f, offset):
 	data_offset = f.readUInt32()
 
 	subentries_offsets = [f.readUInt32() for i in range(n_subentries)]
-	# Subentries is a list of all possible sub-entries. compustat.dat/the game save probably indicates which are visible.
+	# Subentries is a list of all possible sub-entries.
+	# The compstat section in the game save indicates which are visible at any time during the game.
 
 	entry = {
+		"index": index,
 		"flags": data_flag,
 		"title": f.readOffsetString(title_offset).strip(),
 		"heading": f.readOffsetString(heading_offset).replace("\r", "\n").strip(),
@@ -97,8 +90,8 @@ def computerDb(file_path):
 	entries_offsets = [f.readUInt32() for i in range(n_entries)]
 	offset_eof = f.readUInt32()
 	f.setOffsetBase(f.pos())
-
-	return { offset:_readEntry(f, offset) for offset in entries_offsets }
+	
+	return { offset:_readEntry(f, offset, index) for index,offset in enumerate(entries_offsets) }
 
 
 def compstat(file_path):
@@ -107,9 +100,14 @@ def compstat(file_path):
 
 
 def readCompstat(f):
-	unknown = [f.readUInt8() for i in range(44)]
+	visible_flags = []
+	for i in range(44):
+		bits = f.readBits(8)
+		bits.reverse()
+		visible_flags += bits
+	visible = [i == 0 for i in visible_flags]
 	dat_compstat = list(f.read(344))
 	return {
-		"unknown": unknown,
+		"visible": visible,
 		"state": dat_compstat
 	}
