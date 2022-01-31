@@ -105,9 +105,9 @@ def readSector(f):
 	sector_alignment = f.readUInt32()
 	sector_unknown = [f.readUInt32() for x in range(4)]  # todo: astromap.db: last value 0 for all but first system, astro.db: [0x0,0x0,0x0,0xffffffff]
 
-	sector_z = (sector_id >> 6) & 0b111
 	sector_x = (sector_id >> 0) & 0b111
 	sector_y = (sector_id >> 3) & 0b111
+	sector_z = (sector_id >> 6) & 0b111
 
 	return {
 		"id": sector_id,
@@ -444,12 +444,75 @@ def stationDescription(station):
 	d += ". Current status of this unit is: Fully Operational"
 	return d
 
+	# In sttng.ovl, strings are found at file offsets...
 	# 1384888:Fully Operational.
 	# 1384909:Operational -- Awaiting Resupply.
 	# 1384945:Partially Operational.
 	# 1384970:Non-operational.
 	# 1384989:Unknown -- contact lost.
 
+
+
+#
+# Astro State
+#
+
+
+def readAstroState(f):
+
+	unknown = [f.readUInt16() for x in range(369)]
+
+	sector_end = []
+	for i in range(N_SECTORS):
+		sector_end.append(f.readUInt16())
+
+	object_id = 0
+
+	systems_bodies = {}
+	for sector_id,end in enumerate(sector_end):
+		while object_id < end:
+			systems_bodies[object_id] = f.readUInt16()
+			object_id += 1
+			# What does this value mean...
+			#  0      0000 invisible, unscanned
+			#  1      0001 visible,  unscanned
+			#  4      0100 invisible, only Lethe Beta
+			#  5      0101 Only stellar bodies (no star systems)
+			#  6      0110 invisible, only Lethe Zeta
+			#  9      1001
+			# 13      1101
+			# 29 0001 1101 13 + story planet  (x5: M'kyru Zeta (Palmyra), Tothe Delta (horst), Euterpe Epsilon (Morassia), Steger Delta (Cymkoe), Kamyar Delta)
+
+			#  0000 0000
+			#          ^---- visible?
+			#         ^----- 4: Lethe Zeta only
+			#        ^------ 5,6: ???
+			#       ^------- scanned?
+			#     ^--------- story point?
+
+			# M'kyru Zeta (Palmyra)      - If you don't fight the original Garidian warbird, the scout ship self destructs, and you detect escape pods here
+			# Tothe Delta (Horst)        - Where Vulcan archeologist Shanok is based
+			# Euterpe Epsilon (Morassia) - Location where Vie Hunfrsch goes missing
+			# Steger Delta (Cymkoe IV)   - Location of Mertens Orbital Station
+			# Kamyar Delta               - ?????
+
+	stations = {}
+	for i in range(64):
+		stations[object_id] = f.readUInt16()
+		object_id += 1
+		# What does this value mean...
+		# Each station type has only one value:
+		# starbase: 0
+		# outpost: 0
+		# buoy: 1
+		# comm relay: 13
+		# deep space station: 1
+
+	return {
+		"unknown": unknown,
+		"systems_bodies": systems_bodies,
+		"stations": stations,
+	}
 
 
 #
@@ -597,62 +660,6 @@ def sectorAst(file_path):
 
 def astStatDat(file_path):
 	f = File(file_path)
-
-	unknown = []
-	while f.pos() < 738: # 0x2E2
-		unknown.append(f.readUInt16())
-
-	sector_end = []
-	for i in range(N_SECTORS):
-		sector_end.append(f.readUInt16())
-
-	object_id = 0
-
-	systems_bodies = {}
-	for sector_id,end in enumerate(sector_end):
-		while object_id < end:
-			systems_bodies[object_id] = f.readUInt16()
-			object_id += 1
-			# What does this value mean...
-			#  0      0000 invisible, unscanned
-			#  1      0001 visible,  unscanned
-			#  4      0100 invisible, only Lethe Beta
-			#  5      0101 Only stellar bodies (no star systems)
-			#  6      0110 invisible, only Lethe Zeta
-			#  9      1001
-			# 13      1101
-			# 29 0001 1101 13 + story planet  (x5: M'kyru Zeta (Palmyra), Tothe Delta (horst), Euterpe Epsilon (Morassia), Steger Delta (Cymkoe), Kamyar Delta)
-
-			#  0000 0000
-			#          ^---- visible?
-			#         ^----- 4: Lethe Zeta only
-			#        ^------ 5,6: ???
-			#       ^------- scanned?
-			#     ^--------- story point?
-
-			# M'kyru Zeta (Palmyra)      - If you don't fight the original Garidian warbird, the scout ship self destructs, and you detect escape pods here
-			# Tothe Delta (Horst)        - Where Vulcan archeologist Shanok is based
-			# Euterpe Epsilon (Morassia) - Location where Vie Hunfrsch goes missing
-			# Steger Delta (Cymkoe IV)   - Location of Mertens Orbital Station
-			# Kamyar Delta               - ?????
-
-	stations = {}
-	try:
-		while True:
-			stations[object_id] = f.readUInt16()
-			object_id += 1
-			# What does this value mean...
-			# Each station type has only one value:
-			# starbase: 0
-			# outpost: 0
-			# buoy: 1
-			# comm relay: 13
-			# deep space station: 1
-	except EOFError:
-		pass
-
-	return {
-		"unknown": unknown,
-		"systems_bodies": systems_bodies,
-		"stations": stations,
-	}
+	state = readAstroState(f)
+	assert(f.eof())
+	return state
