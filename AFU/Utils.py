@@ -14,11 +14,17 @@ from enum import Enum
 def identify(file_path):
 	file_path = PurePath(file_path)
 	file_extension = file_path.suffix.lower()
-	file_name = file_path.stem
-	if file_extension in [".spr",".spt"]:
+	file_name = file_path.stem.lower()
+
+	if file_name == "compstat":
+		return "computer_state"
+	elif file_extension in [".spr",".spt"]:
 		return "sprite"
 	elif file_extension == ".rm":
 		return "background"
+	elif file_extension == ".dat":
+		if file_name == "ast_stat":
+			return "astro_state"
 	elif file_extension == ".ast":
 		if file_name == "sector":
 			return "sector_names"

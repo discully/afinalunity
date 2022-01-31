@@ -27,6 +27,10 @@ def main():
 		else:
 			print("Unsupported database file: {}".format(args.file.name))
 			return
+	elif file_type == "astro_state":
+		data = AFU.Astro.astStatDat(args.file)
+	elif file_type == "computer_state":
+		data = AFU.Computer.compstat(args.file)
 	elif file_type == "world":
 		data = AFU.World.worldSlScr(args.file)
 	elif file_type == "polygons":
