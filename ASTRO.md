@@ -92,7 +92,7 @@ At each of the sector_offsets, you will find the following data for a given sect
 |  Offset | Offset | Name     | Type      | Description |
 |  ---:   | ---:   | :---     | ---:      | :---        |
 |    0x00 |      0 | sector   | SECTOR    | Information on the sector |
-|    0x18 |     24 | systems  | SYSTEM[]  | Array of the systems within the sector |
+|    0x24 |     36 | systems  | SYSTEM[]  | Array of the systems within the sector |
 |         |        | bodies   | BODY[]    | Array of the astronomical bodies within the sector |
 |         |        | stations | STATION[] | Array of the stations within the sector |
 
@@ -105,9 +105,9 @@ At each of the sector_offsets, you will find the following data for a given sect
 |   0x08 |      8 | sector_n_bodies      |  32u | Number of astronomical bodies within sector |
 |   0x0C |     12 | sector_n_stations    |  32u | 0 or, in stromap.db, number of stations within sector |
 |   0x10 |     16 | sector_alignment     |  32u | See "Sector Alignment" below |
-|   0x14 |     20 | \<unknown>           |  32u |  |
+|   0x14 |     20 | \<unknown>           |  32u[4] |  |
 
-Total length: 24 bytes.
+Total length: 36 bytes.
 
 #### Sector Alignment
  * 0: Federation
