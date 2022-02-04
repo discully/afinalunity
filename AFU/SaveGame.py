@@ -11,14 +11,44 @@ from AFU import Astro, Computer
 #  0x27b7 10167  GNT    31
 #  0x27da 10202  GNT    8
 #  0x27e6 10214  GNT    2177
-#  0x306b 12395  GNT    5
-#  0x3074 12404  GNT    5799
+#  0x306b 12395  GNT    5            travel history
+#  0x3074 12404  GNT    5799         objects (ships, characters, etc.)
 #  0x471f 18207  ONT    2767
 #  0x51f2 20978  ONT    81
 
 
 def fpos(f, s=""):
 	print(f.pos(), hex(f.pos()), s)
+
+
+def readBlockTravelHistory(f, block):
+	data = []
+	f.setPosition(block["data_offset"])
+	f.readUInt8()
+	while f.pos() != block["end_offset"]:
+		unknown0 = [f.readUInt8() for i in range(48)]
+		x = f.readUInt32()
+		y = f.readUInt32()
+		z = f.readUInt32()
+		orbit = f.readUInt32() # 99% sure this is correct. Index from 0-N of the bodies orbiting the star
+		assert(f.readUInt32() == 0)
+		assert(f.readUInt32() == 0)
+		assert(f.readUInt32() == 0xffffffff)
+		unknown1 = [f.readUInt8() for i in range(16)]
+		name = f.readString()
+		desc = f.readString()
+		data.append({
+			"name": name,
+			"description": desc,
+			"coords": [x, y, z],
+			"orbit": orbit,
+			"unknown0": unknown0,
+			"unknown1": unknown1,
+		})
+	assert(f.pos() == block["end_offset"])
+	return {
+		"travel_history": data,
+	}
 
 
 def readBlockAststat(f, block):
@@ -95,6 +125,7 @@ def savegame(input_path):
 	#print(blocks[3])
 	#print(blocks[4])
 	#print(blocks[5])
+	data |= readBlockTravelHistory(f, blocks[5])
 	#print(blocks[6])
 	#print(blocks[7])
 	#print(blocks[8])
