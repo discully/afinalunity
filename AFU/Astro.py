@@ -321,7 +321,7 @@ def readSystem(f):
 		"stations": [],
 		"planets": None,  # todo: determine how many planets there are
 		"asteroid_belt": None,  # todo: determine where asteroid belt is specified
-		"scanned": None,  # todo: Determine how to know if a system is unscanned
+		"scanned": None,  # This is specified in ast_stat
 	}
 
 	if systemStation(system_state):
@@ -460,7 +460,55 @@ def stationDescription(station):
 
 def readAstroState(f):
 
-	unknown = [f.readUInt16() for x in range(369)]
+	unknown0 = [f.readUInt16() for x in range(8)]
+	enterprise_warp = round(float(f.readUInt32()) / 100.0, 1)
+	enterprise_location_x = f.readUInt32()
+	enterprise_location_y = f.readUInt32()
+	enterprise_location_z = f.readUInt32()
+	enterprise_origin_x = f.readUInt32()
+	enterprise_origin_y = f.readUInt32()
+	enterprise_origin_z = f.readUInt32()
+	enterprise_destination_x = f.readUInt32()
+	enterprise_destination_y = f.readUInt32()
+	enterprise_destination_z = f.readUInt32()
+	unknown1a = [f.readUInt8() for x in range(512)]
+	unknown1b = [f.readUInt16() for x in range(19)]
+	astrogation_speed_mode = "warp" if f.readUInt16() == 0 else "impulse"
+	astrogation_speed_warp = round(float(f.readUInt32()) / 100.0, 1)
+	astrogation_speed_impulse = f.readUInt32() * 10
+
+	# all but the first of these changes when you change impulse speed, or between impulse and warp.
+	# The first three don't change when you change warp speed. The second and third are 0 when in warp mode
+	# If you change the selected system it also updates.
+	# Perhaps some kind of estimated time to arrival? Or course information?
+	unknown2a = [f.readUInt32() for x in range(7)]
+
+	# some of these change when you change warp/impulse speed
+	unknown2b = [f.readUInt16() for x in range(16)]
+	astrogation_selected_x = f.readUInt32()
+	astrogation_selected_y = f.readUInt32()
+	astrogation_selected_z = f.readUInt32()
+	unknown3 = [f.readUInt16() for x in range(8)]
+	astrogation_a_deg = f.readUInt16()
+	astrogation_e_deg = f.readUInt16()
+	unknown4 = [f.readUInt16() for x in range(7)]
+
+	d0 = f.readUInt16()
+	d1 = f.readUInt16()
+	display = {
+		"federation": (d0 & 0b00000001) != 0,
+		"romulan": (d0 & 0b00000010) != 0,
+		"neutral": (d0 & 0b00000100) != 0,
+		"nebula": (d0 & 0b00001000) != 0,
+		"nonaligned": (d0 & 0b00010000) != 0,
+		"grid": (d1 & 0b00000001) != 0,
+		"stars": (d1 & 0b00000010) != 0,
+		"inhabited": (d1 & 0b00000100) != 0,
+		"starbases": (d1 & 0b00001000) != 0,
+	}
+
+	astrogation_rotating = f.readUInt16() == 1
+	unknown5 = [f.readUInt16() for x in range(5)]
 
 	sector_end = []
 	for i in range(N_SECTORS):
@@ -471,8 +519,8 @@ def readAstroState(f):
 	systems_bodies = {}
 	for sector_id,end in enumerate(sector_end):
 		while object_id < end:
-			systems_bodies[object_id] = f.readUInt16()
-			object_id += 1
+			state = f.readUInt16()
+
 			# What does this value mean...
 			#  0      0000 invisible, unscanned
 			#  1      0001 visible,  unscanned
@@ -493,8 +541,19 @@ def readAstroState(f):
 			# M'kyru Zeta (Palmyra)      - If you don't fight the original Garidian warbird, the scout ship self destructs, and you detect escape pods here
 			# Tothe Delta (Horst)        - Where Vulcan archeologist Shanok is based
 			# Euterpe Epsilon (Morassia) - Location where Vie Hunfrsch goes missing
-			# Steger Delta (Cymkoe IV)   - Location of Mertens Orbital Station
+			# Steger Delta (Cymkoe IV)   - Location of Mertens Orbital Station (video on arrival)
 			# Kamyar Delta               - ?????
+
+			state_visible = (state & 0b00000001) != 0
+			state_scanned = (state & 0b00001000) != 0
+			systems_bodies[object_id] = {
+				"sector_id": sector_id,
+				"object_id": object_id,
+				"state": state,
+				"visible": state_visible,
+				"scanned": state_scanned,
+			}
+			object_id += 1
 
 	stations = {}
 	for i in range(64):
@@ -509,7 +568,30 @@ def readAstroState(f):
 		# deep space station: 1
 
 	return {
-		"unknown": unknown,
+		"unknown0": unknown0,
+		"enterprise": {
+			"location": (enterprise_location_x, enterprise_location_y, enterprise_location_z),
+			"destination": (enterprise_destination_x, enterprise_destination_y, enterprise_destination_z),
+			"origin": (enterprise_origin_x, enterprise_origin_y, enterprise_origin_z),
+			"warp": enterprise_warp,
+		},
+		"unknown1a": unknown1a,
+		"unknown1b": unknown1b,
+		"astrogation": {
+			"speed_mode": astrogation_speed_mode,
+			"speed_warp": astrogation_speed_warp,
+			"speed_impulse": astrogation_speed_impulse,
+			"selected": (astrogation_selected_x, astrogation_selected_y, astrogation_selected_z),
+			"space_rotation_a": astrogation_a_deg,
+			"space_rotation_e": astrogation_e_deg,
+			"space_rotating": astrogation_rotating,
+			"display": display,
+		},
+		"unknown2a": unknown2a,
+		"unknown2b": unknown2b,
+		"unknown3": unknown3,
+		"unknown4": unknown4,
+		"unknown5": unknown5,
 		"systems_bodies": systems_bodies,
 		"stations": stations,
 	}
