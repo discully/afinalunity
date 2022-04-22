@@ -3,6 +3,11 @@ from collections import deque
 
 
 
+def fpos(f, comment=""):
+	print(f.pos(), hex(f.pos()), comment)
+
+
+
 class File:
 
 	def __init__(self, file_name):
@@ -23,17 +28,17 @@ class File:
 
 	def name(self):
 		return self.file_name
-	
-	
+
+
 	def eof(self):
 		return not self.pos() < self.size()
-	
-	
+
+
 	def peek(self):
 		value = self.readUInt8()
 		self.setPosition(self.pos() - 1)
 		return value
-	
+
 
 	def pos(self):
 		return self.f.tell()
@@ -125,8 +130,8 @@ class File:
 			s += chr(c)
 			c = self.readUInt8()
 		return s
-	
-	
+
+
 	def readStringBuffer(self, length):
 		b = self.read(length)
 		s = ""
