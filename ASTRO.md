@@ -55,10 +55,22 @@ There are 34 comm relays in total.
 
 ### Places of Interest
 
-| Name | Sector | System | Co-ordinates | Notes |
-| :---   | :---         | :---   | :---         | :---  |
-| Al'din | 5-6-3        |        |              | Location from which the Gombara Pulsar can be viewed |
-| Thang  | 3-1-3        |        | 9-14-16      | Location of the Unity device |
+| Name      | Sector | System  | Co-ordinates | Notes |
+| :---      | :---   | :---    | :---         | :---  |
+| Al'din    | 5-6-3  |         |              | Location from which the Gombara Pulsar can be viewed |
+| Thang     | 3-1-3  |         | 9-14-16      | Location of the Unity device |
+| Allanor   | Brinus | Zeta    |              | Location of the Chodak ruins |
+| Nigold    | Teagra | Epsilon |              | Location of Ferengi trader |
+| Joward    | Cashat | Delta   |              | Go to Joward III in search of Ferengi trader. Upon arrival, crew advises going to Nigold System.
+| Morassia  | Euterpe   | Epsilon | 55-50-101 | Location of the zoo mission |
+|           | Polynya   | Delta   | 62-6-127  |  |
+|           | Darien    | Beta    | 55-82-52  |  |
+|           | Byrn      | Beta    | 61-99-43  |  |
+|           | Linore    | Iota    | 82-84-63  |  |
+| Frigis    | Shonoisho | Epsilon | 88-45-105 | Location of the Garidian colony |
+|           | Shonoisho | Eta     | 93-56-111 |  |
+| Cymkoe    | Steger    | Delta   | 92-76-56  | Contains "Cymkoe IV", location of Mertens Orbital Station |
+| Horst     | Tothe     | Delta   | 106-84-99 | Contains "Horst III", where you visit the vulcan archeologist Shanok |
 
 
 ## File Formats
