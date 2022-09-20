@@ -160,7 +160,7 @@ def sectorDescription(sector):
 
 def systemInhabited(state, file_name):
 	# Only works in astro.db. Used for unknown-state in astromap.db
-	if file_name.name.contains("astro.db"):
+	if "astro.db" in file_name:
 		return (0b0000000000010000 & state) != 0
 	else:
 		return False
