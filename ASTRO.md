@@ -186,7 +186,7 @@ The system_flags field is a bitfield encoding the following values:
  * 0b10 - A binary star system
  * 0b1100 - Contains a starbase
  * 0b0100 - Contains an outpost
- * 0b10000 - Contains an inhabited planet
+ * 0b10000 - Contains an inhabited planet (astro.db). Unknown property (astromap.db)
 
 
 #### System Class
