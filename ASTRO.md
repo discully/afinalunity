@@ -1,9 +1,18 @@
 # Astrogation
 
-The game space consists of an 8x8x8 grid of 512 sectors.
+The game space is known as the 'Kridnar navigation block' and consists of an 8x8x8 grid of 512 sectors.
 Each sector has a 20x20x20 co-ordinate grid, some of which will contain a star system.
 This means everything can be located within a 160x160x160 grid (global co-ordinates).
 There are 2860 star systems in total.
+
+| Alignment       | Sectors | Systems |
+| :---            | ---:    | ---:    |
+| Z'Tarnis Nebula |     143 |     800 |
+| Non-aligned     |      78 |     423 |
+| Federation      |     128 |     727 |
+| Neutral Zone    |      48 |     258 |
+| Romulan         |     115 |     652 |
+
 
 ## In-Game Space
 
@@ -35,12 +44,19 @@ There are 5 deep space stations in total.
 
 ### Outposts
 
-There are 9 outposts in total.
+There are 9 outposts in total. 8 regular outposts, and Outpost Delta-0-8.
 
-| Outpost     | Sector | Planet          |
-| :---        | :---   | :---            |
-| Outpost 341 | 3-4-1  | Vanuma Alpha II |
-| Outpost 146 | 1-4-6  | Zhalu Zeta I    |
+| Outpost           | Sector | System   | Planet                 |
+| :---              | :---   | :---     | :---                   |
+| Outpost 146       | 1-4-6  | 14-16-5  | Zhalu Zeta I           |
+| Outpost 172       | 1-7-2  | 12-6-16  | Myborn Beta II         |
+| Outpost 174       | 1-7-4  | 6-10-14  | Vavuru Delta II        |
+| Outpost 341       | 3-4-1  | 18-10-16 | Vanuma Alpha II        |
+| Outpost 430       | 4-3-0  | 14-7-11  | Optima Alpha II        |
+| Outpost 435       | 4-3-5  | 5-1-4    | Rydle Eta II           |
+| Outpost 543       | 5-4-3  | 0-5-1    | Goldur Eta II          |
+| Outpost 644       | 6-4-4  | 2-12-16  | Bonar Epsilon I        |
+| Outpost Delta-0-8 | 6-3-4  | 11-14-6  | Kamyar Delta (Yajj) IV |
 
 
 ### Navigation and Scanning Buoys
@@ -133,8 +149,7 @@ Total length: 36 bytes.
 
 I have not identified where the following information is stored:
  * Presence of an asteroid belt
- * Whether the system has been scanned
- * Number of planets it contains
+ * Number or type of planets/moons it contains
 
 | Offset | Offset | Name                 | Type | Description |
 | ---:   | ---:   | :---                 | ---: | :---        |
@@ -238,7 +253,7 @@ Total length: 40 bytes.
    * Alien device - the one which attacks Mertens Orbital Station
    * Unity device
    * Ruinore sector
-   * Ayers
+   * USS Ayers
    * Singelea sector
  * 128: "Deep Space Station"
  * 129: "Comm Relay"

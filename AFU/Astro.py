@@ -142,13 +142,32 @@ def sectorDescription(sector):
 # Star Systems
 #
 
-# todo: Check these bitfields more
-# They appear to mean different things in astro.db and astromap.db
-# For example, the Inhabited bit:
-#    - astro.db: Morassia and Cymkoe only. But Horst, Frigis and Allanor are also inhabited/habitable, so this means something else.
-#    - astromap.db: About 543 systems - so clearly not meaning inhabited.
+# System State is a bitfield, but it means subtly different things in astro.db and astromap.db.
+# In both files, the first two bits indicate if the system is a White Dwarf or Binary system.
+# In astromap.db the third and fourth bits contains information on stations (outposts and starbases),
+# but these bits are unused in astro.db.
+# The fifth bit is more confusing. In astro.db it indicates is the system contains an inhabited planet.
+# In astromap.db it means something else that I haven't determined (545 systems have it set).
+# All the remaining bits are unused.
+#
+# 00000000
+#        ^_ white dwarf?
+#       ^__ binary?
+#      ^___ contains station? - if true, check next bit to see what type (astromap.db only)
+#     ^____ starbase? - if false, then outpost (astromap.db only)
+#    ^_____ inhabited? (astro.db only), unknown state (atromap.db only)
 
-def systemInhabited(state):
+
+def systemInhabited(state, file_name):
+	# Only works in astro.db. Used for unknown-state in astromap.db
+	if file_name.name.contains("astro.db"):
+		return (0b0000000000010000 & state) != 0
+	else:
+		return False
+
+
+def systemUnknownState(state):
+	# Only works in astromap.db, and don't know what it means. Used for 'inhabited' in astro.db
 	return (0b0000000000010000 & state) != 0
 
 
@@ -161,19 +180,18 @@ def systemWhiteDwarf(state):
 
 
 def systemStation(state):
+	# Only set in astromap.db
 	return (0b0000000000000100 & state) != 0
 
 
 def systemStarbase(state):
+	# Only set in astromap.db
 	return systemStation(state) and (0b0000000000001000 & state) != 0
 
 
 def systemOutpost(state):
+	# Only set in astromap.db
 	return systemStation(state) and (0b0000000000001000 & state) == 0
-
-
-def systemStateValidate(state):
-	assert((0b1111111111100000 & state) == 0)
 
 
 def systemTitle(system):
@@ -227,39 +245,53 @@ def readSystem(f):
 
 	# Have not identified where the following information is stored:
 	# - Presence of an asteroid belt
-	# - Whether the system has been scanned
 	# - Number of planets it contains
 
 	system_index = f.readUInt32()
 	system_id = f.readUInt16()
 	system_type = f.readUInt16() # SectorObjects.STAR_SYSTEM
 
-	system_unknown0 = f.readUInt8()
-	# todo: system unknown field 0
-	# Astro.db: 255 (x1488), 0 (x1367), 101, 173, 189, 253, 247.
-	# Astromap.db: Agrees with astro.db, except for one-off values.
-	# One-off values could indicate events on arrival at these coords?
+	# Unknown Values seem to have something to do with the layout of the system.
+	# astro.db and astromap.db are in strong agreement, with only a handful of differences
 	#
-	#   <<< system >>>                astro.db  astromap.db
-	#   Darien Beta                   101         0
-	#   Byrn Beta                     173       255
-	#   Shonoisho Epsilon 5 (Frigis)  189         0            Cut-scene on arrival
-	#   Polynya Delta                 253         0
-	#   Cashat Delta (Joward)         247         0            Go to Joward III in search of Ferengi trader. Upon arrival, crew advises going to Nigold System.
+	# Unknown0:
+	#   If unknown1 <= 127, unknown0 is 0
+	#   If unknown1 >= 129, unknown0 is 255
+	#   If unknown1 == 128, unknown0 is either 0 or 255
+	#   There are five systems which deviate from this in astro.db, and one in astromap.db:
+	#                                     astro.db  astromap.db
+	#     - Darien Beta                   101         0
+	#     - Byrn Beta                     173       255
+	#     - Shonoisho Epsilon 5 (Frigis)  189       255
+	#     - Polynya Delta                 253         0
+	#     - Cashat Delta (Joward)         247       247           Go to Joward III in search of Ferengi trader. Upon arrival, crew advises going to Nigold System.
+	#
+	# Unknown1 values range from 0 to 255, covering all values, with the systems
+	# distributed relatively evenly across that range.
+	#
+	# Unknown2 also ranges between 0 and 255.
+	#
+	# Systems with the same combination of unknown1 and unknown2 almost always have
+	# the same planets/moons (though not exclusively).
+	# Changing either of the values changes the planets/moons in the system.
+	#
+	# Astro.db and astromap.db are largely in agreement with nine exceptions, five
+	# of which were already mentioned above:
+	#                                 astro.db          astromap.db
+	#                                 <u0> <u1> <u2>    <u0> <u1> <u2>
+	# Euterpe Epsilon (55,50,101)	     0   71  175       0   87  177    Contains "Morassia", location of the zoo mission
+	# Polynya Delta (62,6,127)         253  100  139       0  101  139
+	# Darien Beta (55,82,52)           101   87  224       0   16  224
+	# Byrn Beta (61, 99, 43)           173  115  241     255  202  241
+	# Linore Iota (82, 84, 63)           0   29   49       0   20   49
+	# Shonoisho Epsilon (88, 45, 105)  189    0   18     255  189   68    Contains "Frigis", location of the Garidian colony
+	# Shonoisho Eta (93, 56, 111)      255  189   68       0   62   53
+	# Steger Delta (92, 76, 56)          0   29   49       0   29  140    Contains "Cymkoe IV", location of the Mertens Orbital Station
+	# Tothe Delta (106, 84, 99)        255  171  104       0   33  231    Contains "Horst III", where you visit Shanok
 
+
+	system_unknown0 = f.readUInt8()
 	system_unknown1 = f.readUInt8()
-	# todo: system unknown field 1
-	# Lots of different values, none stand-out values
-	# Astro.db and astromap.db agree except for seven systems below
-	#
-	# <<< system >>>                astro.db    astromap.db
-	# Darien Beta                   87          16
-	# Byrn Beta                     115         202
-	# Linore Iota                   29          20
-	# Tothe Delta                   171         33
-	# Euterpe Epsilon               71          87
-	# Shonoisho Epsilon             0           62
-	# Polynya Delta                 100         101
 
 	assert(f.readUInt16() == 0)
 	system_x = f.readUInt32()
@@ -267,22 +299,13 @@ def readSystem(f):
 	system_z = f.readUInt32()
 	assert(f.readUInt32() == 0)
 	system_name_offset = f.readUInt32() # todo: this is set in astromap.db, but isn't an offset within the file
-	system_state = f.readUInt16() # todo: the inhabited flag means something different in astromap.db
+	system_state = f.readUInt16()
 	system_station_orbit = f.readUInt8() # In astromap.db the orbit of the station (0 is between first and second planet, 1: between second and third, etc). 0 in astro.db.
 	system_station_type = f.readUInt8() # In astromap.db could also be either station (131) or outpost (132). 0 in astro.db.
 	system_class = f.readUInt16()
 	system_magnitude = f.readSInt16()
 
 	system_unknown2 = f.readUInt32()
-	# todo: system unknown field 2
-	# Values between 0 and 255. No stand-out values
-	# Astro.db and astromap.db agree except for four systems below
-	#
-	# <<< system >>>                astro.db    astromap.db
-	# Steger Delta                  49          140
-	# Tothe Delta                   104         231
-	# Euterpe Epsilon               175         177
-	# Shonoisho Epsilon             18          53
 
 	assert(f.readUInt32() == 0)
 	system_alias_offset = f.readUInt32()
@@ -292,7 +315,6 @@ def readSystem(f):
 	system_station_offset = f.readUInt32()  # todo: Only in astromap.db for systems with stations. Separation is 36bytes == sizeof(station).
 
 	system_global_coords = (system_x, system_y, system_z)
-	systemStateValidate(system_state)
 
 	system = {
 		"type": SectorObjects(system_type),
@@ -302,7 +324,7 @@ def readSystem(f):
 		"coords": minorCoords(system_global_coords),
 		"class": STAR_CLASSES[system_class // 10] + str(system_class % 10),
 		"state": system_state,
-		"inhabited": systemInhabited(system_state),
+		"inhabited": systemInhabited(system_state, f.name()),
 		"binary": systemBinary(system_state),
 		"white_dwarf": systemWhiteDwarf(system_state),
 		"magnitude": system_magnitude / 10.0,
@@ -349,7 +371,7 @@ def readSystem(f):
 
 
 def bodyDescription(body):
-	if body["type"] == SectorObjects.SPECIAL_ITEM:  # Special item (Alien device, Unity device, Ruinore sector, Ayers, Singelea sector)
+	if body["type"] == SectorObjects.SPECIAL_ITEM:  # Special item (Alien device, Unity device, Ruinore sector, USS Ayers, Singelea sector)
 		return ""
 
 	d = "{0[name]}: ".format(body)
