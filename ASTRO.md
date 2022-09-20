@@ -23,10 +23,10 @@ Useful when examining the astrogation files.
 
 There are 2 starbases in total.
 
-| Starbase     | Sector | Planet |
-| :---         | :---   | :---   |
-| Starbase 131 | 1-3-1  | Hastings Alpha I |
-| Starbase 45  | 0-4-5  | Godel Alpha I |
+| Starbase     | Sector | System  | Planet           |
+| :---         | :---   | :---    | :---             |
+| Starbase 131 | 1-3-1  | 18-3-5  | Hastings Alpha I |
+| Starbase 45  | 0-4-5  | 3-10-10 | Godel Alpha I    |
 
 
 ### DS Stations
