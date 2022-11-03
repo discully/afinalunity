@@ -71,22 +71,26 @@ There are 34 comm relays in total.
 
 ### Places of Interest
 
-| Name      | Sector | System  | Co-ordinates | Notes |
-| :---      | :---   | :---    | :---         | :---  |
-| Al'din    | 5-6-3  |         |              | Location from which the Gombara Pulsar can be viewed |
-| Thang     | 3-1-3  |         | 9-14-16      | Location of the Unity device |
-| Allanor   | Brinus | Zeta    |              | Location of the Chodak ruins |
-| Nigold    | Teagra | Epsilon |              | Location of Ferengi trader |
-| Joward    | Cashat | Delta   |              | Go to Joward III in search of Ferengi trader. Upon arrival, crew advises going to Nigold System.
-| Morassia  | Euterpe   | Epsilon | 55-50-101 | Location of the zoo mission |
-|           | Polynya   | Delta   | 62-6-127  |  |
-|           | Darien    | Beta    | 55-82-52  |  |
-|           | Byrn      | Beta    | 61-99-43  |  |
-|           | Linore    | Iota    | 82-84-63  |  |
-| Frigis    | Shonoisho | Epsilon | 88-45-105 | Location of the Garidian colony |
-|           | Shonoisho | Eta     | 93-56-111 |  |
-| Cymkoe    | Steger    | Delta   | 92-76-56  | Contains "Cymkoe IV", location of Mertens Orbital Station |
-| Horst     | Tothe     | Delta   | 106-84-99 | Contains "Horst III", where you visit the vulcan archeologist Shanok |
+| Name      | Sector          | System  | Co-ordinates | Notes |
+| :---      | :---            | :---    | :---      | :---  |
+|           | M'kyru    4-4-4 |         | | Where you start the game and meet the Garidian warbird |
+|           | Ruinore   3-4-3 |         | | Where you are supposed to be patrolling the neutral zone |
+| Palmyra   | M'kyru    4-4-4 | Zeta    | | If you don't chalenge the Garidian warbird, the scout ship self destructs, and you detect escape pods here |
+| Cymkoe    | Steger    4-3-2 | Delta   | 92-76-56  | Mission 1 - Contains "Cymkoe IV", location of Mertens Orbital Station |
+| Morassia  | Euterpe   2-2-5 | Epsilon | 55-50-101 | Mission 2 - The zoo planet, where Dr Hyunh-Foertsch goes missing. |
+| Joward    | Cashat    1-3-6 | Delta   | | Go to Joward III in search of Ferengi trader. Upon arrival, crew advises going to Nigold System. |
+| Nigold    | Teagra    2-3-6 | Epsilon | | Location of Ferengi trader, Aramut |
+| Frigis    | Shonoisho 4-2-5 | Epsilon | 88-45-105 | Mission 3 - The Garidian colony on Shonoisho Epsilon VI (aka Frigis) |
+|           | Goldur    5-4-3 | Eta     | | Location of Outpost 543, and Commander Chan (dialogue says Goldur Delta, but it's in Eta) |
+| Paxanona  | Goldur    5-4-3 |         | 11-90-65  | Location of Comm Relay 543, which you defend from the Romulans |
+| Beremar   | Goldur    5-4-3 | Delta   | | USS Ayers (Ambassador class, commanded by Capt. Ward) which you're sent to join... but too late |
+| Balis     | Goldur    5-4-3 | Epsilon | | Location of IKS Bortas, commanded by Captain Ky'Dra |
+| Horst     | Tothe     5-4-4 | Delta   | 106-84-99 | Mission 4 - Contains "Horst III". You first visit the vulcan archeologist Shanok here, then again for the mission. |
+| Yajj      | Kamyar    6-3-4 | Delta   | 131-74-86 | Location of Outpost Delta-0-8, at Yajj IV, which you're ordered to go defend |
+| Allanor   | Brinus    2-6-2 | Zeta    | | Mission 5 - Location of the Chodak ruins |
+|           | Al'din    5-6-7 |         |              | Location from which the Gombara Pulsar can be viewed |
+|           | Thang     3-1-3 |         | 69-34-76     | Location of the Unity device |
+
 
 
 ## File Formats
