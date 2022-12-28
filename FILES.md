@@ -44,7 +44,7 @@
 | MRG       | menu graphics             |     11 |                            | :heavy_check_mark: |                    |                    |
 | MTL       |                           |     55 |                            |                    |                    |                    |
 | MTR       |                           |      9 |                            |                    |                    |                    |
-| PAL       | colour palette            |      1 | standard.pal               |                    |                    |                    |
+| PAL       | colour palette            |      1 | standard.pal               | :heavy_check_mark: |                    |                    |
 | PC1       |                           |      9 |                            |                    |                    |                    |
 | PC2       |                           |      9 |                            |                    |                    |                    |
 | PC3       |                           |      9 |                            |                    |                    |                    |
@@ -87,7 +87,7 @@
 * 03 - Morassia
 * 04 - Mertens Orbital Station
 * 05 - Frigis (Shonoisho Epsilon VI)
-* 06 -
-* 07 -
+* 06 - Unity Device
+* 07 - Horst III
 * 10 -
 * 5f - Enterprise Bridge

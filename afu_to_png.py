@@ -140,6 +140,21 @@ def main():
 					image.export("{}.{}.png".format(output_file_name, offset))
 		else:
 			print("Unsupported database file: {}".format(args.image_file.name))
+	elif file_type == "palette":
+		# palette has 128 colours, image is 640x480px
+		# draw 16x8 squares, each 40x60px
+		palette = AFU.Palette.singlePalette(args.image_file)
+		image = AFU.Image.Image(640,480)
+		for i,colour in enumerate(palette):
+			row = i % 16
+			col = i // 16
+			print("[{:>3}]   ({:>2},{:>2})   {}".format(i, row, col, colour))
+			for dx in range(40):
+				for dy in range(60):
+					x = (row * 40) + dx
+					y = (col * 60) + dy
+					image.set(colour, x, y)
+		image.export("{}.png".format(output_file_name))
 
 	else:
 		print("Unsupported file type: {}".format(file_type))
