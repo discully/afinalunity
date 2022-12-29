@@ -222,7 +222,7 @@ def systemDescription(system):
 
 	if system["planets"] == 0:
 		d += " It posesses no planets."
-	elif systemp["planets"] == 1:
+	elif system["planets"] == 1:
 		d += " It posesses 1 planet, "
 	else:
 		d += " It posesses {} planets, ".format(system["planets"])
