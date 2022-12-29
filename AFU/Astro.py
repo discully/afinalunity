@@ -24,6 +24,11 @@ def majorCoords(global_coords):
 
 
 PLANET_CLASSES = "STABGMNFEDCJKLHI"
+# There is a string in the above configuration in STTNG.OVL.
+# However, the images in astro.mrg, and the entries in the computer terminal, are alphabetical as below.
+# PLANET_CLASSES = "ABCDEFGHIJKLMNST"
+# I'm not sure yet, which is used.
+
 STAR_CLASSES = "OBAFGKM-."
 ALIGNMENTS = ["FEDERATION", "ROMULAN", "NEUTRAL", "NEBULA", "NONALIGNED"]
 DWARF_NAMES = ["black", "brown", "red", "white"]
@@ -61,8 +66,12 @@ class Alignment (Enum):
 
 class SectorObjects (Enum): # todo: rename to AstroObjects or similar (some of these things exist in systems)
 	STAR_SYSTEM = 32
+	PLANET = 33
+	MOON = 34
+	# 64 = antimatter cloud
 	ION_STORM = 65
 	QUASAROID = 66
+	# 67 = rogue planet
 	BLACK_HOLE = 68
 	SUBSPACE_VORTEX = 69
 	UNITY_DEVICE = 72
@@ -158,12 +167,12 @@ def sectorDescription(sector):
 #    ^_____ inhabited? (astro.db only), unknown state (atromap.db only)
 
 
-def systemInhabited(state, file_name):
+def systemInhabited(state, is_astromap):
 	# Only works in astro.db. Used for unknown-state in astromap.db
-	if "astro.db" in file_name:
+	if not is_astromap:
 		return (0b0000000000010000 & state) != 0
 	else:
-		return False
+		return None
 
 
 def systemUnknownState(state):
@@ -240,7 +249,7 @@ def systemDescription(system):
 	return d
 
 
-def readSystem(f):
+def readSystem(f, is_astromap):
 	system_file_offset = f.pos()
 
 	# Have not identified where the following information is stored:
@@ -277,21 +286,24 @@ def readSystem(f):
 	#
 	# Astro.db and astromap.db are largely in agreement with nine exceptions, five
 	# of which were already mentioned above:
-	#                                 astro.db          astromap.db
-	#                                 <u0> <u1> <u2>    <u0> <u1> <u2>
-	# Euterpe Epsilon (55,50,101)	     0   71  175       0   87  177    Contains "Morassia", location of the zoo mission
-	# Polynya Delta (62,6,127)         253  100  139       0  101  139
-	# Darien Beta (55,82,52)           101   87  224       0   16  224
-	# Byrn Beta (61, 99, 43)           173  115  241     255  202  241
-	# Linore Iota (82, 84, 63)           0   29   49       0   20   49
-	# Shonoisho Epsilon (88, 45, 105)  189    0   18     255  189   68    Contains "Frigis", location of the Garidian colony
-	# Shonoisho Eta (93, 56, 111)      255  189   68       0   62   53
-	# Steger Delta (92, 76, 56)          0   29   49       0   29  140    Contains "Cymkoe IV", location of the Mertens Orbital Station
-	# Tothe Delta (106, 84, 99)        255  171  104       0   33  231    Contains "Horst III", where you visit Shanok
+	#                                    astro.db          astromap.db
+	#                                   <u0> <u1> <u2>    <u0> <u1> <u2>
+	# Euterpe Epsilon 	( 55, 50, 101)     0   71  175       0   87  177    MISSION Contains "Morassia", location of the zoo mission
+	# Polynya Delta 	( 62,  6, 127)   253  100  139       0  101  139
+	# Darien Beta 		( 55, 82,  52)   101   87  224       0   16  224
+	# Byrn Beta 		( 61, 99,  43)   173  115  241     255  202  241
+	# Linore Iota 		( 82, 84,  63)     0   29   49       0   20   49
+	# Shonoisho Epsilon	( 88, 45, 105)   189    0   18     255  189   68    MISSION Contains "Frigis", location of the Garidian colony
+	# Shonoisho Eta 	( 93, 56, 111)   255  189   68       0   62   53
+	# Steger Delta 		( 92, 76,  56)     0   29   49       0   29  140    MISSION Contains "Cymkoe IV", location of the Mertens Orbital Station
+	# Tothe Delta 		(106, 84,  99)   255  171  104       0   33  231    MISSION Contains "Horst III", where you visit Shanok
 
 
 	system_unknown0 = f.readUInt8()
 	system_unknown1 = f.readUInt8()
+
+	f.setPosition(f.pos() - 2)
+	system_unknownA = f.readSInt16(True)
 
 	assert(f.readUInt16() == 0)
 	system_x = f.readUInt32()
@@ -337,6 +349,7 @@ def readSystem(f):
 
 		"unknown0": system_unknown0,
 		"unknown1": system_unknown1,
+		"unknownA": system_unknownA,
 		"unknown2": system_unknown2,
 
 		"name": None,
@@ -480,21 +493,89 @@ def stationDescription(station):
 #
 
 
+def readLocationInfo(f):
+	sector_id = f.readUInt16()
+	system_index = f.readUInt16()
+	if system_index == 0xffff:
+		system_index = None
+	planet_index = f.readUInt16()
+	if planet_index == 0xffff:
+		planet_index = None
+	moon_index = f.readUInt16()
+	if moon_index == 0xffff:
+		moon_index = None
+	is_station = f.readUInt16()
+	if is_station == 0:
+		is_station = True
+	elif is_station == 0xffff:
+		is_station = False
+	else:
+		raise ValueError("is_station has unexpected value={}".format(is_station))
+	unknown = f.readUInt16()
+	return {
+		"sector_id": sector_id,
+		"system_index": system_index,
+		"planet_index": planet_index,
+		"moon_index": moon_index,
+		"is_station": is_station,
+		"unknown": unknown,
+	}
+
+
+def readLocationType(f):
+	t = f.readUInt16()
+	if t == 0xffff:
+		return None
+	return SectorObjects(t)
+
+
 def readAstroState(f):
+
+	# Definitions:
+	# 	current = where the enterprise is at that moment
+	# 	origin = where the enterprise set off from, last time you pressed 'engage'
+	# 	destination = where the enterprise is going to when travelling, or 'current' when not travelling
+	# 	previous = 'origin' when travelling, 'current' when not travelling
+	#	selected = the most recent object chosen in the astrogation menu
 
 	unknown0 = [f.readUInt16() for x in range(8)]
 	enterprise_warp = round(float(f.readUInt32()) / 100.0, 1)
-	enterprise_location_x = f.readUInt32()
-	enterprise_location_y = f.readUInt32()
-	enterprise_location_z = f.readUInt32()
+	enterprise_current_x = f.readUInt32()
+	enterprise_current_y = f.readUInt32()
+	enterprise_current_z = f.readUInt32()
 	enterprise_origin_x = f.readUInt32()
 	enterprise_origin_y = f.readUInt32()
 	enterprise_origin_z = f.readUInt32()
 	enterprise_destination_x = f.readUInt32()
 	enterprise_destination_y = f.readUInt32()
 	enterprise_destination_z = f.readUInt32()
-	unknown1a = [f.readUInt8() for x in range(512)]
-	unknown1b = [f.readUInt16() for x in range(19)]
+
+	previous_location_values = [f.readUInt32() for i in range(2)]
+	assert(f.readUInt32() == 0x0)
+	assert(f.readUInt32() == 0x0)
+	assert(f.readUInt32() == 0x0)
+	assert(f.readUInt32() == 0x0)
+	destination_location_values = [f.readUInt32() for i in range(2)]
+	assert(f.readUInt32() == 0x0)
+
+	previous_location_info = readLocationInfo(f)
+	prev_system_id = f.readUInt16()
+	if prev_system_id == 255 and previous_location_info["system_index"] is None:
+		prev_system_id = None
+	previous_location_info["system_id"] = prev_system_id
+	previous_location_info["location_type"] = readLocationType(f)
+
+	destination_location_info  = readLocationInfo(f)
+	assert(f.readUInt16() == 0x0)
+	destination_location_info["location_type"] = readLocationType(f)
+	
+	unknown1a = [f.readUInt8() for x in range(444)]
+	unknown1b = [f.readUInt16() for x in range(6)]
+
+	selected_location_info = readLocationInfo(f)
+
+	unknown1c = [f.readUInt16() for x in range(7)]
+
 	astrogation_speed_mode = "warp" if f.readUInt16() == 0 else "impulse"
 	astrogation_speed_warp = round(float(f.readUInt32()) / 100.0, 1)
 	astrogation_speed_impulse = f.readUInt32() * 10
@@ -507,10 +588,13 @@ def readAstroState(f):
 
 	# some of these change when you change warp/impulse speed
 	unknown2b = [f.readUInt16() for x in range(16)]
-	astrogation_selected_x = f.readUInt32()
-	astrogation_selected_y = f.readUInt32()
-	astrogation_selected_z = f.readUInt32()
-	unknown3 = [f.readUInt16() for x in range(8)]
+	selected_x = f.readUInt32()
+	selected_y = f.readUInt32()
+	selected_z = f.readUInt32()
+	selected_system_unknown = f.readUInt32() # unknown value, changes with system selected
+	assert(f.readUInt32() == 0x0)
+	selected_location_unknown = f.readUInt32() # unknown value, changes with planet/moon/outpost selected
+	selected_location_info["location_values"] = [f.readUInt16() for x in range(2)]
 	astrogation_a_deg = f.readUInt16()
 	astrogation_e_deg = f.readUInt16()
 	unknown4 = [f.readUInt16() for x in range(7)]
@@ -544,14 +628,15 @@ def readAstroState(f):
 			state = f.readUInt16()
 
 			# What does this value mean...
-			#  0      0000 invisible, unscanned
-			#  1      0001 visible,  unscanned
-			#  4      0100 invisible, only Lethe Beta
-			#  5      0101 Only stellar bodies (no star systems)
-			#  6      0110 invisible, only Lethe Zeta
-			#  9      1001
-			# 13      1101
-			# 29 0001 1101 13 + story planet  (x5: M'kyru Zeta (Palmyra), Tothe Delta (horst), Euterpe Epsilon (Morassia), Steger Delta (Cymkoe), Kamyar Delta)
+			#              [x3853]
+			#  0      0000 [x1123] invisible, unscanned
+			#  1      0001 [x1322] visible,  unscanned
+			#  4      0100 [   x1] invisible, only Lethe Beta (it has 7 planets. If you set to 5, the description doesn't inlclude the number of planets, the view shows no planets. If you set to 9, the description does)
+			#  5      0101 [ x263] Only stellar bodies (no star systems). No obvious difference from 1.
+			#  6      0110 [   x1] invisible, only Lethe Zeta
+			#  9      1001 [ x392] visible, scanned (but if there's no planets, the system view says 'unscanned', even though the description suggests sanned). One body, all the rest are systems.
+			# 13      1101 [ x746] visible, scanned (if there's no planets, the system view is correct - but some of these systems have multiple planets too). Five bodies, all the rest are systems.
+			# 29 0001 1101 [   x5] 13 + story planet  (x5: M'kyru Zeta (Palmyra), Tothe Delta (horst), Euterpe Epsilon (Morassia), Steger Delta (Cymkoe), Kamyar Delta (Yajj))
 
 			#  0000 0000
 			#          ^---- visible?
@@ -564,7 +649,7 @@ def readAstroState(f):
 			# Tothe Delta (Horst)        - Where Vulcan archeologist Shanok is based
 			# Euterpe Epsilon (Morassia) - Location where Vie Hunfrsch goes missing
 			# Steger Delta (Cymkoe IV)   - Location of Mertens Orbital Station (video on arrival)
-			# Kamyar Delta               - ?????
+			# Kamyar Delta (Yajj)        - Location of Outpost Delta-0-8
 
 			state_visible = (state & 0b00000001) != 0
 			state_scanned = (state & 0b00001000) != 0
@@ -581,37 +666,50 @@ def readAstroState(f):
 	for i in range(64):
 		stations[object_id] = f.readUInt16()
 		object_id += 1
-		# What does this value mean...
+		# What does this value mean?
 		# Each station type has only one value:
-		# starbase: 0
-		# outpost: 0
-		# buoy: 1
-		# comm relay: 13
-		# deep space station: 1
+		#     starbase: 0
+		#     outpost: 0
+		#     buoy: 1
+		#     comm relay: 13
+		#     deep space station: 1
+		# I suspect the states might vary more after the Chodak invasion, when a
+		# a lot of the comm relays etc. become destroyed. Will need to investigate.
 
 	return {
 		"unknown0": unknown0,
 		"enterprise": {
-			"location": (enterprise_location_x, enterprise_location_y, enterprise_location_z),
+			"current": (enterprise_current_x, enterprise_current_y, enterprise_current_z),
 			"destination": (enterprise_destination_x, enterprise_destination_y, enterprise_destination_z),
 			"origin": (enterprise_origin_x, enterprise_origin_y, enterprise_origin_z),
 			"warp": enterprise_warp,
 		},
+		"previous_location_values": previous_location_values,
+		"destination_location_values": destination_location_values,
+		"previous_location_info": previous_location_info,
+		"destination_location_info": destination_location_info,
 		"unknown1a": unknown1a,
 		"unknown1b": unknown1b,
+		"unknown1c": unknown1c,
 		"astrogation": {
-			"speed_mode": astrogation_speed_mode,
-			"speed_warp": astrogation_speed_warp,
-			"speed_impulse": astrogation_speed_impulse,
-			"selected": (astrogation_selected_x, astrogation_selected_y, astrogation_selected_z),
+			"course": {
+				"speed_mode": astrogation_speed_mode,
+				"speed_warp": astrogation_speed_warp,
+				"speed_impulse": astrogation_speed_impulse,
+			},
 			"space_rotation_a": astrogation_a_deg,
 			"space_rotation_e": astrogation_e_deg,
 			"space_rotating": astrogation_rotating,
+			"selected": {
+				"info": selected_location_info,
+				"coords": (selected_x, selected_y, selected_z),
+				"system_unknown": selected_system_unknown,
+				"location_unknown": selected_location_unknown,
+			},
 			"display": display,
 		},
 		"unknown2a": unknown2a,
 		"unknown2b": unknown2b,
-		"unknown3": unknown3,
 		"unknown4": unknown4,
 		"unknown5": unknown5,
 		"systems_bodies": systems_bodies,
@@ -655,7 +753,7 @@ def astroDb(file_path):
 
 	for sector in sectors:
 		for i in range(sector["n_systems"]):
-			system = readSystem(f)
+			system = readSystem(f, False)
 
 			offset = system.pop("name_offset")
 			if offset != 0xFFFFFFFF: system["name"] = f.readOffsetString(offset)
@@ -730,7 +828,7 @@ def astromapDb(file_path):
 		sector = readSector(f)
 
 		for j in range(sector["n_systems"]):
-			system = readSystem(f)
+			system = readSystem(f, True)
 			system.pop("name_offset")
 			system.pop("alias_offset")
 			system.pop("notable_offset")
@@ -767,3 +865,65 @@ def astStatDat(file_path):
 	state = readAstroState(f)
 	assert(f.eof())
 	return state
+
+
+
+def _combineKey(a, am, key):
+	return {
+		"astro": a[key],
+		"astromap": am[key]
+	}
+
+
+
+def combine(astro_path, astromap_path, aststat_path):
+	data_a = astroDb(astro_path)
+	data_am = astromapDb(astromap_path)
+	data_as = astStatDat(aststat_path)
+
+	for i_sector,sector_a in enumerate(data_a):
+		print(sector_a["name"])
+		sector_am = data_am[i_sector]
+		assert(sector_a["coords"] == sector_am["coords"])
+
+		sector_a["unknown"] = _combineKey(sector_a, sector_am, "unknown")
+
+		for i_system,system_a in enumerate(sector_a["systems"]):
+			print(system_a["name"])
+			if system_a["name"] == "Shonoisho Epsilon":
+				continue
+
+			system_am = sector_am["systems"][i_system]
+			if system_a["name"] != "Darien Beta":
+				assert(system_a["coords"] == system_am["coords"])
+
+			system_a["state"] = _combineKey(system_a, system_am, "state")
+			system_a["unknown0"] = _combineKey(system_a, system_am, "unknown0")
+			system_a["unknown1"] = _combineKey(system_a, system_am, "unknown1")
+			system_a["unknown2"] = _combineKey(system_a, system_am, "unknown2")
+
+			for i_station,station_a in enumerate(system_a["stations"]):
+				if station_a["name"] == "Outpost Delta-0-8":
+					continue
+				station_am = system_am["stations"][i_station]
+				assert(station_a["coords"] == station_am["coords"])
+
+				station_a["ids"] = _combineKey(station_a, station_am, "id")
+
+		for i_body,body_a in enumerate(sector_a["bodies"]):
+			print(i_body, len(sector_am["bodies"]), body_a["type"])
+			if body_a["type"] == SectorObjects.SPECIAL_ITEM and i_body >= len(sector_am["bodies"]):
+				print("bingo")
+				continue
+			body_am = sector_am["bodies"][i_body]
+			assert(body_a["coords"] == body_am["coords"])
+
+			body_a["unknown0"] = _combineKey(body_a, body_am, "unknown0")
+
+		for i_station,station_a in enumerate(sector_a["stations"]):
+			station_am = sector_am["stations"][i_station]
+			assert(station_a["coords"] == station_am["coords"])
+
+			station_a["ids"] = _combineKey(station_a, station_am, "id")
+
+	return data_a

@@ -16,7 +16,7 @@ def identify(file_path):
 	file_extension = file_path.suffix.lower()
 	file_name = file_path.stem.lower()
 	
-	if file_name == "savegame":
+	if "savegame" in file_name:
 		if file_extension != "idx":
 			return "savegame"
 	elif file_name == "compstat":

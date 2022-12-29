@@ -54,8 +54,10 @@ class File:
 		return struct.unpack_from('I', self.read(4))[0]
 
 
-	def readSInt16(self):
+	def readSInt16(self, be=False):
 		"""Read a 16-bit Signed Integer"""
+		if be:
+			return struct.unpack_from('>h', self.read(2))[0]	
 		return struct.unpack_from('h', self.read(2))[0]
 
 

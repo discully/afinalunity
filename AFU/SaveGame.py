@@ -21,29 +21,113 @@ from AFU import Astro, Computer, Block
 
 
 def readBlockTravelHistory(f, block):
+	print("Travel History:")
 	data = []
 	f.setPosition(block["data_offset"])
 	f.readUInt8()
 	while f.pos() != block["end_offset"]:
-		unknown0 = [f.readUInt8() for i in range(48)]
+
+		# Some kind of type info?
+		#   - Moons >= 200
+		#   - Planets,stations >= 100
+		#   - Sectors < 100.
+		# Except Cymkoe IV is 99? Because this is actually mertens orbital station??
+		unknown_location_number = f.readUInt32() 
+
+		addrs = []
+		addrs.append(f.readUInt32())
+		addrs.append(f.readUInt32())
+		assert(f.readUInt16() == 0)
+		assert(f.readUInt16() == 16)
+		addrs.append(f.readUInt32())
+		addrs.append(f.readUInt32())
+		assert(f.readUInt32() == 0)
+		addrs.append(f.readUInt32())
+
+		ua_sector_id = f.readUInt16()
+		ua_system_index = f.readUInt16()
+		ua_planet_index = f.readUInt16()
+		ua_location_type = f.readUInt8()
+		ua_unknown1 = f.readUInt8() 			# 0xFF for stations,sectors,systems. 0 otherwise.
+		ua_unknown2 = f.readUInt16()			# 0xFFFF for stations. 0 otherwise.
+		assert(f.readUInt16() == 0x0)
+		
+		addrs.append(f.readUInt32())
+
 		x = f.readUInt32()
 		y = f.readUInt32()
 		z = f.readUInt32()
-		orbit = f.readUInt32() # 99% sure this is correct. Index from 0-N of the bodies orbiting the star
-		assert(f.readUInt32() == 0)
-		assert(f.readUInt32() == 0)
+
+		unknown_location_values = [f.readUInt32() for i in range(2)] # [0,0] for sectors,systems,stations. Two integer values for planets,moons. Values seem less than ~60. Colour information???
+		assert(f.readUInt32() == 0x0)
 		assert(f.readUInt32() == 0xffffffff)
-		unknown1 = [f.readUInt8() for i in range(16)]
+
+		# There is a second set of information here (differs in that location_type is not set for star systems)
+		# Ordinarily, it gets set to the same place as the first set.
+		# But if you go to a Deep Space Station, it will be the previous location.
+		# Ocasionally, that also happens for an Outpost, but not always??
+
+		ub_sector_id = f.readUInt16()
+		ub_location_type = f.readUInt8()
+		ub_unknown = f.readUInt8() 				# 0 for moons,sectors. 1 for systems,planets,stations.
+		assert(f.readUInt16() == 0)
+		ub_system_index = f.readUInt16() 		# index of system within sector, or 0xff if not in system
+		ub_planet_index = f.readUInt16()		# index of planet within system. moon gets planets' orbit. 0xff if not in system.
+		assert(f.readUInt16() == 0)
+		assert(f.readUInt16() == 0)
+		assert(f.readUInt16() == 0)
+
+		if ua_system_index == 0xffff:
+			ua_system_index = None
+		if ua_planet_index == 0xffff:
+			ua_planet_index = None
+
+		if ua_location_type == 0xff:			# Empty location in a sector.
+			ua_location_type = None
+		else:
+			ua_location_type = Astro.SectorObjects(ua_location_type)
+		
+		if ub_location_type == 0xff:			# Empty location in a sector.
+			ub_location_type = None
+		else:
+			ub_location_type = Astro.SectorObjects(ub_location_type)
+		
+		if ub_system_index == 0xffff:
+			ub_system_index = None
+		if ub_planet_index == 0xffff:
+			ub_planet_index = None
+		
+		assert(ua_unknown1 in (0x0,0xff))
+		assert(ua_unknown2 in (0x0,0xffff))
+		assert(ub_unknown in (1,0))
+
 		name = f.readString()
 		desc = f.readString()
 		data.append({
 			"name": name,
 			"description": desc,
 			"coords": [x, y, z],
-			"orbit": orbit,
-			"unknown0": unknown0,
-			"unknown1": unknown1,
+			"info_a" : {
+				"sector_id": ua_sector_id,
+				"system_index": ua_system_index,
+				"planet_index": ua_planet_index,
+				"location_type": ua_location_type,
+				"unknown": [ua_unknown1, ua_unknown2],
+			},
+			"info_b" : {
+				"sector_id": ub_sector_id,
+				"system_index": ub_system_index,
+				"planet_index": ub_planet_index,
+				"location_type": ub_location_type,
+				"unknown": ub_unknown,
+			},
+			"addrs": addrs,
+			"unknown_location_number": unknown_location_number,
+			"unknown_location_values": unknown_location_values,
 		})
+
+		print("    {0:<25} {1:>3} ({2[0]:>3},{2[1]:>3})".format(name,unknown_location_number,unknown_location_values))
+
 	assert(f.pos() == block["end_offset"])
 	return {
 		"travel_history": data,
@@ -61,24 +145,21 @@ def readBlockAststat(f, block):
 def readBlockCompstat(f, block):
 	data = {}
 	f.setPosition(block["data_offset"])
+
 	data["computer_state"] = Computer.readCompstat(f)
-	assert(f.readString() == "COMPSTAT")
-	#print([f.readUInt8() for i in range(4)])
-	#print([f.readUInt8() for i in range(4)])
-	#print([f.readUInt8() for i in range(3)])
-	#print([f.readUInt8() for i in range(4)])
-	#print([f.readUInt8() for i in range(8)])
-	#print([f.readUInt8() for i in range(20)])
-	#print([f.readUInt8() for i in range(8)])
-	#print([f.readUInt8() for i in range(20)])
-	#print([f.readUInt8() for i in range(8)])
-	#print([f.readUInt8() for i in range(20)])
-	#print([f.readUInt8() for i in range(8)])
-	#print([f.readUInt8() for i in range(20)])
-	#print([f.readUInt8() for i in range(8)])
-	#print([f.readUInt8() for i in range(8)])
-	#fpos(f)
-	#assert(f.pos() == block["end_offset"])
+	assert(f.readStringBuffer(8) == "COMPSTAT")
+
+	assert(f.readUInt32() == 0)
+
+	unknown = []
+	for j in range(5):
+		unknowna = [f.readUInt32() for i in range(3)]
+		unknownb = [f.readUInt8() for i in range(8)]
+		unknownc = [f.readUInt8() for i in range(8)]
+		unknown.append([unknowna, unknownb, unknownc])
+	data["computer_unknown"] = unknown
+
+	assert(f.pos() == block["end_offset"])
 	return data
 
 
@@ -357,10 +438,10 @@ def savegame(input_path):
 	data |= readBlockAststat(f, blocks[1])
 	print(blocks[2])
 	print(blocks[3])
-	print(blocks[4])
+	print(blocks[4]) # conversation history?
 	print(blocks[5])
 	data |= readBlockTravelHistory(f, blocks[5])
-	print(blocks[6])
+	print("*6*", blocks[6])
 	try:
 		data |= readBlockObjects(f, blocks[6])
 	except:
