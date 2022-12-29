@@ -82,6 +82,20 @@ python3 afu_to_json.py astro.db
 ```
 will output `astro.db.json`.
 
+## SAVEGAME Files
+
+The SAVEGAME files are found in the install directory.
+SAVEGAME.0 is the default save for starting the game.
+Those numbered 1-9 are the slots you can save progress in.
+There is very early support for SAVEGAME files in afu_to_json.py.
+
+For example:
+```sh
+python3 afu_to_json.py SAVEGAME.6
+```
+will output `SAVEGAME.6.json`.
+
+It will export some information, but what's there isn't very complete or necessarily correct.
 
 ## Thanks
 

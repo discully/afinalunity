@@ -2,6 +2,8 @@
 
 ## File Types
 
+On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
+
 | Extension | Description               | Number | Interesting Files          | afu_to_png         | afu_to_json        | afu_to_wav         |
 | :---      | :---                      | ---:   | :---                       | :---               | :---               | :---               |
 | 3DR       |                           |      9 |                            |                    |                    |                    |
@@ -68,7 +70,17 @@
 | &vellip;  | conversation              |   7235 | fe{character}####.vac      |                    |                    | :heavy_check_mark: |
 | &vellip;  | conversation              |   1691 | ####{character}##.vac      |                    |                    | :heavy_check_mark: |
 
-### Characters
+In your install directory, you will find some additional files not included above:
+
+| Extension | Description               | Number | Interesting Files          | afu_to_png         | afu_to_json        | afu_to_wav         |
+| :---      | :---                      | ---:   | :---                       | :---               | :---               | :---               |
+| SAVEGAME.#| '#' is a number from 0-9  |     10 |                            |                    | In development     |                    |
+
+# Conventions
+
+The following enumerations are used in file names:
+
+## Characters
 * 00 - Picard
 * 01 - Riker (number one, of course)
 * 02 - Data
@@ -81,7 +93,7 @@
 * 09 - Computer
 * ff - other characters
 
-### Worlds
+## Worlds
 * 00 -
 * 02 - Allanor
 * 03 - Morassia
