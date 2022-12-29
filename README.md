@@ -97,6 +97,18 @@ will output `SAVEGAME.6.json`.
 
 It will export some information, but what's there isn't very complete or necessarily correct.
 
+### Investigating Star Systems
+
+By default at the start of the game, many of the star systems are invisible in astrogation or
+are unscanned, so you can't see what planets/moons they contain.
+The `afu_scann_all.py` application will edit a SAVEGAME file so that all systems are visible and scanned.
+
+For example:
+```sh
+python3 afu_scan_all.py SAVEGAME/SAVEGAME.5
+```
+will make all systems in `SAVEGAME.5` available to the player next time it's loaded.
+
 ## Thanks
 
 A lot of information required for writing this came from
