@@ -248,8 +248,12 @@ Total length: 40 bytes.
 
 ### Object types
  * 32: "Star System"
+ * 33: "Planet"
+ * 34: "Moon"
+ * 64: *"Antimatter Cloud"* :question:
  * 65: "Ion Storm"
  * 66: "Quasaroid"
+ * 67: *"Rogue Planet"* :question:
  * 68: "Black Hole"
  * 69: "Subspace Vortex"
  * 72: "Unity Device" - In astromap.db (in astro.db this is 73)
@@ -264,3 +268,6 @@ Total length: 40 bytes.
  * 130: "Buoy"
  * 131: "Starbase"
  * 132: "Outpost"
+
+ :question: *The Antimatter Cloud and Rogue Planet values appear to be present in the executable,
+ but I've not yet found them in use in the game or any other files.*
