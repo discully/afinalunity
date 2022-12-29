@@ -99,9 +99,9 @@ It will export some information, but what's there isn't very complete or necessa
 
 ### Investigating Star Systems
 
-By default at the start of the game, many of the star systems are invisible in astrogation or
-are unscanned, so you can't see what planets/moons they contain.
-The `afu_scann_all.py` application will edit a SAVEGAME file so that all systems are visible and scanned.
+Many of the star systems are invisible in astrogation or are unscanned until the Enterprise travels
+to those systems, so you can't see what planets/moons they contain without doing a lot of travelling!
+The `afu_scan_all.py` application will edit a SAVEGAME file so that all systems are visible and scanned.
 
 For example:
 ```sh
