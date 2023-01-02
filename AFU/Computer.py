@@ -1,4 +1,5 @@
 from AFU.File import DatabaseFile,File
+from AFU import Astro
 
 
 
@@ -24,11 +25,15 @@ def _readAstrogation(f, offset):
 	# Starbase: <sector_id> <           0> <            0> <object_type(131)> <0>
 	s = f.readOffsetString(offset).replace("\r", "\n").split("\n")[0]
 	a = [int(i) for i in s.split()]
+	sector_id = a[0]
+	system_index = a[1] if a[1] != -1 else None
+	orbit = a[2] if a[2] != -1 else None
+	object_type = Astro.SectorObjects(a[3])
 	return {
-		"sector_id": a[0],
-		"system_index": a[1],
-		"orbit": a[2],
-		"object_type": a[3]
+		"sector_id": sector_id,
+		"system_index": system_index,
+		"orbit": orbit,
+		"object_type": object_type,
 	}
 
 
