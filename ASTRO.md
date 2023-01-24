@@ -181,7 +181,7 @@ I have not identified where the following information is stored:
 |   0x3C |     60 |                      |  32u | Always zero |
 |   0x40 |     64 | system_station       |  32u | Only in astromap.db for systems with stations. Separation is 36bytes == sizeof(station). Offset? But what file? |
 
-Total length: 70 bytes.
+Total length: 68 bytes.
 
 #### System Flags
 
