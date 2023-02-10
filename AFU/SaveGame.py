@@ -85,12 +85,12 @@ def readBlockTravelHistory(f, block):
 		if ua_location_type == 0xff:			# Empty location in a sector.
 			ua_location_type = None
 		else:
-			ua_location_type = Astro.SectorObjects(ua_location_type)
+			ua_location_type = Astro.ObjectType(ua_location_type)
 		
 		if ub_location_type == 0xff:			# Empty location in a sector.
 			ub_location_type = None
 		else:
-			ub_location_type = Astro.SectorObjects(ub_location_type)
+			ub_location_type = Astro.ObjectType(ub_location_type)
 		
 		if ub_system_index == 0xffff:
 			ub_system_index = None

@@ -28,7 +28,7 @@ def _readAstrogation(f, offset):
 	sector_id = a[0]
 	system_index = a[1] if a[1] != -1 else None
 	orbit = a[2] if a[2] != -1 else None
-	object_type = Astro.SectorObjects(a[3])
+	object_type = Astro.ObjectType(a[3])
 	return {
 		"sector_id": sector_id,
 		"system_index": system_index,
