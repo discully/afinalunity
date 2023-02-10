@@ -5,6 +5,16 @@ Tools for extracting files from A Final Unity, the classic Star Trek: The Next G
 Information on the different files in A Final Unity is documented in [FILES.md](FILES.md),
 and [ASTRO.md](ASTRO.md) contains information specifically on the astrogation files.
 
+The `AFU` directory contains the python module, and the various `afu_*.py` files are applications
+which perform various tasks:
+ * afu_to_png - Exports `.png` images
+ * afu_to_json - Exports information as `.json` files
+ * afu_to_wav - Converts audio files to `.wav`
+ * afu_scan_all - Edits a SAVEGAME file to make all star systems visible and scanned
+ * afu_subtitles - Outputs a file containing subtitles for what is said in voice audio files
+
+ More details on each of those applications is provided below.
+
 ## Image Files
 
 The `afu_to_png.py` application converts `.spr` and `.spt` sprites, `.rm` and `.scr` backgrounds, `.fon` fonts, and `.mrg` menus to PNG.
