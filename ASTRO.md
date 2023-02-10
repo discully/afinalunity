@@ -100,11 +100,11 @@ There are two files covering astrogation: astro.db and astromap.db.
 String offsets will either be null (0xFFFFFFFF) or, in astro.db, may be an offset from 0x3e3e0.
 
 ### astro.db
-
+todo: some of these offsets are wrong!
 |  Offset | Offset | Name              | Type                       | Description |
 |  ---:   | ---:   | :---              | ---:                       | :---        |
-|    0x00 |        | sectors           | SECTOR[4096]               |  |
-| 0x18000 |  98304 | systems           | SYSTEM[]                   |  |
+|    0x00 |        | sectors           | SECTOR[512]                |  |
+|  0x4800 |  18432 | systems           | SYSTEM[2860]               |  |
 | 0x33fb0 |        | bodies            | BODY[]                     |  |
 | 0x3dad8 |        | n_stations_sector | 32u                        |  |
 | 0x3dadc |        | n_stations_system | 32u                        |  |
@@ -137,7 +137,10 @@ At each of the sector_offsets, you will find the following data for a given sect
 |   0x08 |      8 | sector_n_bodies      |  32u | Number of astronomical bodies within sector |
 |   0x0C |     12 | sector_n_stations    |  32u | 0 or, in stromap.db, number of stations within sector |
 |   0x10 |     16 | sector_alignment     |  32u | See "Sector Alignment" below |
-|   0x14 |     20 | \<unknown>           |  32u[4] |  |
+|   0x14 |     20 | sector_ptr_systems   |  32u | Set during execution. Points to the sector's systems |
+|   0x18 |     24 | sector_ptr_bodies    |  32u | Set during execution. Points to the sector's bodies |
+|   0x1b |     28 | sector_ptr_stations  |  32u | Set during execution. Points to the sector's stations |
+|   0x1f |     32 | sector_ptr_desc      |  32u | Set during execution. Point to the sector description |
 
 Total length: 36 bytes.
 
@@ -157,50 +160,48 @@ I have not identified where the following information is stored:
 
 | Offset | Offset | Name                 | Type | Description |
 | ---:   | ---:   | :---                 | ---: | :---        |
-|   0x00 |      0 | system_index         |  32u |  |
+|   0x00 |      0 | system_index         |  32u | System's index within its sector |
 |   0x04 |      4 | system_id            |  16u |  |
 |   0x06 |      6 | system_type          |  16u | See Object Types below. Always 32 (0x20). |
-|   0x08 |      8 | \<unknown 0>         |   8u | Most are 255 or 0. Five special systems have other values. Possibly cut-scenes or other actions on arrival? |
-|   0x09 |      9 | \<unknown 1>         |   8u | Lots of different values |
-|   0x0A |     10 |                      |  16u | Always zero |
+|   0x08 |      8 | system_random_seed   |  32u | Used during execution to seed generation of planets, etc.  |
 |   0x0C |     12 | system_x             |  32u | Global co-ordinate x |
 |   0x10 |     16 | system_y             |  32u | Global co-ordinate y |
 |   0x14 |     20 | system_z             |  32u | Global co-ordinate z |
-|   0x18 |     24 |                      |  32u | Always zero |
-|   0x1C |     28 | system_name          |  32u | String offset |
+|   0x18 |     24 | system_ptr_desc      |  32u | Set during execution. Points to the system's description |
+|   0x1C |     28 | system_name_offset   |  32u | String offset to system's name |
 |   0x20 |     32 | system_flags         |  16u | Bitfield, see "System Flags" below |
-|   0x22 |     34 | system_station_orbit |   8u | 0 or, in astromap.db if a station is present, the index of the planet after which the station orbits |
-|   0x23 |     35 | system_station_type  |   8u | 0 or, in astromap.db is a station is present, either 131 (station) or 132 (outpost) |
-|   0x24 |     36 | system_class         |  16u | See "System Class" below. |
+|   0x22 |     34 | system_station_orbit |   8u | 0 or, if a station is present, the index of the planet which the station orbits |
+|   0x23 |     35 | system_station_type  |   8u | 0 or, if a station is present, either 131 (station) or 132 (outpost) |
+|   0x24 |     36 | system_star_class    |  16u | See "System Star Class" below. |
 |   0x26 |     38 | system_magnitude     |  16s | Divide by 10.0 to get the magnitude of the primary star |
-|   0x28 |     40 | \<unknown 2>         |  32u | Values between 0 and 255 |
-|   0x2C |     44 |                      |  32u | Always zero |
-|   0x30 |     48 | system_alias         |  32u | String offset to an alternative name (e.g. "Frigis" for _______) |
-|   0x34 |     52 | system_notable       |  32u | String offset to the name of a notable planet within the system |
-|   0x38 |     56 | system_description   |  32u | String offset to description of the system |
-|   0x3C |     60 |                      |  32u | Always zero |
-|   0x40 |     64 | system_station       |  32u | Only in astromap.db for systems with stations. Separation is 36bytes == sizeof(station). Offset? But what file? |
+|   0x28 |     40 | \<unknown 2>         |  32u | Used during execution to generate planets, etc. |
+|   0x2C |     44 | system_n_planets     |  32u | Set during execution |
+|   0x30 |     48 | system_alias_offset  |  32u | String offset to an alternative name (e.g. "Frigis") |
+|   0x34 |     52 | system_notable_name  |  32u | String offset to the name of a notable planet within the system |
+|   0x38 |     56 | system_notable_desc  |  32u | String offset to description of a notable planet within the system |
+|   0x3C |     60 | system_ptr_planets   |  32u | Set during execution. Points to the system's planets |
+|   0x40 |     64 | system_ptr_station   |  32u | Set during execution. Points to the system's stations |
 
 Total length: 68 bytes.
 
 #### System Flags
 
 The system_flags field is a bitfield encoding the following values:
- * 0b1 - Primary star is a White Dwarf
- * 0b10 - A binary star system
- * 0b1100 - Contains a starbase
- * 0b0100 - Contains an outpost
- * 0b10000 - Contains an inhabited planet (astro.db). Unknown property (astromap.db)
+ * 0x1 - Primary star is a White Dwarf
+ * 0x2 - A binary star system
+ * 0x4 - Contains a station (starbase or outpost)
+ * 0x8 - Station is an outpost
+ * 0x10 - Contains an inhabited planet (astro.db). Unknown property (astromap.db)
 
 
-#### System Class
+#### System Star Class
 
 The system_class field defines the class of the system's primary star.
 
 The first part of the star's class comes from the result of integer
 division by 10, which is an index into this array: \['O', 'B', 'A', 'F', 'G', 'K', 'M'].
 
-The second part of the star's class comes from th remainder
+The second part of the star's class comes from the remainder
 when divided by 10.
 
 For example, 34 would mean the system contains a class "F4" star.
@@ -210,18 +211,18 @@ For example, 34 would mean the system contains a class "F4" star.
 
 | Offset | Offset | Name                 | Type | Description |
 | ---:   | ---:   | :---                 | ---: | :---        |
-|   0x00 |      0 |                      |  32u | Always zero |
+|   0x00 |      0 | station_index        |  32u | not used? |
 |   0x04 |      4 | station_id           |  16u |             |
 |   0x06 |      6 | station_type         |  16u | See Object Types below |
-|   0x08 |      8 |                      |  32u | Always zero |
+|   0x08 |      8 | station_random_seed  |  32u | not used? |
 |   0x0C |     12 | station_x            |  32u | Global co-ordinate x |
 |   0x10 |     16 | station_y            |  32u | Global co-ordinate y |
 |   0x14 |     20 | station_z            |  32u | Global co-ordinate z |
-|   0x18 |     24 |                      |  32u | Always zero |
-|   0x1C |     28 | station_name         |  32u | String offset of name of station |
+|   0x18 |     24 | station_ptr_desc     |  32u | Set during execution. Points to the station's description |
+|   0x1C |     28 | station_name_offset  |  32u | String offset of name of station |
 |   0x20 |     32 | station_sector_id    |  16u | ID of sector station resides in  |
-|   0x22 |     34 | station_sector_index |   8u | Index of system station resides in |
-|   0x23 |     35 | station_orbit_index  |   8u | Index of planet after which station orbits (e.g. if index is 2, station orbits between the 3rd and 4th planets)
+|   0x22 |     34 | station_system_index |   8u | Index of system station resides in |
+|   0x23 |     35 | station_orbit        |   8u | Index of planet which station orbits |
 
 Total Length: 36 bytes.
 
@@ -232,15 +233,15 @@ Represents astronomical bodies: Ion Storms, Quasaroids, Black Holes, Subspace Vo
 
 | Offset | Offset | Name         | Type | Description |
 | ---:   | ---:   | :---         | ---: | :---        |
-|   0x00 |    0 | body_index       | 32u  |  |
+|   0x00 |    0 | body_index       | 32u  | Body's index within its sector |
 |   0x04 |    4 | body_id          | 16u  |  |
 |   0x06 |    6 | body_type        | 16u  | See Object Types below |
-|   0x08 |    8 |                  | 32u  | Always zero |
+|   0x08 |    8 | body_random_seed | 32u  | not used? |
 |   0x0C |   12 | body_x           | 32u  | Global co-ordinate x |
 |   0x10 |   16 | body_y           | 32u  | Global co-ordinate y |
 |   0x14 |   20 | body_z           | 32u  | Global co-ordinate z |
-|   0x18 |   24 |                  | 32u  | Always zero |
-|   0x1C |   28 | body_name        | 32u  | String offset of name of body |
+|   0x18 |   24 | body_ptr_desc    | 32u  | Set during execution. Points to the body's description |
+|   0x1C |   28 | body_name_offset | 32u  | String offset of name of body |
 |   0x22 |   32 | body_zone_radius | 32u  | Radius of known zone of influence, in LY |
 |   0x26 |   36 | \<unknown>       | 32u  | 0 in astro.db, non-zero in astromap.db |
 
@@ -256,7 +257,7 @@ Total length: 40 bytes.
  * 67: *"Rogue Planet"* :question:
  * 68: "Black Hole"
  * 69: "Subspace Vortex"
- * 72: "Unity Device" - In astromap.db (in astro.db this is 73)
+ * 72: "Unity Device" - In astromap.db (in astro.db the Unity Device is 73)
  * 73: "Special item"
    * Alien device - the one which attacks Mertens Orbital Station
    * Unity device
@@ -269,5 +270,4 @@ Total length: 40 bytes.
  * 131: "Starbase"
  * 132: "Outpost"
 
- :question: *The Antimatter Cloud and Rogue Planet values appear to be present in the executable,
- but I've not yet found them in use in the game or any other files.*
+ :question: *The Antimatter Cloud and Rogue Planet are present in the executable, but don't appear to be used. Perhaps something not-implemented or removed during development?*
