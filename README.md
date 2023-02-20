@@ -138,6 +138,11 @@ or:
 python3 afu_astro.py astro.db ast_stat.dat
 ```
 
+The resulting `astro.json` file is relatively large. So you can also filter it down by specifying
+the name of what you'd like to export:
+```sh
+python3 afu_astro.py astro.db ast_stat.dat --name "Steger Delta"
+```
 
 
 ## Thanks
