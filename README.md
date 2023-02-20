@@ -10,7 +10,8 @@ which perform various tasks:
  * afu_to_png - Exports `.png` images
  * afu_to_json - Exports information as `.json` files
  * afu_to_wav - Converts audio files to `.wav`
- * afu_scan_all - Edits a SAVEGAME file to make all star systems visible and scanned
+ * afu_astro - Combines `astro.db` with either a `SAVEGAME` file or `ast_stat.dat` to produce a `.json` with additional information about the game space
+ * afu_scan_all - Edits a `SAVEGAME` file to make all star systems visible and scanned
  * afu_subtitles - Outputs a file containing subtitles for what is said in voice audio files
 
  More details on each of those applications is provided below.
@@ -118,6 +119,26 @@ For example:
 python3 afu_scan_all.py SAVEGAME/SAVEGAME.5
 ```
 will make all systems in `SAVEGAME.5` available to the player next time it's loaded.
+
+## Astrogation
+
+The primary information about the in-game space is stored in `astro.db`, but that doesn't contain everything
+you might want to know. Some information is stored as state in a `SAVEGAME` file, or ast_stat.dat if you
+want the state at the start of the game. The rest of the information is generated at run-time.
+
+The `afu_astro.py` application will allow you to export all of this information to one `.json` file. You
+need to provide it the path to `astro.db` along with either a `SAVEGAME` file or `ast_stat.dat`.
+
+For example:
+```sh
+python3 afu_astro.py astro.db SAVEGAME/SAVEGAME.3
+```
+or:
+```sh
+python3 afu_astro.py astro.db ast_stat.dat
+```
+
+
 
 ## Thanks
 

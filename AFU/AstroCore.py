@@ -93,8 +93,8 @@ def readSystem(f):
 	system_ptr_description = f.readUInt32()
 	system_ptr_name = f.readUInt32()
 	system_flags = f.readUInt16()
-	system_station_orbit = f.readUInt8() # In astromap.db index of the planet the station orbits. 0 in astro.db.
-	system_station_type = f.readUInt8() # In astromap.db could also be either station (131) or outpost (132). 0 in astro.db.
+	system_station_planet_index = f.readUInt8()
+	system_station_type = f.readUInt8()
 	system_class_int = f.readUInt16()
 	system_magnitude = f.readSInt16()
 	system_random_seed_2 = f.readUInt32()
@@ -114,7 +114,7 @@ def readSystem(f):
 		"_ptr_desc": system_ptr_description,
 		"_ptr_name": system_ptr_name,
 		"flags": system_flags,
-		"station_orbit": system_station_orbit,
+		"station_planet_index": system_station_planet_index,
 		"station_type": system_station_type,
 		"_star_class_int": system_class_int,
 		"star_class": starClassFromInt(system_class_int),
@@ -146,6 +146,8 @@ def starClassToInt(star_class):
 
 
 def starClassFromInt(star_class_int):
+	if star_class_int is None:
+		return None
 	return STAR_CLASSES[star_class_int // 10] + str(star_class_int % 10)
 
 
@@ -184,7 +186,7 @@ def readPlanet(f):
 		"index": planet_index,
 		"unknown4": planet_unknown4,
 		"random_seed": planet_random_seed,
-		"coords": (planet_x,planet_y,planet_z),
+		"coords_system": (planet_x,planet_y,planet_z),
 		"_ptr_desc": planet_ptr_desc,
 		"_ptr_name": planet_ptr_name,
 		"flags": planet_flags,
@@ -224,7 +226,7 @@ def readMoon(f):
 		"unknown0": moon_unknown0,
 		"unknown4": moon_unknown4,
 		"random_seed": moon_random_seed,
-		"coords": (moon_x, moon_y, moon_z),
+		"coords_system": (moon_x, moon_y, moon_z),
 		"_ptr_desc": moon_ptr_desc,
 		"_ptr_name": moon_ptr_name,
 		"unknown": (moon_unknown32, moon_unknown33, moon_unknown35),
@@ -313,8 +315,8 @@ def readStation(f):
 	station_ptr_desc = f.readUInt32()
 	station_ptr_name = f.readUInt32()
 	station_sector_id = f.readUInt16()
-	station_system_index = f.readUInt8()  # index of the system within the sector this belongs to
-	station_orbit = f.readUInt8()  # index of the planet within the system the station orbits
+	station_system_index = f.readUInt8()
+	station_planet_index = f.readUInt8()
 
 	assert(station_index == 0)
 	assert(station_random_seed == 0)
@@ -330,5 +332,5 @@ def readStation(f):
 		"_ptr_name": station_ptr_name,
 		"sector_id": station_sector_id,
 		"system_index": station_system_index,
-		"orbit": station_orbit, # todo: rename to planet index?
+		"planet_index": station_planet_index,
 	}

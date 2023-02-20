@@ -72,7 +72,7 @@ def readBlockTravelHistory(f, block):
 		ub_unknown = f.readUInt8() 				# 0 for moons,sectors. 1 for systems,planets,stations.
 		assert(f.readUInt16() == 0)
 		ub_system_index = f.readUInt16() 		# index of system within sector, or 0xff if not in system
-		ub_planet_index = f.readUInt16()		# index of planet within system. moon gets planets' orbit. 0xff if not in system.
+		ub_planet_index = f.readUInt16()		# index of planet within system. moon gets planets' index. 0xff if not in system.
 		assert(f.readUInt16() == 0)
 		assert(f.readUInt16() == 0)
 		assert(f.readUInt16() == 0)

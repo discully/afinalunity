@@ -20,19 +20,19 @@ def _readImage(f, offset):
 def _readAstrogation(f, offset):
 	# A human readable string.
 	# Depending on the destination type, has four pieces of information and finishes with a 0.
-	# DS:       <sector_id> <          -1> <           -1> <object_type(128)> <0>
-	# Outpost:  <sector_id> <system_index> <station_orbit> <object_type(132)> <0>
-	# Starbase: <sector_id> <           0> <            0> <object_type(131)> <0>
+	# DS:       <sector_id> <          -1> <          -1> <object_type(128)> <0>
+	# Outpost:  <sector_id> <system_index> <planet_index> <object_type(132)> <0>
+	# Starbase: <sector_id> <           0> <           0> <object_type(131)> <0>
 	s = f.readOffsetString(offset).replace("\r", "\n").split("\n")[0]
 	a = [int(i) for i in s.split()]
 	sector_id = a[0]
 	system_index = a[1] if a[1] != -1 else None
-	orbit = a[2] if a[2] != -1 else None
+	planet_index = a[2] if a[2] != -1 else None
 	object_type = Astro.ObjectType(a[3])
 	return {
 		"sector_id": sector_id,
 		"system_index": system_index,
-		"orbit": orbit,
+		"planet_index": planet_index,
 		"object_type": object_type,
 	}
 

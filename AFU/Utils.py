@@ -1,7 +1,7 @@
 from pathlib import PurePath
 from json import JSONEncoder
 from AFU import Image, Block, Astro
-from enum import Enum
+from enum import Enum, IntEnum
 
 # All the file extensions in AFU:
 # {'', '.3dv', '.img', '.pc4', '.rm', '.pc1', '.pc6', '.db',
@@ -94,6 +94,8 @@ class Encoder (JSONEncoder):
 		if isinstance(obj, Block.BlockType) or isinstance(obj, Block.ConversationResponseState) or isinstance(obj, Block.ObjectWalkType) or isinstance(obj, Astro.Alignment) or isinstance(obj, Astro.ObjectType):
 			return obj.name
 		if isinstance(obj, Enum):
+			return obj.name
+		if isinstance(obj, IntEnum):
 			return obj.name
 		if isinstance(obj, Image.Image):
 			return str(obj)

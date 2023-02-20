@@ -149,14 +149,10 @@ Total length: 36 bytes.
  * 1: Romulan
  * 2: Neutral zone
  * 3: Z'Tarnis Nebula
- * 4 Non-aligned
+ * 4: Non-aligned
 
 
 ### Struct: SYSTEM
-
-I have not identified where the following information is stored:
- * Presence of an asteroid belt
- * Number or type of planets/moons it contains
 
 | Offset | Offset | Name                 | Type | Description |
 | ---:   | ---:   | :---                 | ---: | :---        |
@@ -167,22 +163,26 @@ I have not identified where the following information is stored:
 |   0x0C |     12 | system_x             |  32u | Global co-ordinate x |
 |   0x10 |     16 | system_y             |  32u | Global co-ordinate y |
 |   0x14 |     20 | system_z             |  32u | Global co-ordinate z |
-|   0x18 |     24 | system_ptr_desc      |  32u | Set during execution. Points to the system's description |
-|   0x1C |     28 | system_name_offset   |  32u | String offset to system's name |
+|   0x18 |     24 | system_ptr_desc      |  32u | Points to the system's description (set during exection) |
+|   0x1C |     28 | system_ptr_name      |  32u | String for system's name |
 |   0x20 |     32 | system_flags         |  16u | Bitfield, see "System Flags" below |
-|   0x22 |     34 | system_station_orbit |   8u | 0 or, if a station is present, the index of the planet which the station orbits |
-|   0x23 |     35 | system_station_type  |   8u | 0 or, if a station is present, either 131 (station) or 132 (outpost) |
-|   0x24 |     36 | system_star_class    |  16u | See "System Star Class" below. |
-|   0x26 |     38 | system_magnitude     |  16s | Divide by 10.0 to get the magnitude of the primary star |
-|   0x28 |     40 | \<unknown 2>         |  32u | Used during execution to generate planets, etc. |
-|   0x2C |     44 | system_n_planets     |  32u | Set during execution |
-|   0x30 |     48 | system_alias_offset  |  32u | String offset to an alternative name (e.g. "Frigis") |
-|   0x34 |     52 | system_notable_name  |  32u | String offset to the name of a notable planet within the system |
-|   0x38 |     56 | system_notable_desc  |  32u | String offset to description of a notable planet within the system |
-|   0x3C |     60 | system_ptr_planets   |  32u | Set during execution. Points to the system's planets |
-|   0x40 |     64 | system_ptr_station   |  32u | Set during execution. Points to the system's stations |
+|   0x22 |     34 | system_station_planet_index |   8u | If a station is present, the planet it orbits |
+|   0x23 |     35 | system_station_type  |   8u | If a station is present, either 131 (starbase) or 132 (outpost) |
+|   0x24 |     36 | system_star_class_int|  16u | See "System Star Class" below |
+|   0x26 |     38 | system_star_magnitude|  16s | Divide by 10.0 to get the magnitude of the primary star |
+|   0x28 |     40 | system_random_seed_2 |  32u | Used during execution to seed generation of planets, etc. |
+|   0x2C |     44 | system_n_planets     |  32u | Number or planets (set during execution) |
+|   0x30 |     48 | system_ptr_alias     |  32u | String for an alternative system name (e.g. "Frigis") |
+|   0x34 |     52 | system_ptr_notable_name |  32u | String to the name of a notable planet within the system |
+|   0x38 |     56 | system_ptr_notable_desc |  32u | String to description of a notable planet within the system |
+|   0x3C |     60 | system_ptr_planets   |  32u | Pointer to the planets (set during execution) |
+|   0x40 |     64 | system_ptr_station   |  32u | Pointer to a station (set during execution) |
 
-Total length: 68 bytes.
+Total length: 68 bytes (0x44).
+
+Additional information about the system is generated at run-time.
+This includes the planets, moons, asteroid belts.
+That functionality is reproduced in `AFU.AstroGen` and can be output by `afu_astro.py`.
 
 #### System Flags
 
@@ -190,39 +190,42 @@ The system_flags field is a bitfield encoding the following values:
  * 0x1 - Primary star is a White Dwarf
  * 0x2 - A binary star system
  * 0x4 - Contains a station (starbase or outpost)
- * 0x8 - Station is an outpost
- * 0x10 - Contains an inhabited planet (astro.db). Unknown property (astromap.db)
+ * 0x8 - Station is a starbase (not an outpost)
+ * 0x10 - Contains an inhabited planet. (In astromap.db this is set a lot, but doesn't match astro.db or the game)
 
 
 #### System Star Class
 
-The system_class field defines the class of the system's primary star.
+The system_class_int field defines the class of the system's primary star.
 
 The first part of the star's class comes from the result of integer
 division by 10, which is an index into this array: \['O', 'B', 'A', 'F', 'G', 'K', 'M'].
 
-The second part of the star's class comes from the remainder
-when divided by 10.
+The second part of the star's class comes from the remainder when divided by 10.
 
 For example, 34 would mean the system contains a class "F4" star.
 
 
 ### Struct: STATION
 
+Represents any stations.
+Within a star system this could be an Outpost or Starbase orbiting a planet.
+Outside a star system this could be a Buoy, Deep Space Station or Comm Relay.
+
 | Offset | Offset | Name                 | Type | Description |
 | ---:   | ---:   | :---                 | ---: | :---        |
-|   0x00 |      0 | station_index        |  32u | not used? |
+|   0x00 |      0 | station_index        |  32u | Not used? |
 |   0x04 |      4 | station_id           |  16u |             |
 |   0x06 |      6 | station_type         |  16u | See Object Types below |
-|   0x08 |      8 | station_random_seed  |  32u | not used? |
+|   0x08 |      8 | station_random_seed  |  32u | Not used? |
 |   0x0C |     12 | station_x            |  32u | Global co-ordinate x |
 |   0x10 |     16 | station_y            |  32u | Global co-ordinate y |
 |   0x14 |     20 | station_z            |  32u | Global co-ordinate z |
-|   0x18 |     24 | station_ptr_desc     |  32u | Set during execution. Points to the station's description |
-|   0x1C |     28 | station_name_offset  |  32u | String offset of name of station |
+|   0x18 |     24 | station_ptr_desc     |  32u | String of station's description (set during execution) |
+|   0x1C |     28 | station_ptr_name     |  32u | String for name of station |
 |   0x20 |     32 | station_sector_id    |  16u | ID of sector station resides in  |
 |   0x22 |     34 | station_system_index |   8u | Index of system station resides in |
-|   0x23 |     35 | station_orbit        |   8u | Index of planet which station orbits |
+|   0x23 |     35 | station_planet_index |   8u | Index of planet which station orbits |
 
 Total Length: 36 bytes.
 
@@ -233,17 +236,17 @@ Represents astronomical bodies: Ion Storms, Quasaroids, Black Holes, Subspace Vo
 
 | Offset | Offset | Name         | Type | Description |
 | ---:   | ---:   | :---         | ---: | :---        |
-|   0x00 |    0 | body_index       | 32u  | Body's index within its sector |
-|   0x04 |    4 | body_id          | 16u  |  |
-|   0x06 |    6 | body_type        | 16u  | See Object Types below |
-|   0x08 |    8 | body_random_seed | 32u  | not used? |
-|   0x0C |   12 | body_x           | 32u  | Global co-ordinate x |
-|   0x10 |   16 | body_y           | 32u  | Global co-ordinate y |
-|   0x14 |   20 | body_z           | 32u  | Global co-ordinate z |
-|   0x18 |   24 | body_ptr_desc    | 32u  | Set during execution. Points to the body's description |
-|   0x1C |   28 | body_name_offset | 32u  | String offset of name of body |
-|   0x22 |   32 | body_zone_radius | 32u  | Radius of known zone of influence, in LY |
-|   0x26 |   36 | \<unknown>       | 32u  | 0 in astro.db, non-zero in astromap.db |
+|   0x00 |      0 | body_index       | 32u  | Body's index within its sector |
+|   0x04 |      4 | body_id          | 16u  |  |
+|   0x06 |      6 | body_type        | 16u  | See "Object Types" below |
+|   0x08 |      8 | body_random_seed | 32u  | Not used? |
+|   0x0C |     12 | body_x           | 32u  | Global co-ordinate x |
+|   0x10 |     16 | body_y           | 32u  | Global co-ordinate y |
+|   0x14 |     20 | body_z           | 32u  | Global co-ordinate z |
+|   0x18 |     24 | body_ptr_desc    | 32u  | String for body's description (set during execution) |
+|   0x1C |     28 | body_ptr_name    | 32u  | String for name of body |
+|   0x22 |     32 | body_zone_radius | 32u  | Radius of known zone of influence, in LY |
+|   0x26 |     36 | body_unknown0    | 32u  | Set based upon station type. Not used? |
 
 Total length: 40 bytes.
 
@@ -257,7 +260,7 @@ Total length: 40 bytes.
  * 67: *"Rogue Planet"* :question:
  * 68: "Black Hole"
  * 69: "Subspace Vortex"
- * 72: "Unity Device" - In astromap.db (in astro.db the Unity Device is 73)
+ * 72: "Unity Device" (In astromap.db, in astro.db the Unity Device is 73)
  * 73: "Special item"
    * Alien device - the one which attacks Mertens Orbital Station
    * Unity device
@@ -269,5 +272,67 @@ Total length: 40 bytes.
  * 130: "Buoy"
  * 131: "Starbase"
  * 132: "Outpost"
+ * 144: *"Enterprise"* :question:
 
- :question: *The Antimatter Cloud and Rogue Planet are present in the executable, but don't appear to be used. Perhaps something not-implemented or removed during development?*
+ :question: *The Antimatter Cloud and Rogue Planet are present in the executable, but don't appear to be used. Perhaps something not-implemented or removed during development?
+ More confident about the Enterprise, but need to confirm*
+
+
+### Struct: Planet
+
+Planets are generated during run time, and are not present in any static files.
+
+| Offset | Offset | Name               | Type | Description |
+| ---:   | ---:   | :---               | ---: | :---        |
+|   0x00 |      0 | planet_index       | 32u  | Planet's index within its system |
+|   0x04 |      4 | planet_unknown4    | 32u  |  |
+|   0x08 |      8 | planet_random_seed | 32u  | Used to generate the planet's information |
+|   0x0C |     12 | planet_x           | 32u  | Planet's coordinates within its system |
+|   0x10 |     16 | planet_y           | 32u  | Planet's coordinates within its system |
+|   0x14 |     20 | planet_z           | 32u  | Planet's coordinates within its system |
+|   0x18 |     24 | planet_ptr_desc    | 32u  | String of the planet's description |
+|   0x1C |     28 | planet_ptr_name    | 32u  | String of the planet's name |
+|   0x20 |     32 | planet_flags       | 16u  | See "Planet Flags" below |
+|   0x22 |     34 | planet_nth         | 16u  | The n'th planet created (same as the index) |
+|   0x24 |     36 | planet_class       | 32u  | See "Planet Class" below |
+|   0x28 |     40 | planet_n_moons     | 32u  | Number of moons orbiting the planet |
+|   0x2C |     44 | planet_ptr_alias   | 32u  | String of alternative name for the planet |
+|   0x30 |     48 | planet_ptr_moons   | 32u  | Pointer to array of moon structs |
+
+Total length 34 bytes.
+
+#### Planet Flags
+
+The planet_flags field is a bitfield encoding the following values:
+ * 0x1 - An asteroid belt is orbiting after this planet
+ * 0x2 - Unkown. Possibly set if no outpost. Never checked?
+ * 0x10 - Inhabited
+
+#### Planet Class
+
+The "planet_class_int" is an index into this array: \['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'S'. 'T'\]
+
+
+### Struct: Moon
+
+Moons are generated during run time, and are not present in any static files.
+
+| Offset | Offset | Name             | Type | Description |
+| ---:   | ---:   | :---             | ---: | :---        |
+|   0x00 |      0 | moon_unknown0    | 32u  | unused? |
+|   0x04 |      4 | moon_unknown4    | 32u  | unused? |
+|   0x08 |      8 | moon_random_seed | 32u  | Used to generate the moon's information |
+|   0x0C |     12 | moon_x           | 32u  | moon's coordinates within its system |
+|   0x10 |     16 | moon_y           | 32u  | moon's coordinates within its system |
+|   0x14 |     20 | moon_z           | 32u  | moon's coordinates within its system |
+|   0x18 |     24 | moon_ptr_desc    | 32u  | String of the moon's description |
+|   0x1C |     28 | moon_unknown32   |  8u  | unused? |
+|   0x1D |     29 | moon_unknown33   |  8u  | unused? |
+|   0x1E |     30 | moon_class_int   |  8u  | Interpreted the same as "Planet Class" above |
+|   0x1F |     31 | moon_unknown35   |  8u  | unused? |
+|   0x20 |     32 | moon_ptr_alias   | 32u  | String of alternative name for the moon |
+
+Total length 36 bytes.
+
+
+

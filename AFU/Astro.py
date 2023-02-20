@@ -1,8 +1,10 @@
 from AFU.File import File, DatabaseFile
 from AFU.AstroCore import *
-from AFU.AstroUtils import *
-from AFU.AstroState import *
-from AFU.AstroGen import BODY_UNKNOWN0
+from AFU.AstroUtils import N_SECTORS
+from AFU.AstroState import readAstroState
+from AFU.AstroGen import BODY_UNKNOWN0, systemGenerate
+from AFU.Utils import identify
+from AFU.SaveGame import savegame
 
 
 #
@@ -124,14 +126,14 @@ def astroDb(file_path):
 				offset = station.pop("_ptr_name")
 				if offset != 0xFFFFFFFF: station["name"] = f.readOffsetString(offset)
 				system["station_type"] = station["type"]
-				system["station_orbit"] = station["orbit"]
+				system["station_planet_index"] = station["planet_index"]
 				system["flags"] |= SystemFlags.STATION
 				if station["type"] == ObjectType.STARBASE:
 					system["flags"] |= SystemFlags.STARBASE
 				station["coords"] = system["coords"]
 			else:
 				system["station_type"] = None
-				system["station_orbit"] = None
+				system["station_planet_index"] = None
 
 		for body in sector["bodies"]:
 			offset = body.pop("_ptr_desc")
@@ -202,7 +204,7 @@ def astromapDb(file_path):
 			system.pop("_ptr_planets")
 			if system["station_type"] == 0:
 				system["station_type"] = None
-				system["station_orbit"] = None
+				system["station_planet_index"] = None
 			else:
 				system["station_type"] = ObjectType(system["station_type"])
 		for body in sector["bodies"]:
@@ -229,35 +231,31 @@ def astStatDat(file_path):
 	return state
 
 
-
 def fixDarienBeta(astro_db):
+	"""In astro.db, the co-ordinates of Darien Beta are set to (0,0,0).
+	This looks to be an error, and it results in Darien Beta not being
+	visible in the game. This function will correct that with the
+	co-ordinates found in astromap.db."""
 	for sector in astro_db:
 		for system in sector["systems"]:
 			if system["name"] == "Darien Beta":
 				system["coords"] = (55,82,52)
 
 
+def astrogation(astro_db_path, astro_stat_path):
 
-def astrogationSystem(system, stat):
-	system["state"] = stat["systems_bodies"][system["id"]]["state"]
-	binary_class,binary_mag = systemGetBinaryStar(system)
-	if binary_class != None:
-		system["binary_class"] = Astro.STAR_CLASSES[binary_class // 10] + str(binary_class % 10)
-		system["binary_mag"] = binary_mag/10.0
-	systemSetPlanets(system)
-	for planet in system["planets"]:
-		c = planet["class"]
-		planet["class_int"] = c
-		planet["class"] = Astro.PLANET_CLASSES[c]
-		for moon in planet["moons"]:
-			c = moon["class"]
-			moon["class_int"] = c
-			moon["class"] = Astro.PLANET_CLASSES[c]
+	stat_type = identify(astro_stat_path)
+	stat = None
+	if stat_type == "savegame":
+		stat = savegame(astro_stat_path)["astro_state"]
+	elif stat_type == "astro_state":
+		stat = astStatDat(astro_stat_path)
+	else:
+		raise ValueError("Astro state file not recognised ({})".format(astro_stat_path.name))
 
+	astro = astroDb(astro_db_path)
+	fixDarienBeta(astro)
 
-def astrogation(astro, stat):
-
-	# Set the current state
 	for sector in astro:
 		for system in sector["systems"]:
 			system["state"] = stat["systems_bodies"][system["id"]]["state"]
@@ -270,79 +268,29 @@ def astrogation(astro, stat):
 	
 	for sector in astro:
 		for system in sector["systems"]:
-			binary_class,binary_mag = systemGetBinaryStar(system)
-			if binary_class != None:
-				system["binary_class"] = Astro.STAR_CLASSES[binary_class // 10] + str(binary_class % 10)
-				system["binary_mag"] = binary_mag/10.0
-			systemSetPlanets(system)
+			systemGenerate(system)
+	
+	for sector in astro:
+		for system in sector["systems"]:
+			flags = system["flags"]
+			system["flags"] = [f.name for f in SystemFlags if f & flags == f]
+			if "notable" in system:
+				n = system["notable"]
+				if "name" in n:
+					system["planets"][n["index"]]["alias"] = n["name"]
+				if "desc" in n:
+					system["planets"][n["index"]]["desc"] = n["desc"]
+				system.pop("notable")
 			for planet in system["planets"]:
-				c = planet["class"]
-				planet["class_int"] = c
-				planet["class"] = Astro.PLANET_CLASSES[c]
+				flags = planet["flags"]
+				planet["flags"] = [f.name for f in PlanetFlags if f & flags == f]
 				for moon in planet["moons"]:
-					c = moon["class"]
-					moon["class_int"] = c
-					moon["class"] = Astro.PLANET_CLASSES[c]
+					pass
+			if "station" in system:
+				pass
+		for body in sector["bodies"]:
+			pass
+		for station in sector["stations"]:
+			pass
 	
 	return astro
-
-
-def _combineKey(a, am, key):
-	return {
-		"astro": a[key],
-		"astromap": am[key]
-	}
-
-
-
-def combine(astro_path, astromap_path, aststat_path):
-	data_a = astroDb(astro_path)
-	fixDarienBeta(data_a)
-	data_am = astromapDb(astromap_path)
-	data_as = astStatDat(aststat_path)
-
-	for i_sector,sector_a in enumerate(data_a):
-		print(sector_a["name"])
-		sector_am = data_am[i_sector]
-		assert(sector_a["coords"] == sector_am["coords"])
-
-		sector_a["unknown"] = _combineKey(sector_a, sector_am, "unknown")
-
-		for i_system,system_a in enumerate(sector_a["systems"]):
-			print(system_a["name"])
-			if system_a["name"] == "Shonoisho Epsilon":
-				continue
-
-			system_am = sector_am["systems"][i_system]
-			assert(system_a["coords"] == system_am["coords"])
-
-			system_a["flags"] = _combineKey(system_a, system_am, "flags")
-			system_a["unknown0"] = _combineKey(system_a, system_am, "unknown0")
-			system_a["unknown1"] = _combineKey(system_a, system_am, "unknown1")
-			system_a["unknown2"] = _combineKey(system_a, system_am, "unknown2")
-
-			for i_station,station_a in enumerate(system_a["stations"]):
-				if station_a["name"] == "Outpost Delta-0-8":
-					continue
-				station_am = system_am["stations"][i_station]
-				assert(station_a["coords"] == station_am["coords"])
-
-				station_a["ids"] = _combineKey(station_a, station_am, "id")
-
-		for i_body,body_a in enumerate(sector_a["bodies"]):
-			print(i_body, len(sector_am["bodies"]), body_a["type"])
-			if body_a["type"] == ObjectType.SPECIAL_ITEM and i_body >= len(sector_am["bodies"]):
-				print("bingo")
-				continue
-			body_am = sector_am["bodies"][i_body]
-			assert(body_a["coords"] == body_am["coords"])
-
-			body_a["unknown0"] = _combineKey(body_a, body_am, "unknown0")
-
-		for i_station,station_a in enumerate(sector_a["stations"]):
-			station_am = sector_am["stations"][i_station]
-			assert(station_a["coords"] == station_am["coords"])
-
-			station_a["ids"] = _combineKey(station_a, station_am, "id")
-
-	return data_a
