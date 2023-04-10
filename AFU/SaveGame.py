@@ -163,6 +163,77 @@ def readBlockCompstat(f, block):
 	return data
 
 
+def readBlockConverations(f, block):
+	f.setPosition(block["data_offset"])
+
+	assert(f.readUInt8() == 0)
+
+	conversation_buffer_n = f.readUInt32() # entries in the buffer
+	conversation_buffer_size = f.readUInt32() # allocated size of the buffer
+	situation_buffer_n = f.readUInt32()
+	situation_buffer_size = f.readUInt32()
+	action_buffer_n = f.readUInt32()
+	action_buffer_size = f.readUInt32()
+	
+	conversation_buffer = []
+	for i in range(conversation_buffer_n):
+		conversation_buffer([f.readUInt32() for j in range(3)])
+	
+	situation_buffer = []
+	for i in range(situation_buffer_n):
+		situation_buffer.append([f.readUInt32() for j in range(3)])
+	
+	action_buffer = [f.readUInt8() for j in range(action_buffer_n)]
+
+	conversation_history_n = f.readUInt32()
+	conversation_history = []
+	for i in range(conversation_history_n):
+		conversation = []
+		c_size = f.readUInt32()
+		c_start = f.pos()
+		assert(f.readUInt32() == c_size)
+		while True:
+			c_world = f.readUInt8()
+			c_index = f.readUInt8()
+			if c_world == 0xff:
+				assert(c_index == 0xff)
+				break
+			elif c_world == 0:
+				assert(c_index == 0xff)
+				c_line = f.readString()
+			else:
+				c_id = f.readUInt8()
+				c_state = f.readUInt8()
+				c_unknown1 = f.readUInt8()
+				c_unknown2 = f.readUInt8()
+				c_line = {
+					"world": c_world, "index": c_index,
+					"id": c_id, "state": c_state, "unknown1": c_unknown1, "unknown2": c_unknown2
+					}
+			conversation.append(c_line)
+		assert(f.pos() == c_start + c_size)
+		conversation_history.append(conversation)
+	
+	#print("Conversation History")
+	#for i,conversation in enumerate(conversation_history):
+	#	if i == 0:
+	#		print("    Previous Conversation")
+	#	else:
+	#		print("    Conversation", i)
+	#	for line in conversation:
+	#		print("       ", line)
+
+	recent_vacs = [f.readStringBuffer(14) for j in range(3)]
+
+	return {
+		"conversation_buffer": conversation_buffer,
+		"situation_buffer": situation_buffer,
+		"action_buffer": action_buffer,
+		"conversation_history": conversation_history,
+		"recent_vacs": recent_vacs,
+	}
+
+
 def readBlockObjectHeader(f):
 	addr = f.readUInt32()
 	type_1 = f.readUInt32()
@@ -432,21 +503,22 @@ def savegame(input_path):
 	blocks = readBlockHeaders(f)
 	assert(len(blocks) == 9)
 
-	print(blocks[0])
+	print(blocks[0]) # compstat
 	data |= readBlockCompstat(f, blocks[0])
-	print(blocks[1])
+	print(blocks[1]) # aststat
 	data |= readBlockAststat(f, blocks[1])
-	print(blocks[2])
-	print(blocks[3])
-	print(blocks[4]) # conversation history?
+	print(blocks[2]) # videos
+	print(blocks[3]) # unknown
+	print(blocks[4])
+	data |= readBlockConverations(f, blocks[4])
 	print(blocks[5])
 	data |= readBlockTravelHistory(f, blocks[5])
-	print("*6*", blocks[6])
+	print(blocks[6]) # chunks
 	try:
 		data |= readBlockObjects(f, blocks[6])
 	except:
 		print("AN ERROR OCURRED FETCHING OBJECTS - SAVEGAME SUPPORT IS A WORK IN PROGRESS")
-	print(blocks[7])
-	print(blocks[8])
+	print(blocks[7]) # enterprise
+	print(blocks[8]) # unknown
 
 	return data
