@@ -63,7 +63,7 @@ def identify(file_path):
 		return "text"
 	elif file_extension == ".lst":
 		return "list"
-	elif file_extension == ".mrg":
+	elif file_extension in (".mrg", ".anm", ".pic"):
 		return "menu"
 	elif file_extension == ".bst":
 		if file_name.startswith("o_"):
