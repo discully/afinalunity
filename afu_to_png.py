@@ -113,7 +113,7 @@ def main():
 		for i in range(len(afu_menu)):
 			offset = afu_menu.offsets[i]
 			image = afu_menu.images[i]
-			export("{}.{}".format(output_file_name, offset), image)
+			export("{}.{}".format(output_file_name, i), image)
 	
 	elif file_type == "cursor":
 		cursors = AFU.Cursor.cursor(args.image_file, global_palette_path)
