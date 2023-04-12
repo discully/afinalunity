@@ -8,8 +8,8 @@ class Menu:
 
 		self.file_path = Path(file_path)
 
-		if self.file_path.suffix != ".mrg":
-			raise ValueError("Menu only supports .mrg files")
+		if self.file_path.suffix not in (".mrg", ".anm", ".pic"):
+			raise ValueError("Menu only supports .mrg, .anm and .pic files")
 
 		global_palette_path = Palette.getGlobalPalettePath(file_path)
 		self.palette = Palette.fullPalette(global_palette_path, global_palette_path) # todo: This is certainly the wrong local pallette.
