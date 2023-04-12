@@ -20,7 +20,7 @@ from AFU import Palette
 #	DIGI - unknown. audio?!
 #	SNDW - wait for sound to finish
 #	SNDF - unknown. is always 75, 95 or 100. could be volume?
-#	PLAY -
+#	PLAY - play sound? or play sprite after sound wait?
 #	RPOS - relative position change(?)
 #	MPOS - mouth position (relative to parent)
 #	SILE - stop+reset sound
@@ -92,7 +92,7 @@ def sprite(sprite_path, background_path, palette_path=None):
 
 	while f.pos() < eof:
 		block = _readBlockHeader(f)
-
+		
 		if block["name"] == "LIST":
 			block["entries"] = []
 			length = f.readUInt32()
@@ -166,9 +166,18 @@ def sprite(sprite_path, background_path, palette_path=None):
 
 		elif block["name"] == "RGBP":
 			palette = Palette.readFullPalette(f)
+		
+		elif block["name"] == "DIGI":
+			block["data"] = f.read(block["length"] - 8)
+		
+		elif block["name"] == "SNDW":
+			pass
+			
+		elif block["name"] == "PLAY":
+			pass
 
 		else:
-			raise ValueError("Unknown block {} at {:#x}".format(block["name"], block["start"]))
+			raise ValueError("Unknown block {} at {:#x}".format(block["name"], block["offset"]))
 		
 		block_offsets.append(block["offset"])
 		block.pop("length") # we don't need this any more
