@@ -8,7 +8,7 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 | :---      | :---                      | ---:   | :---                       | :---               | :---               | :---               |
 | 3DR       |                           |      9 |                            |                    |                    |                    |
 | 3DV       |                           |     49 |                            |                    |                    |                    |
-| ANM       |                           |      1 | phaser.anm                 |                    |                    |                    |
+| ANM       | animation (same format as .mrg) |      1 | phaser.anm           | :heavy_check_mark: |                    |                    |
 | AST       | `multiple (see below)`    |      3 |                            |                    |                    |                    |
 | &vellip;  | Panel background image    |      2 | astropnl.ast, compupnl.ast | :heavy_check_mark: |                    |                    |
 | &vellip;  | List of sector names      |      1 | sector.ast                 |                    | :heavy_check_mark: |                    |
