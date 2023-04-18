@@ -9,6 +9,7 @@ __all__ = [
 	"Font",
 	"Image",
 	"Menu",
+	"Map",
 	"Palette",
 	"SaveGame",
 	"Sprite",
