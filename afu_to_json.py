@@ -56,6 +56,12 @@ def main():
 		data = AFU.World.worldObj(args.file)
 	elif file_type == "triggers":
 		data = AFU.Data.triggers(args.file)
+	elif file_type == "icon_map":
+		data = AFU.Map.icon(args.file)
+	elif file_type == "movie_map":
+		data = AFU.Map.movie(args.file)
+	elif file_type == "phaser_map":
+		data = AFU.Map.phaser(args.file)
 	elif file_type == "savegame":
 		data = AFU.SaveGame.savegame(args.file)
 	else:

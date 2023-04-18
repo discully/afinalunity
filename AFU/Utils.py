@@ -63,6 +63,13 @@ def identify(file_path):
 		return "text"
 	elif file_extension == ".lst":
 		return "list"
+	elif file_extension == ".map":
+		if file_name == "icon":
+			return "icon_map"
+		elif file_name == "movie":
+			return "movie_map"
+		elif file_name == "phaser":
+			return "phaser_map"
 	elif file_extension in (".mrg", ".anm", ".pic"):
 		return "menu"
 	elif file_extension == ".bst":
