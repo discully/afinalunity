@@ -64,6 +64,8 @@ def main():
 		data = AFU.Map.phaser(args.file)
 	elif file_type == "savegame":
 		data = AFU.SaveGame.savegame(args.file)
+	elif file_type == "tactic":
+		data = AFU.Tactic.bin(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 		return

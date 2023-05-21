@@ -13,6 +13,7 @@ __all__ = [
 	"Palette",
 	"SaveGame",
 	"Sprite",
+	"Tactic",
 	"Terminal",
 	"Utils",
 	"World",
