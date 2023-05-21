@@ -5,6 +5,12 @@ from pathlib import Path
 from AFU import Block,Utils,Terminal
 
 
+# Some of the files are hardcoded into the executable, with no subtitles.
+hardcoded = {
+	"fe000287.vac": {"text": "Engage!", "name": "Picard"},
+}
+
+
 def getSpeakerName(input_dir, speakers, speaker):
 	speaker_id = speaker["id"]
 	# 0x20 - 0x28 indicate the speaker is on the Enterprise speaking over comms
@@ -94,7 +100,10 @@ def subtitles(input_dir, output_dir, names=False):
 
 	for vac,s in subs.items():
 		if len(s["text"]) == 0:
-			subs[vac] = None
+			if vac in hardcoded:
+				subs[vac] = hardcoded[vac]
+			else:
+				subs[vac] = None
 		if len(s["text"]) == 1:
 			subs[vac]["text"] = s["text"][0]
 
