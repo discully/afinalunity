@@ -76,6 +76,16 @@ class File:
 		return struct.unpack_from('B', self.read(1))[0]
 
 
+	def readFloat(self):
+		"""Read a floating point number"""
+		return struct.unpack_from("f", self.read(4))[0]
+	
+
+	def readDouble(self):
+		"""Read a double-precision floating point number"""
+		return struct.unpack_from("d", self.read(8))[0]
+
+
 	def read32(self):
 		"""Read 32-bits"""
 		return self.read(4)
