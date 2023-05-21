@@ -63,6 +63,8 @@ def identify(file_path):
 		return "text"
 	elif file_extension == ".lst":
 		return "list"
+	elif file_extension == ".bin":
+		return "tactic"
 	elif file_extension == ".map":
 		if file_name == "icon":
 			return "icon_map"
