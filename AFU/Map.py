@@ -26,10 +26,10 @@ def movie(file_path):
 		if s and not s.startswith('#'):
 			id = int(s[:4].strip())
 			fname = s[4:18].strip()
-			comment = s[18:].strip()
+			title = s[18:].strip()
 			movies[id] = {
 				"file": fname,
-				"comment": comment,
+				"title": title,
 			}
 	return movies
 
