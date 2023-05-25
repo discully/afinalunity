@@ -19,21 +19,23 @@ def _readImage(f, offset):
 
 def _readAstrogation(f, offset):
 	# A human readable string.
-	# Depending on the destination type, has four pieces of information and finishes with a 0.
-	# DS:       <sector_id> <          -1> <          -1> <object_type(128)> <0>
-	# Outpost:  <sector_id> <system_index> <planet_index> <object_type(132)> <0>
-	# Starbase: <sector_id> <           0> <           0> <object_type(131)> <0>
+	# Depending on the destination type, has five pieces of information.
+	# DS:       <sector_id> <          -1> <          -1> <object_type(128)> <body_station_index>
+	# Outpost:  <sector_id> <system_index> <planet_index> <object_type(132)> <body_station_index>
+	# Starbase: <sector_id> <           0> <           0> <object_type(131)> <body_station_index>
 	s = f.readOffsetString(offset).replace("\r", "\n").split("\n")[0]
 	a = [int(i) for i in s.split()]
 	sector_id = a[0]
 	system_index = a[1] if a[1] != -1 else None
 	planet_index = a[2] if a[2] != -1 else None
 	object_type = Astro.ObjectType(a[3])
+	body_station_index = a[4] if a[4] != -1 else None
 	return {
 		"sector_id": sector_id,
 		"system_index": system_index,
 		"planet_index": planet_index,
 		"object_type": object_type,
+		"body_station_index": body_station_index,
 	}
 
 
@@ -104,15 +106,33 @@ def compstat(file_path):
 	return readCompstat(f)
 
 
+# Hardcoded in the .ovl file data section at 159348
+_READING_TO_ENTRY = {20010: {'parent': 215, 'entry': 216}, 20020: {'parent': 215, 'entry': 217}, 20030: {'parent': 215, 'entry': 218}, 20040: {'parent': 215, 'entry': 219}, 20050: {'parent': 215, 'entry': 220}, 20060: {'parent': 215, 'entry': 221}, 20070: {'parent': 215, 'entry': 222}, 20080: {'parent': 215, 'entry': 223}, 20090: {'parent': 215, 'entry': 224}, 20100: {'parent': 215, 'entry': 225}, 20110: {'parent': 215, 'entry': 226}, 20120: {'parent': 215, 'entry': 227}, 20130: {'parent': 215, 'entry': 228}, 20000: {'parent': 215, 'entry': 229}, 30000: {'parent': 230, 'entry': 231}, 30001: {'parent': 230, 'entry': 232}, 30010: {'parent': 230, 'entry': 233}, 30030: {'parent': 230, 'entry': 234}, 30031: {'parent': 230, 'entry': 235}, 30032: {'parent': 230, 'entry': 236}, 30033: {'parent': 230, 'entry': 237}, 30034: {'parent': 230, 'entry': 238}, 30090: {'parent': 230, 'entry': 239}, 30100: {'parent': 230, 'entry': 240}, 30110: {'parent': 230, 'entry': 241}, 40010: {'parent': 245, 'entry': 246}, 40020: {'parent': 245, 'entry': 247}, 40030: {'parent': 245, 'entry': 248}, 40040: {'parent': 245, 'entry': 249}, 40050: {'parent': 245, 'entry': 250}, 40000: {'parent': 245, 'entry': 251}, 50010: {'parent': 242, 'entry': 243}, 50000: {'parent': 242, 'entry': 244}, 60000: {'parent': 254, 'entry': 255}, 70000: {'parent': 252, 'entry': 253}}
+
+
 def readCompstat(f):
+	
 	visible_flags = []
-	for i in range(44):
+	for i in range(256):
 		bits = f.readBits(8)
 		bits.reverse()
 		visible_flags += bits
-	visible = [i == 0 for i in visible_flags]
-	dat_compstat = list(f.read(344))
+	computer_visible = [i == 0 for i in visible_flags]
+
+	tricorder_n = f.readUInt32()
+	tricorder_entries = []
+	for i in range(16):
+		assert(f.readUInt32() == 0xffffffff)
+		r = f.readUInt32()
+		if r != 0xffffffff:
+			tricorder_entries.append({
+				"reading": r,
+				"world": r//10000,
+				"compter_index": _READING_TO_ENTRY[r]["entry"],
+			})
+	assert(tricorder_n == len(tricorder_entries))
+
 	return {
-		"visible": visible,
-		"state": dat_compstat
+		"computer": computer_visible,
+		"tricorder": tricorder_entries,
 	}
