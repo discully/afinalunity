@@ -151,6 +151,9 @@ _TRICORDER_READINGS_TO_ENTRIES = {
 
 def readCompstat(f):
 	
+	# The game stores visibility for the computer entries, as bitflags. If the bit is
+	# set, the entry is hidden. It sets aside 256 bytes for this purpose, but given
+	# there are only 346 computer entries, it never uses more than 44 bytes.
 	visible_flags = []
 	for i in range(256):
 		bits = f.readBits(8)
