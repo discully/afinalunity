@@ -39,11 +39,14 @@ def _readAstrogation(f, offset):
 	}
 
 
-def _readUnknown(f, offset):
-	# possibly some kind of reference to an image elsewhere?
+def _readUnknownType6(f, offset):
+	# There is one entry in computer.db with this flag value. The game will intepret
+	# it as having an image, but the data here is not valid and will cause the game
+	# to crash, whether viewed on the computer or tricorder.
 	f.setOffset(offset)
 	pos = f.pos()
-	data = [f.readUInt16() for i in range(4)]
+	data = [f.readUInt8() for i in range(8)]
+	print(data)
 	return {
 		"pos": pos,
 		"offset": offset,
@@ -85,7 +88,7 @@ def _readEntry(f, offset, index):
 	elif data_flag == 4:
 		entry["astro"] = _readAstrogation(f, data_offset)
 	elif data_flag == 6:
-		entry["unknown"] = _readUnknown(f, data_offset)
+		entry["unknown"] = _readUnknownType6(f, data_offset)
 
 	return entry
 
@@ -107,7 +110,43 @@ def compstat(file_path):
 
 
 # Hardcoded in the .ovl file data section at 159348
-_READING_TO_ENTRY = {20010: {'parent': 215, 'entry': 216}, 20020: {'parent': 215, 'entry': 217}, 20030: {'parent': 215, 'entry': 218}, 20040: {'parent': 215, 'entry': 219}, 20050: {'parent': 215, 'entry': 220}, 20060: {'parent': 215, 'entry': 221}, 20070: {'parent': 215, 'entry': 222}, 20080: {'parent': 215, 'entry': 223}, 20090: {'parent': 215, 'entry': 224}, 20100: {'parent': 215, 'entry': 225}, 20110: {'parent': 215, 'entry': 226}, 20120: {'parent': 215, 'entry': 227}, 20130: {'parent': 215, 'entry': 228}, 20000: {'parent': 215, 'entry': 229}, 30000: {'parent': 230, 'entry': 231}, 30001: {'parent': 230, 'entry': 232}, 30010: {'parent': 230, 'entry': 233}, 30030: {'parent': 230, 'entry': 234}, 30031: {'parent': 230, 'entry': 235}, 30032: {'parent': 230, 'entry': 236}, 30033: {'parent': 230, 'entry': 237}, 30034: {'parent': 230, 'entry': 238}, 30090: {'parent': 230, 'entry': 239}, 30100: {'parent': 230, 'entry': 240}, 30110: {'parent': 230, 'entry': 241}, 40010: {'parent': 245, 'entry': 246}, 40020: {'parent': 245, 'entry': 247}, 40030: {'parent': 245, 'entry': 248}, 40040: {'parent': 245, 'entry': 249}, 40050: {'parent': 245, 'entry': 250}, 40000: {'parent': 245, 'entry': 251}, 50010: {'parent': 242, 'entry': 243}, 50000: {'parent': 242, 'entry': 244}, 60000: {'parent': 254, 'entry': 255}, 70000: {'parent': 252, 'entry': 253}}
+_TRICORDER_READINGS_TO_ENTRIES = {
+	20010: {'parent': 215, 'entry': 216},
+	20020: {'parent': 215, 'entry': 217},
+	20030: {'parent': 215, 'entry': 218},
+	20040: {'parent': 215, 'entry': 219},
+	20050: {'parent': 215, 'entry': 220},
+	20060: {'parent': 215, 'entry': 221},
+	20070: {'parent': 215, 'entry': 222},
+	20080: {'parent': 215, 'entry': 223},
+	20090: {'parent': 215, 'entry': 224},
+	20100: {'parent': 215, 'entry': 225},
+	20110: {'parent': 215, 'entry': 226},
+	20120: {'parent': 215, 'entry': 227},
+	20130: {'parent': 215, 'entry': 228},
+	20000: {'parent': 215, 'entry': 229},
+	30000: {'parent': 230, 'entry': 231},
+	30001: {'parent': 230, 'entry': 232},
+	30010: {'parent': 230, 'entry': 233},
+	30030: {'parent': 230, 'entry': 234},
+	30031: {'parent': 230, 'entry': 235},
+	30032: {'parent': 230, 'entry': 236},
+	30033: {'parent': 230, 'entry': 237},
+	30034: {'parent': 230, 'entry': 238},
+	30090: {'parent': 230, 'entry': 239},
+	30100: {'parent': 230, 'entry': 240},
+	30110: {'parent': 230, 'entry': 241},
+	40010: {'parent': 245, 'entry': 246},
+	40020: {'parent': 245, 'entry': 247},
+	40030: {'parent': 245, 'entry': 248},
+	40040: {'parent': 245, 'entry': 249},
+	40050: {'parent': 245, 'entry': 250},
+	40000: {'parent': 245, 'entry': 251},
+	50010: {'parent': 242, 'entry': 243},
+	50000: {'parent': 242, 'entry': 244},
+	60000: {'parent': 254, 'entry': 255},
+	70000: {'parent': 252, 'entry': 253}
+}
 
 
 def readCompstat(f):
@@ -117,7 +156,7 @@ def readCompstat(f):
 		bits = f.readBits(8)
 		bits.reverse()
 		visible_flags += bits
-	computer_visible = [i == 0 for i in visible_flags]
+	computer_visible = {i:v == 0 for i,v in enumerate(visible_flags)}
 
 	tricorder_n = f.readUInt32()
 	tricorder_entries = []
@@ -128,7 +167,7 @@ def readCompstat(f):
 			tricorder_entries.append({
 				"reading": r,
 				"world": r//10000,
-				"compter_index": _READING_TO_ENTRY[r]["entry"],
+				"compter_index": _TRICORDER_READINGS_TO_ENTRIES[r]["entry"],
 			})
 	assert(tricorder_n == len(tricorder_entries))
 
