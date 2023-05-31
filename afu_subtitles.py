@@ -5,9 +5,13 @@ from pathlib import Path
 from AFU import Block,Utils,Terminal
 
 
-# Some of the files are hardcoded into the executable, with no subtitles.
+# Some of the files are hardcoded into the executable with no subtitles.
 hardcoded = {
 	"fe000287.vac": {"text": "Engage!", "name": "Picard"},
+	"fe09006e.vac": {"text": "Warning! Selected destination is a quasaroid.", "name": "Computer"},
+	"fe09006f.vac": {"text": "Warning! Selected destination is a subspace vortex.", "name": "Computer"},
+	"fe090070.vac": {"text": "Warning! Selected destination is a ionstorm.", "name": "Computer"},
+	"fe090071.vac": {"text": "Warning! Selected destination is a black hole.", "name": "Computer"},
 }
 
 
