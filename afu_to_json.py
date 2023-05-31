@@ -66,6 +66,8 @@ def main():
 		data = AFU.SaveGame.savegame(args.file)
 	elif file_type == "tactic":
 		data = AFU.Tactic.bin(args.file)
+	elif file_type == "alert":
+		data = AFU.Data.alert(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 		return

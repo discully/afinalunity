@@ -1,5 +1,6 @@
 from AFU.File import File
 from AFU.Block import _readObjectId
+from AFU.Utils import SystemEnt
 from enum import Enum
 
 
@@ -43,4 +44,19 @@ def triggers(file_path):
 			assert(f.readUInt32() == 0)
 		
 		data.append(trigger)
+	return data
+
+
+
+def alert(file_path):
+	f = File(file_path)
+	data = []
+	for s in range(35):
+		sys = SystemEnt(s)
+		data.append({
+			"system": sys,
+			"value": f.readUInt32(),
+		})
+		print(sys)
+	assert(f.eof())
 	return data

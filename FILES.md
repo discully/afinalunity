@@ -25,7 +25,7 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 | &vellip;  |                           |      1 | worlname.bst               |                    | :heavy_check_mark: |                    |
 | DAT       | `multiple (see below)`    |     15 |                            |                    |                    |                    |
 | &vellip;  | cursors                   |      2 | cursor.dat, waitcurs.dat   | :heavy_check_mark: |                    |                    |
-| &vellip;  | level data                |      5 | level{level}.dat           |                    |                    |                    |
+| &vellip;  | alert levels settings     |      5 | level{alert}.dat           |                    | :heavy_check_mark: |                    |
 | &vellip;  | advice index              |      6 | w{world}a000.dat           |                    | :heavy_check_mark: |                    |
 | &vellip;  | triggers                  |      1 | trigger.dat                |                    | :heavy_check_mark: |                    |
 | &vellip;  | astrogation state         |      1 | ast_stat.dat               |                    | :heavy_check_mark: |                    |

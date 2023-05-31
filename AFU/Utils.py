@@ -25,22 +25,22 @@ def identify(file_path):
 		return "sprite"
 	elif file_extension == ".rm":
 		return "background"
-	elif file_extension == ".dat":
-		if file_name == "ast_stat":
-			return "astro_state"
 	elif file_extension == ".ast":
 		if file_name == "sector":
 			return "sector_names"
 		else:
 			return "background"
 	elif file_extension == ".dat":
-		if file_name.endswith("a000"):
+		if file_name == "ast_stat":
+			return "astro_state"
+		elif file_name.endswith("a000"):
 			return "advice"
 		elif file_name in ("cursor", "waitcurs"):
 			return "cursor"
 		elif file_name == "trigger":
 			return "triggers"
-		# todo	ast_stat.dat, level#.dat, trigger.dat
+		elif file_name.startswith("level"):
+			return "alert"
 	elif file_extension == ".scr":
 		prefix = file_name[:2]
 		if prefix == "sb":
@@ -100,7 +100,7 @@ def identify(file_path):
 
 class Encoder (JSONEncoder):
 	def default(self, obj):
-		if isinstance(obj, Block.BlockType) or isinstance(obj, Block.ConversationResponseState) or isinstance(obj, Block.ObjectWalkType) or isinstance(obj, Astro.Alignment) or isinstance(obj, Astro.ObjectType):
+		if isinstance(obj, Block.BlockType) or isinstance(obj, Block.ConversationResponseState) or isinstance(obj, Block.ObjectWalkType) or isinstance(obj, Astro.Alignment) or isinstance(obj, Astro.ObjectType) or isinstance(obj, SystemEnt):
 			return obj.name
 		if isinstance(obj, Enum):
 			return obj.name
@@ -110,3 +110,41 @@ class Encoder (JSONEncoder):
 			return str(obj)
 		# Let the base class default method raise the TypeError
 		return JSONEncoder.default(self, obj)
+
+
+class SystemEnt (Enum):
+	DORSAL_FORE_SHIELD	= 0x0
+	VENTRAL_FORE_SHIELD	= 0x1
+	NACELLE_PORT_SHIELD = 0x2
+	LATERAL_SHIELD	= 0x3
+	NACELLE_STARBOARD_SHIELD	= 0x4
+	ENGINEERING_HULL_SHIELD	= 0x5
+	DORSAL_AFT_SHIELD	= 0x6
+	VENTRAL_AFT_SHIELD	= 0x7
+	LATERAL_SENSOR	= 0x8
+	LONG_RANGE_SENSOR	= 0x9
+	E_HULL_LATERAL_SENSOR	= 0xa
+	LOWER_PLATFORM_SENSOR	= 0xb
+	AFT_LATERAL_SENSOR	= 0xc
+	DORSAL_PHASER_ARRAY	= 0xd
+	VENTRAL_PHASER_ARRAY	= 0xe
+	FORE_PHASER_ARRAY	= 0xf
+	AFT_PHASER_ARRAY	= 0x10
+	PORT_PHASER_ARRAY	= 0x11
+	STARBOARD_PHASER_ARRAY	= 0x12
+	FORE_TORPEDO	= 0x13
+	AFT_TORPEDO	= 0x14
+	MAIN_TRACTOR	= 0x15
+	FORE_TRACTOR	= 0x16
+	LIFE_SUPPORT	= 0x17
+	ENGINEERING_COMPUTER_CORE	= 0x18
+	PORT_COMPUTER_CORE	= 0x19
+	STARBOARD_COMPUTER_CORE	= 0x1a
+	PORT_WARP_ENGINE	= 0x1b
+	STARBOARD_WARP_ENGINE	= 0x1c
+	MAIN_IMPULSE_ENGINE	= 0x1d
+	PORT_IMPULSE_ENGINE	= 0x1e
+	STARBOARD_IMPULSE_ENGINE	= 0x1f
+	EPS_POWER_GRID	= 0x20
+	FUSION_REACTOR	= 0x21
+	ANTIMATTER_REACTOR	= 0x22
