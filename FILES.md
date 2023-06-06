@@ -101,5 +101,5 @@ The following enumerations are used in file names:
 * 05 - Frigis (Shonoisho Epsilon VI)
 * 06 - Unity Device
 * 07 - Horst III
-* 10 -
+* 10 - Combat
 * 5f - Enterprise Bridge
