@@ -72,7 +72,12 @@ def identify(file_path):
 			return "movie_map"
 		elif file_name == "phaser":
 			return "phaser_map"
-	elif file_extension in (".mrg", ".anm", ".pic"):
+	elif file_extension == ".pic":
+		if file_name == "compute1":
+			return "menu"
+		else:
+			return "background"
+	elif file_extension in (".mrg", ".anm"):
 		return "menu"
 	elif file_extension == ".bst":
 		if file_name.startswith("o_"):
