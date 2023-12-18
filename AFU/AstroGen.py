@@ -48,6 +48,9 @@ class SystemState (IntEnum):
 def systemGenerate(system):
 	"""Adds the binary star data, moons, planets, asteroid belts, etc. to a system.
 	The system's state must have been already set."""
+
+	if not "state" in system:
+		raise ValueError("The system has not had its state set.")
 	
 	b_class,b_mag = _systemGetBinaryStar(system)
 	if b_class is None:
