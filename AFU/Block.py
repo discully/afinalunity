@@ -742,6 +742,23 @@ def _readGeneral(f, block):
 ########################################################################################################################
 
 
+def identifyObject(dir, id):
+	o = getObject(dir, id)
+	if o:
+		id["name"] = o[0]["name"]
+	return id
+
+
+def getObject(dir, id):
+	name = "o_{:02x}{:02x}{:02x}.bst".format(id["world"], id["screen"], id["id"])
+	path = dir.joinpath(name)
+	try:
+		obj = bst(path)
+	except:
+		return None
+	return obj
+
+
 def bst(file_path):
 	f = File.File(file_path)
 
