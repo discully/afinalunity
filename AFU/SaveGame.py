@@ -38,7 +38,8 @@ def readBlockTravelHistory(f, block):
 		addrs.append(f.readUInt32())
 		addrs.append(f.readUInt32())
 		assert(f.readUInt16() == 0)
-		assert(f.readUInt16() == 16)
+		#assert(f.readUInt16() == 16)
+		f.readUInt16() == 16
 		addrs.append(f.readUInt32())
 		addrs.append(f.readUInt32())
 		assert(f.readUInt32() == 0)
@@ -74,8 +75,10 @@ def readBlockTravelHistory(f, block):
 		ub_system_index = f.readUInt16() 		# index of system within sector, or 0xff if not in system
 		ub_planet_index = f.readUInt16()		# index of planet within system. moon gets planets' index. 0xff if not in system.
 		assert(f.readUInt16() == 0)
-		assert(f.readUInt16() == 0)
-		assert(f.readUInt16() == 0)
+		#assert(f.readUInt16() == 0)
+		#assert(f.readUInt16() == 0)
+		f.readUInt16()
+		f.readUInt16()
 
 		if ua_system_index == 0xffff:
 			ua_system_index = None
@@ -98,7 +101,7 @@ def readBlockTravelHistory(f, block):
 			ub_planet_index = None
 		
 		assert(ua_unknown1 in (0x0,0xff))
-		assert(ua_unknown2 in (0x0,0xffff))
+		#assert(ua_unknown2 in (0x0,0xffff))
 		assert(ub_unknown in (1,0))
 
 		name = f.readString()
@@ -147,17 +150,24 @@ def readBlockCompstat(f, block):
 	f.setPosition(block["data_offset"])
 
 	data["computer_state"] = Computer.readCompstat(f)
-	assert(f.readStringBuffer(8) == "COMPSTAT")
 
-	assert(f.readUInt32() == 0)
+	# Pretty sure what follows is just junk grabbed from reading too
+	# many bytes from memory. The COMPSTAT file is 388 bytes. But
+	# the game copies 540 bytes in/out of memory. That means the last
+	# 152 bytes of this section are just junk.
+	f.read(152)
 
-	unknown = []
-	for j in range(5):
-		unknowna = [f.readUInt32() for i in range(3)]
-		unknownb = [f.readUInt8() for i in range(8)]
-		unknownc = [f.readUInt8() for i in range(8)]
-		unknown.append([unknowna, unknownb, unknownc])
-	data["computer_unknown"] = unknown
+	#assert(f.readStringBuffer(8) == "COMPSTAT")
+
+	#assert(f.readUInt32() == 0)
+
+	#unknown = []
+	#for j in range(5):
+	#	unknowna = [f.readUInt32() for i in range(3)]
+	#	unknownb = [f.readUInt8() for i in range(8)]
+	#	unknownc = [f.readUInt8() for i in range(8)]
+	#	unknown.append([unknowna, unknownb, unknownc])
+	#data["computer_unknown"] = unknown
 
 	assert(f.pos() == block["end_offset"])
 	return data
@@ -177,7 +187,7 @@ def readBlockConverations(f, block):
 	
 	conversation_buffer = []
 	for i in range(conversation_buffer_n):
-		conversation_buffer([f.readUInt32() for j in range(3)])
+		conversation_buffer.append([f.readUInt32() for j in range(3)])
 	
 	situation_buffer = []
 	for i in range(situation_buffer_n):
@@ -505,6 +515,7 @@ def savegame(input_path):
 
 	print(blocks[0]) # compstat
 	data |= readBlockCompstat(f, blocks[0])
+	#return data
 	print(blocks[1]) # aststat
 	data |= readBlockAststat(f, blocks[1])
 	print(blocks[2]) # videos
