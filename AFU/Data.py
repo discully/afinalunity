@@ -28,7 +28,7 @@ def triggers(file_path):
 		trigger["target"] = identifyObject(file_path.parent, id)
 		trigger["enabled"] = bool( f.readUInt8() )
 		trigger["unknown_b"] = f.readUInt8()
-		assert (f.readUInt16() == 0xffff);
+		assert (f.readUInt16() == 0xffff)
 		trigger["timer_start"] = f.readUInt32()
 	
 		if trigger["type"] == TriggerType.TIMER:
