@@ -221,11 +221,17 @@ def _readImage(f, block, palette):
 
 		if image_encoding == 0xd:
 			if image_type == 0x1:
-				image_image =_readImage1(f, image_width, image_height, palette)
+				image_image = _readImage1(f, image_width, image_height, palette)
 			elif image_type == 0x2:
 				image_image = _readImage2(f, image_width, image_height, palette)
 			else:
 				raise ValueError("Unknown image type {:#x}".format(image_type))
+
+		elif image_encoding == 0x0:
+			assert(image_type == 0x2)
+			image_image = _readImage2(f, image_width, image_height, palette)
+			assert(f.pos() == block["offset"] + block["length"])
+
 		else:
 			raise ValueError("Unknown image encoding {:#x}".format(image_encoding))
 
