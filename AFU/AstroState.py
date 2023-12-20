@@ -1,5 +1,6 @@
 from AFU.Astro import ObjectType
 from AFU.AstroUtils import N_SECTORS
+from AFU.File import fpos
 
 
 def readLocationType(f):
@@ -87,37 +88,83 @@ def readAstroState(f):
 	unknown1c = [f.readUInt16() for x in range(6)]
 	
 	# aststat.dat offset = 0x25c
+	#
+	# 25c [u8 ] which_screen (0=space, 1=sector, 2=system)
+	# 25d [u8 ]
+	# 25e [u16] current_speed_mode (0=warp, 1=impulse)
+	# 260 [u32] current_warp
+	# 264 [u32] current_impulse
+	# ---------------------------------------u2a
+	# 268 [u32] maximum_warp
+	# 26c [u32]
+	# 270 [u32]
+	# 274 [u32]
+	# 278 [u32]
+	# 27c [u32]
+	# 280 [u32]
+	# ---------------------------------------u2c
+	# 284 [dbl] distance_to_dest_sys ?
+	# 28c [dbl] distance_to_dest
+	# 294 [u32]
+	# 298 [u32]
 
-	unknown1d = f.readUInt16()
+
+	# ---------------------------------------end u2c
+	# 29c [u32] selected_major_x
+	# 270 [u32] selected_major_y
+	# 274 [u32] selected_major_z
+	# 278 [u32] selected_minor_x
+	# 27c [u32] selected_minor_y
+	# 280 [u32] selected_minor_z
+	# 284 [u32]  ??? selected_system_z
+	# 288 [u32]  ??? selected_system_y
+	# 28c [u16]  ??? selecteed_system_x
+	# 28e [u16] 
+	# 290 [u16] a_deg
+	# 292 [u16] e_deg
+	# 294 [u16]*5
+	# 29e [u16]
+	# 2a0 [u16]
+	# 2a2 [u16] display_which_systems
+	# 2a4 [u16] display_which_features
+	# 2a6 [u16] display_is_rotating ???code<-
+	# 2a8 [u32] display_is_rotating ???ghidra
+	# 2ac [u32] unknown_sector_id
+	#
+
+	# (astrogation)
+	# ast_stat.dat offset = 2e0 = 25c + (21*4)
+
+	astrogation_which_screen = f.readUInt8() # 0=space, 1=sector, 2=system
+	#assert(f.readUInt8() == 0) # padding
+	print(f.readUInt8()) # padding?
 
 	astrogation_speed_mode = "warp" if f.readUInt16() == 0 else "impulse"
 	astrogation_speed_warp = round(float(f.readUInt32()) / 100.0, 1)
 	astrogation_speed_impulse = f.readUInt32() * 10
-
-	# all but the first of these changes when you change impulse speed, or between impulse and warp.
-	# The first three don't change when you change warp speed. The second and third are 0 when in warp mode
-	# If you change the selected system it also updates.
-	# Perhaps some kind of estimated time to arrival? Or course information?
+	astrogation_max_warp = f.readUInt32()
 	
-	unknown2a = [f.readUInt8() for x in range(21)]
+	unknown2a = [f.readUInt32() for x in range(6)]
 
-	# aststat.dat offset = 0x2ed = 0x25c + 0x21
+	astrogation_distance1 = f.readDouble()
+	astrogation_distance2 = f.readDouble()
 
-	unknown2b = [f.readUInt8() for x in range(7)]
+	unknown2b = [f.readUInt32() for i in range(2)]
 	
+	selected_major_x = f.readUInt32()
+	selected_major_y = f.readUInt32()
+	selected_major_z = f.readUInt32()
+	selected_minor_x = f.readUInt32()
+	selected_minor_y = f.readUInt32()
+	selected_minor_z = f.readUInt32()
 	
-	# some of these change when you change warp/impulse speed
-	unknown2c = [f.readUInt16() for x in range(16)]
-	selected_x = f.readUInt32()
-	selected_y = f.readUInt32()
-	selected_z = f.readUInt32()
-	selected_system_unknown = f.readUInt32() # unknown value, changes with system selected
-	assert(f.readUInt32() == 0x0)
-	selected_location_unknown = f.readUInt32() # unknown value, changes with planet/moon/outpost selected
+	unknown2c = [f.readUInt32() for i in range(2)]
 	selected_location_info["location_values"] = [f.readUInt16() for x in range(2)]
+
 	astrogation_a_deg = f.readUInt16()
 	astrogation_e_deg = f.readUInt16()
-	unknown4 = [f.readUInt16() for x in range(7)]
+	
+	unknown2d = [f.readUInt16() for x in range(7)]
 
 	d0 = f.readUInt16()
 	d1 = f.readUInt16()
@@ -134,8 +181,10 @@ def readAstroState(f):
 	}
 	
 	astrogation_rotating = f.readUInt16() == 1
-	unknown5 = [f.readUInt16() for x in range(5)]
-	
+	unknown5 = [f.readUInt32() for x in range(2)]
+
+	assert(f.readUInt16() == 0)
+
 	sector_end = []
 	for i in range(N_SECTORS):
 		sector_end.append(f.readUInt16())
@@ -187,7 +236,7 @@ def readAstroState(f):
 				"scanned": state_scanned,
 			}
 			object_id += 1
-	#fpos(f)
+	
 	stations = {}
 	for i in range(64):
 		stations[object_id] = f.readUInt16()
@@ -201,6 +250,7 @@ def readAstroState(f):
 		#     deep space station: 1
 		# I suspect the states might vary more after the Chodak invasion, when a
 		# a lot of the comm relays etc. become destroyed. Will need to investigate.
+	
 	return {
 		"unknown0": unknown0,
 		"enterprise": {
@@ -216,7 +266,7 @@ def readAstroState(f):
 		"unknown1a": unknown1a,
 		"unknown1b": unknown1b,
 		"unknown1c": unknown1c,
-		"unknown1d": unknown1d,
+#		"unknown1d": unknown1d,
 		"astrogation": {
 			"course": {
 				"speed_mode": astrogation_speed_mode,
@@ -228,16 +278,17 @@ def readAstroState(f):
 			"space_rotating": astrogation_rotating,
 			"selected": {
 				"info": selected_location_info,
-				"coords": (selected_x, selected_y, selected_z),
-				"system_unknown": selected_system_unknown,
-				"location_unknown": selected_location_unknown,
+				"major_coords": (selected_major_x, selected_major_y, selected_major_z),
+				"minor_coords": (selected_minor_x, selected_minor_y, selected_minor_z),
+#				"system_unknown": selected_system_unknown,
+#				"location_unknown": selected_location_unknown,
 			},
 			"display": display,
+			"which_screen": astrogation_which_screen,
 		},
 		"unknown2a": unknown2a,
-		"unknown2b": unknown2b,
 		"unknown2c": unknown2c,
-		"unknown4": unknown4,
+		"unknown2d": unknown2c,
 		"unknown5": unknown5,
 		"systems_bodies": systems_bodies,
 		"stations": stations,

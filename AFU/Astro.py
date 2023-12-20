@@ -273,7 +273,7 @@ def astrogation(astro_db_path, astro_stat_path):
 	for sector in astro:
 		for system in sector["systems"]:
 			flags = system["flags"]
-			system["flags"] = [f.name for f in SystemFlags if f & flags == f]
+			#system["flags"] = [f.name for f in SystemFlags if f & flags == f]
 			if "notable" in system:
 				n = system["notable"]
 				if "name" in n:
@@ -283,7 +283,7 @@ def astrogation(astro_db_path, astro_stat_path):
 				system.pop("notable")
 			for planet in system["planets"]:
 				flags = planet["flags"]
-				planet["flags"] = [f.name for f in PlanetFlags if f & flags == f]
+				#planet["flags"] = [f.name for f in PlanetFlags if f & flags == f]
 				for moon in planet["moons"]:
 					pass
 			if "station" in system:
