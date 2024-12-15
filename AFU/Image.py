@@ -48,7 +48,7 @@ class Image:
 		self[x][y] = colour
 
 	
-	def export(self, name):
+	def pilImage(self):
 		class PILImage:
 			
 			def __init__(self, img):
@@ -78,6 +78,9 @@ class Image:
 					raise ValueError("Invalid colour: {0}".format(colour))
 				
 				self.pixels[row, column] = colour
-		
-		png_image = PILImage(self)
+		return PILImage(self)
+	
+	
+	def export(self, name):
+		png_image = self.pilImage()
 		png_image.save(name)
