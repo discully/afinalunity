@@ -16,9 +16,49 @@ def cursor(file_path, palette_path=None):
 			cursor_image.name = "{}.{}".format(file_path.name, len(cursors))
 			for y in range(height):
 				for x in range(width):
-					cursor_image.set(palette[f.readUInt8()], x, y)
+					i = f.readUInt8()
+					if i == 13:
+						cursor_image.set((0,0,0,0), x, y)
+					else:
+						cursor_image.set(palette[i], x, y)
 			cursors.append(cursor_image)
 	except EOFError:
 		pass
 	
 	return cursors
+
+
+DEFAULT_CURSOR = [
+	0,0,3,3,3,3,3,3,3,3,3,
+	0,1,0,3,3,3,3,3,3,3,3,
+	0,1,1,0,3,3,3,3,3,3,3,
+	0,1,1,1,0,3,3,3,3,3,3,
+	0,1,1,1,1,0,3,3,3,3,3,
+	0,1,1,1,1,1,0,3,3,3,3,
+	0,1,1,1,1,1,1,0,3,3,3,
+	0,1,1,1,1,1,1,1,0,3,3,
+	0,1,1,1,1,1,1,1,1,0,3,
+	0,1,1,1,1,1,1,1,1,1,0,
+	0,1,1,1,1,1,0,3,3,3,3,
+	0,1,0,3,0,1,1,0,3,3,3,
+	0,0,3,3,0,1,1,0,3,3,3,
+	3,3,3,3,3,0,1,1,0,3,3,
+	3,3,3,3,3,0,1,1,0,3,3,
+	3,3,3,3,3,3,0,1,1,0,3
+]
+DEFAULT_CURSOR_WIDTH = 11
+DEFAULT_CURSOR_HEIGHT = 16
+DEFAULT_CURSOR_COLOURS = {
+	0: (255, 255, 255, 255),
+	1: (0, 0, 0, 255),
+	3: (255, 255, 255, 0)
+}
+
+
+def default():
+	img = Image.Image(DEFAULT_CURSOR_WIDTH, DEFAULT_CURSOR_HEIGHT)
+	for y in range(DEFAULT_CURSOR_HEIGHT):
+		for x in range(DEFAULT_CURSOR_WIDTH):
+			img.set( DEFAULT_CURSOR_COLOURS[DEFAULT_CURSOR[x + DEFAULT_CURSOR_WIDTH*y]], x, y)
+	return img
+	
