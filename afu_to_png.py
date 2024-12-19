@@ -90,19 +90,9 @@ def main():
 		export(output_file_name, afu_background["image"])
 
 	elif file_type == "font":
-		
-		background_path = getFilePath("bridge.rm", args.image_file, args.background)
-		if background_path is None:
-			print("Path to background image required for font, but was not provided and could not be guessed.")
-			parser.print_help()
-			return
-		
-		palette = AFU.Palette.fullPalette(args.background, global_palette_path)
-
-		afu_font = AFU.Font.Font(palette, afu_file)
+		afu_font = AFU.Font.font(args.image_file, args.palette)
 		for char,afu_character in afu_font.characters.items():
 			export("{0}.{1}".format(output_file_name,ord(char)), afu_character.image)
-			#print("Exporting",char,ord(char))
 
 	elif file_type == "texture":
 		img = PIL_Image.open(args.image_file)

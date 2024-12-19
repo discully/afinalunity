@@ -1,6 +1,6 @@
 import AFU.Image as Image
 import AFU.Palette as Palette
-import AFU.File as File
+from AFU.File import File
 
 
 
@@ -116,3 +116,18 @@ class Font:
 	
 	def string(self, string):
 		chars = [ self.character(char) for char in string ]
+
+
+
+def font(font_path, palette_path=None):
+	
+	background_path = font_path.with_name("bridge.rm")
+	palette_path = Palette.getGlobalPalettePath(font_path, palette_path)
+	palette = Palette.fullPalette(background_path, palette_path)
+
+	font_file = File(font_path)
+
+	font = Font(palette, font_file)
+
+	return font
+
