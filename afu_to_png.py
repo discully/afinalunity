@@ -90,7 +90,7 @@ def main():
 		export(output_file_name, afu_background["image"])
 
 	elif file_type == "font":
-		afu_font = AFU.Font.font(args.image_file, args.palette)
+		afu_font = AFU.Font.font(args.image_file, args.background, args.palette)
 		for char,afu_character in afu_font.characters.items():
 			export("{0}.{1}".format(output_file_name,ord(char)), afu_character.image)
 

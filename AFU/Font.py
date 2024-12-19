@@ -119,9 +119,9 @@ class Font:
 
 
 
-def font(font_path, palette_path=None):
+def font(font_path, background_path=None, palette_path=None):
 	
-	background_path = font_path.with_name("bridge.rm")
+	if background_path is None: background_path = font_path.with_name("bridge.rm")
 	palette_path = Palette.getGlobalPalettePath(font_path, palette_path)
 	palette = Palette.fullPalette(background_path, palette_path)
 
