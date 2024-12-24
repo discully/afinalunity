@@ -7,7 +7,7 @@ class Image:
 		self.blank = (0,252,0)
 		self.width = width
 		self.height = height
-		self.pixels = [ [self.blank for x in range(height)] for x in range(width) ]
+		self.pixels = [ [self.blank for x in range(height)] for y in range(width) ]
 		self.name = None
 	
 	
@@ -46,6 +46,12 @@ class Image:
 		
 		
 		self[x][y] = colour
+	
+
+	def paste(self, image, x, y):
+		for i_x in range(image.width):
+			for i_y in range(image.height):
+				self[x+i_x][y+i_y] = image[i_x][i_y]
 
 	
 	def pilImage(self):

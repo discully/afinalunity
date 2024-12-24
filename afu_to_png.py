@@ -91,8 +91,14 @@ def main():
 
 	elif file_type == "font":
 		afu_font = AFU.Font.font(args.image_file, args.background, args.palette)
-		for char,afu_character in afu_font.characters.items():
-			export("{0}.{1}".format(output_file_name,ord(char)), afu_character.image)
+		for char,afu_character in afu_font["chars"].items():
+			export("{0}.{1}".format(output_file_name,ord(char)), afu_character["image"])
+		
+		try:
+			afu_text = AFU.Font.text(afu_font, "Star Trek: The Next Generation")
+		except ValueError:
+			afu_text = AFU.Font.text(afu_font, "STAR TREK: THE NEXT GENERATION")
+		export("{0}.text".format(output_file_name), afu_text)
 
 	elif file_type == "texture":
 		img = PIL_Image.open(args.image_file)
