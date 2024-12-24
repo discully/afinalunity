@@ -33,7 +33,34 @@ def font(font_path, background_path=None, palette_path=None):
 	}
 
 	if font_type == 0x0:
-		raise ValueError("Font type 0 not currently supported")
+		assert(font["width"] == 0)
+		font["width"] = 8
+
+		for char_int in range(start, end+1):
+			char = chr(char_int)
+			char_width = f.readUInt8()
+			image = Image.Image(char_width, height)
+
+			data = [f.readUInt8() for d in range(font["height"])]
+			for y in range(font["height"]):
+				for x in range(char_width):
+					mask = 0x80 >> x
+					if data[y] & mask:
+						image[x][y] = (0,0,255)
+					else:
+						image[x][y] = (0,0,0)
+			
+			if char_width == 0:
+				continue
+
+			font["chars"][char] = {
+				"width": char_width,
+				"image": image
+			}
+
+			if f.eof(): break
+
+		return font
 
 	elif font_type == 0x1:
 		for char_int in range(start, end+1):
