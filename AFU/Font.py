@@ -48,7 +48,7 @@ def font(font_path, background_path=None, palette_path=None):
 					if data[y] & mask:
 						image[x][y] = (0,0,255)
 					else:
-						image[x][y] = (0,0,0)
+						image[x][y] = (0,0,0,0)
 			
 			if char_width == 0:
 				continue
