@@ -93,6 +93,36 @@ python3 afu_to_json.py astro.db
 ```
 will output `astro.db.json`.
 
+
+## Object Files
+
+The `.bst` files are objects representing characters, items, events, etc., but there are over 2500.
+To find and idenitfy the right `.bst` file you can use the `afu_objects.py` utility.
+
+To identify a given `.bst` file, run `afu_object.py` with the path to the file as the first and only argument.
+For example:
+```sh
+python3 afu_objects.py path/to/o_5f0105.bst
+```
+will output:
+```sh
+o_5f0105.bst    'Admiral Williams'          {'id': 5, 'screen': 1, 'world': 95, 'unused': 0}
+```
+
+To find `.bst` files with a given name, run `afu_object.py` with the path to the directory containing object files and a search term.
+For example:
+```sh
+python afu_object.py path/do/bst_directory --name admiral
+```
+will output:
+```sh
+o_020b0f.bst    'Admiral Brodnack'          {'id': 15, 'screen': 11, 'world': 2, 'unused': 0}
+o_060402.bst    'Admiral Brodnack'          {'id': 2, 'screen': 4, 'world': 6, 'unused': 0}
+o_5f0105.bst    'Admiral Williams'          {'id': 5, 'screen': 1, 'world': 95, 'unused': 0}
+o_5f0106.bst    'Admiral Reddreck'          {'id': 6, 'screen': 1, 'world': 95, 'unused': 0}
+```
+The `--name` search term is case insensitive, and will match any object which contains that text in its name.
+
 ## SAVEGAME Files
 
 The SAVEGAME files are found in the install directory.
