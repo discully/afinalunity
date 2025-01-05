@@ -43,7 +43,7 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 | MAP       | Maps from object_id to *  |      3 | icon.map, movie.map, phaser.map |               | :heavy_check_mark: |                    |
 | MAC       | audio (sound effects)     |    103 |                            |                    |                    | :heavy_check_mark: |
 | LST       | list (index of sprites)   |      1 | sprites.lst                |                    | :heavy_check_mark: |                    |
-| MRG       | menu graphics             |     11 |                            | :heavy_check_mark: |                    |                    |
+| MRG       | menu graphics             |     11 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
 | MTL       |                           |     55 |                            |                    |                    |                    |
 | MTR       |                           |      9 |                            |                    |                    |                    |
 | PAL       | colour palette            |      1 | standard.pal               | :heavy_check_mark: |                    |                    |

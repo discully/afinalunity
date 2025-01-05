@@ -105,10 +105,8 @@ def main():
 		img.save("{}.png".format(output_file_name), "PNG")
 
 	elif file_type == "menu":
-		afu_menu = AFU.Menu.Menu(args.image_file)
-		for i in range(len(afu_menu)):
-			offset = afu_menu.offsets[i]
-			image = afu_menu.images[i]
+		afu_menu = AFU.Menu.mrg(args.image_file, args.background, args.palette)
+		for i,image in enumerate(afu_menu):
 			export("{}.{}".format(output_file_name, i), image)
 	
 	elif file_type == "cursor":
