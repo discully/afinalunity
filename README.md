@@ -99,6 +99,7 @@ will output `astro.db.json`.
 The `.bst` files are objects representing characters, items, events, etc., but there are over 2500.
 To find and idenitfy the right `.bst` file you can use the `afu_objects.py` utility.
 
+### Identifying Object Files
 To identify a given `.bst` file, run `afu_object.py` with the path to the file as the first and only argument.
 For example:
 ```sh
@@ -109,6 +110,7 @@ will output:
 o_5f0105.bst    'Admiral Williams'          {'id': 5, 'screen': 1, 'world': 95, 'unused': 0}
 ```
 
+### Searching Object Files
 To find `.bst` files with a given name, run `afu_object.py` with the path to the directory containing object files and a search term.
 For example:
 ```sh
