@@ -20,7 +20,7 @@ class Menu:
 		self._read()
 
 
-	def __getitem(self, item):
+	def __getitem__(self, item):
 		return self.images[item]
 
 
@@ -41,9 +41,11 @@ class Menu:
 			self.offsets.append(f.readUInt32())
 
 		eof = f.readUInt32()
-
 		for i in range(n_entries):
-			assert(f.pos() == self.offsets[i])
+			
+			assert(f.pos() <= self.offsets[i])
+			while f.pos() < self.offsets[i]:
+				assert(f.readUInt8() == 0)
 
 			width = f.readUInt16()
 			height = f.readUInt16()
@@ -51,7 +53,11 @@ class Menu:
 
 			for y in range(height):
 				for x in range(width):
-					colour = self.palette[f.readUInt8()]
+					c = f.readUInt8()
+					if c == 13:
+						colour = (0,0,0,0)
+					else:
+						colour = self.palette[c]
 					image.set(colour, x, y)
 
 			self.images.append(image)
