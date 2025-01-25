@@ -109,6 +109,7 @@ def sprite(sprite_path, background_path, palette_path=None):
 
 		elif block["name"] == "COMP":
 			image = _readImage(f, block, palette)
+			image["block"] = "COMP"
 			offset = image.pop("offset")
 			block["image_offset"] = offset
 			if image["image"] is not None:
@@ -126,6 +127,7 @@ def sprite(sprite_path, background_path, palette_path=None):
 
 		elif block["name"] == "SCOM":
 			image = _readImage(f, block, palette)
+			image["block"] = "SCOM"
 			offset = image.pop("offset")
 			block["image_offset"] = offset
 			if image["image"] is not None:
