@@ -62,7 +62,7 @@ For example:
 ```sh
 python3 afu_to_wav.py redalert.mac
 ```
-will output `readalert.wav`.
+will output `readalert.mac.wav`.
 
 
 ### Finding Voice Files
