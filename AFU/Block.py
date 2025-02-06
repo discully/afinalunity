@@ -181,12 +181,61 @@ def _readListEntryBegin(f, block):
 ########################################################################################################################
 
 
+class ObjectId:
+
+	def __init__(self, id, screen, world, unused):
+		assert(unused == 0 or unused == 0xff)
+		self.value = (id & 0xff) + ((screen & 0xff) << 8) + ((world & 0xff) << 16) + ((unused & 0xff) << 24)
+	
+	
+	def __getattr__(self, name):
+		if name == "id":
+			return self.value & 0xff
+		elif name == "screen":
+			return (self.value >> 8) & 0xff
+		elif name == "world":
+			return (self.value >> 16) & 0xff
+		elif name == "unused":
+			return (self.value >> 24) & 0xff
+		else:
+			raise AttributeError(self, name)
+
+
+	def __setattr__(self, name, value):
+		if name == "id":
+			self.value = (self.value & 0xffffff00) + (value & 0xff)
+		elif name == "screen":
+			self.value = (self.value & 0xffff00ff) + ((value & 0xff) << 8)
+		elif name == "world":
+			self.value = (self.value & 0xff00ffff) + ((value & 0xff) << 16)
+		elif name == "unused":
+			assert(value == 0x0 or value == 0xff)
+			self.value = (self.value & 0x00ffffff) + ((value & 0xff) << 24)
+		else:
+			object.__setattr__(self, name, value)
+	
+
+	def __str__(self):
+		return "{:04x}".format(self.value)
+	
+
+	def __eq__(self, value):
+		return self.value == value
+	
+
+	def __hash__(self):
+		return self.value
+	
+
+
+
+
 def _readObjectId(f):
 	obj_id = f.readUInt8()
 	obj_screen = f.readUInt8()
 	obj_world = f.readUInt8()
 	obj_unused = f.readUInt8()
-	assert( obj_unused in (0, 0xff) )
+	#return ObjectId(obj_id, obj_screen, obj_world, obj_unused)
 	return {
 		"id": obj_id,
 		"screen": obj_screen,

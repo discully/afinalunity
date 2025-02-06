@@ -107,6 +107,8 @@ class Encoder (JSONEncoder):
 	def default(self, obj):
 		if isinstance(obj, Block.BlockType) or isinstance(obj, Block.ConversationResponseState) or isinstance(obj, Block.ObjectWalkType) or isinstance(obj, Astro.Alignment) or isinstance(obj, Astro.ObjectType) or isinstance(obj, SystemEnt):
 			return obj.name
+		if isinstance(obj, Block.ObjectId):
+			return obj.value
 		if isinstance(obj, Enum):
 			return obj.name
 		if isinstance(obj, IntEnum):
