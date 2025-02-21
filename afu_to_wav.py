@@ -12,14 +12,14 @@ from subprocess import call as subproc_call
 
 def _toWav(input_file_path, output_dir):
 	ext = "{}.wav".format(input_file_path.suffix)
-	output_file_path = output_dir.joinpath(input_file_path).with_suffix(ext)
+	output_file_path = output_dir.joinpath(input_file_path.name).with_suffix(ext)
 	subproc_call(["sox", "-N", "-t", "ima", "-r", "22050", str(input_file_path), str(output_file_path)])
 	return output_file_path
 
 
 def _toStereoWav(input_file_path, output_dir):
 	ext = "{}.wav".format(input_file_path.suffix)
-	output_file_path = output_dir.joinpath(input_file_path).with_suffix(ext)
+	output_file_path = output_dir.joinpath(input_file_path.name).with_suffix(ext)
 	rac_l,rac_r = _splitStereo(input_file_path, output_dir)
 	wav_l = _toWav(rac_l, output_dir)
 	wav_r = _toWav(rac_r, output_dir)
