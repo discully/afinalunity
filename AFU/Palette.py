@@ -51,28 +51,6 @@ def replaceGlobalPalette(full_palette, new_global_palette):
 	full_palette[_LENGTH_SINGLE:] = new_global_palette
 
 
-def standard():
-	pass
-#	global standard_file_path
-#	global _standard_palette
-#
-#	if( standard_file_path == None ):
-#		if( os.path.isfile("standard.pal") ):
-#			standard_file_path = "standard.pal"
-#		else:
-#			raise RuntimeError("The location of the palette file standard.pal is not set and it cannot be found.")
-#
-#	if( _standard_palette == None ):
-#		import AFU.File as File
-#		f = File.File(standard_file_path)
-#		_standard_palette = Palette(f)
-#
-#	return _standard_palette
-#
-#standard_file_path = None
-#_standard_palette = None
-
-
 def getGlobalPalettePath(image_path, palette_path=None):
 	# First, if a palette path was explicitly provided, check that
 	if not palette_path is None:
