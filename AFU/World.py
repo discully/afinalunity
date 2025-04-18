@@ -1,8 +1,25 @@
 from AFU.File import File
 from AFU.Block import _readObjectId
+from enum import IntEnum
+
+
+class WorldId (IntEnum):
+	UNSET	= 		0x0
+	ALLANOR =		0x2
+	MORASSIA =		0x3
+	MERTENS =		0x4
+	FRIGIS =		0x5
+	UNITY_DEVICE =	0x6
+	HORST_III =		0x7
+	FRIGIS_2 =		0x8
+	PLANETS_MAX =	0xa
+	COMBAT =		0x10
+	ENTERPRISE =	0x5f
+	NONE =			0xffffffff
 
 
 def worldStrt(file_path):
+	""""w_##strt.bst"""
 	f = File(file_path)
 	data = []
 	while not f.eof():
@@ -17,12 +34,13 @@ def worldStrt(file_path):
 		screen["action_type"] = f.readUInt8()
 		screen["who"] = _readObjectId(f)
 		screen["other"] = _readObjectId(f)
-		assert(f.readUInt32() == 0xffffffff) # unknown3
-		screen["unknown4"] = f.readUInt16()
-		assert(screen["unknown4"] in (0xff, 0x1, 0x0))
-		assert(f.readUInt16() == 0x0) # unknown5
-		assert(f.readUInt8() == 0x0) # unknown6
-		for i in range(15):
+		assert(f.readUInt16() == 0xffff) # unknown3
+		assert(f.readUInt16() == 0xffff) # unknown4
+		screen["unknown5"] = f.readUInt8()
+		assert(screen["unknown5"] in (0xff, 0x1, 0x0))
+		assert(f.readUInt8() == 0x0)
+		assert(f.readUInt16() == 0x0)
+		for i in range(16):
 			assert (f.readUInt8() == 0)
 		data.append(screen)
 	return data
@@ -41,6 +59,7 @@ def worldList(file_path):
 
 
 def worldSlScr(file_path):
+	"""Screen Entrances File"""
 	f = File(file_path)
 
 	n_screens = f.readUInt16()
@@ -118,6 +137,7 @@ def worldObj(file_path):
 
 
 def worldStScr(file_path):
+	"""Polys/Tile/Region File st######.scr"""
 	f = File(file_path)
 
 	n_entries = f.readUInt16()
