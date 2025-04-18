@@ -171,7 +171,7 @@ def worldStScr(file_path):
 
 	screen = {
 		"unknown": screen_unknown,
-		"polgons": screen_polygons,
+		"polygons": screen_polygons,
 	}
 
 	return screen
