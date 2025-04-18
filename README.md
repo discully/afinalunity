@@ -13,6 +13,7 @@ which perform various tasks:
  * afu_astro - Combines `astro.db` with either a `SAVEGAME` file or `ast_stat.dat` to produce a `.json` with additional information about the game space
  * afu_scan_all - Edits a `SAVEGAME` file to make all star systems visible and scanned
  * afu_subtitles - Outputs a file containing subtitles for what is said in voice audio files
+ * afu_ojects - Identifies the name of the object in a file, or searches for object files which match a name
 
  More details on each of those applications is provided below.
 
