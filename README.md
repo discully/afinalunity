@@ -55,10 +55,11 @@ will output a png for all 49 images used to illustrate various computer entries.
 
 ## Audio Files
 
-The `.rac` `.vac` and `.mac` files contain audio.
-To convert these into .wav files you will first require [sox](http://sox.sourceforge.net) to be installed
-and in PATH.
-Then run `afu_to_wav.py` with the path to the audio file as the first and only argument.
+The `.rac` `.vac` and `.mac` files contain audio. The `afu_to_wav.py` applications converst them to `.wav`.
+
+The application requires the [audioop-lts](https://github.com/AbstractUmbra/audioop) module to be installed.
+
+Then run `afu_to_wav.py` with the path(s) to one or more audio file as the arguments.
 For example:
 ```sh
 python3 afu_to_wav.py redalert.mac
