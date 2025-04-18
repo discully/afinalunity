@@ -97,9 +97,12 @@ def _readBlock(f):
 			BlockType.CONDITION: _readCondition,
 			BlockType.COMMAND: _readCommand,
 			BlockType.GENERAL: _readGeneral,
+			BlockType.PHASER_HEADER: _readPhaserHeader,
+			BlockType.PHASER_STUN: _readList,
+			BlockType.PHASER_GTP: _readList,
+			BlockType.PHASER_KILL: _readList,
 		}
 		need_more = [
-			BlockType.ALTER,
 			BlockType.TRIGGER,
 			BlockType.CONV_CHANGEACT_UNKNOWN2,
 		]
@@ -271,13 +274,6 @@ def _readEntryHeader(f, expected_header_type):
 	return header
 
 
-# TextBlock::execute
-# _vm->voiceFileFor(voice_group, voice_subgroup, speaker->id, voice_id);
-# Response::execute
-# _vm->voiceFileFor(voice_group, voice_subgroup, speaker->id, voice_id);
-# UnityEngine::playDescriptionFor
-# voiceFileFor(desc.voice_group, desc.voice_subgroup, objectID(desc.entry_id, 0, 0), desc.voice_id, 'l');
-
 def _getVoiceFile(speaker, voice, file_type=None):
 	speaker_id = speaker["id"]
 	# 0x20 - 0x28 indicate the speaker is on the Enterprise speaking over comms
@@ -296,9 +292,6 @@ def _getVoiceFile(speaker, voice, file_type=None):
 		file_name = "{1[group]:02x}{2}{1[subgroup]:01x}{0:02x}{1[id]:02x}.vac".format(speaker_id, voice, file_type)
 	else:
 		file_name = "{1[group]:02x}{1[subgroup]:02x}{0:02x}{1[id]:02x}.vac".format(speaker_id, voice)
-
-	if voice["group"] == 0xfd:
-		print(speaker, voice, file_name, file_type)
 
 	return file_name
 
@@ -783,6 +776,46 @@ def _readGeneral(f, block):
 ########################################################################################################################
 # Phaser Blocks
 ########################################################################################################################
+
+
+
+def _readPhaserHeader(f, block):
+	block["length"] = f.readUInt16() #0
+	assert(block["length"] == 0x7e)
+	start = f.pos()
+
+	block["object_id"] = _readObjectId(f)
+	block["field_0x4"] = f.readUInt16() #3
+	block["health_max"] = f.readUInt8() #4
+	assert(f.readUInt8() == 0)
+	block["health_current"] = block["health_max"]
+	block["health_unknown"] = f.readUInt8() #5
+	assert(f.readUInt8() == 0)
+	block["health_stunned"] = block["health_unknown"]
+	block["field_0xd"] = f.readUInt8() #6
+	block["field_0xe"] = f.readUInt8() #     d
+	block["field_0xb"] = f.readUInt8() #7
+	block["field_0xc"] = f.readUInt8() #     f
+
+	assert(f.readUInt32() == 0)
+	assert(f.readUInt32() == 0) # The game sets these to zero
+	assert(f.readUInt32() == 0)
+
+	# As far as I can tell, the game ignores the rest of this block
+
+	assert(f.readUInt16() == 0)
+	for i in range(86):
+		assert(f.readUInt8() == 0)
+	
+	# Not sure what these are, but they're only non-zero when there are entries in the respective lists
+	block["unknown_stun"] = [f.readUInt8() for i in range(4)]
+	block["unknown_gtp"] = [f.readUInt8() for i in range(4)]
+	block["unknown_kill"] = [f.readUInt8() for i in range(4)]
+
+	print(hex(f.pos()))
+
+	f.setPosition(start + block["length"])
+	return False
 
 
 
