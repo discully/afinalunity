@@ -7,12 +7,37 @@ from AFU import Block,Utils,Terminal
 
 # Some of the files are hardcoded into the executable with no subtitles.
 hardcoded = {
-	"fe000287.vac": {"text": "Engage!", "name": "Picard"},
-	"fe09006e.vac": {"text": "Warning! Selected destination is a quasaroid.", "name": "Computer"},
-	"fe09006f.vac": {"text": "Warning! Selected destination is a subspace vortex.", "name": "Computer"},
-	"fe090070.vac": {"text": "Warning! Selected destination is a ionstorm.", "name": "Computer"},
-	"fe090071.vac": {"text": "Warning! Selected destination is a black hole.", "name": "Computer"},
+	"fe000287.vac": "Engage!",
+	"fe0004ea.vac": "Argh!",
+	"fe010330.vac": "Argh!",
+	"fe0203bf.vac": "The ship is de-cloaking",
+	"fe0302aa.vac": "Argh!",
+	"fe0402ff.vac": "Argh!",
+	"fe05024a.vac": "Argh!",
+	"fe06032f.vac": "Argh!",
+	"fe0702c1.vac": "Argh!",
+	"fe0802e7.vac": "Argh!",
+	"fe09006e.vac": "Warning! Selected destination is a quasaroid.",
+	"fe09006f.vac": "Warning! Selected destination is a subspace vortex.",
+	"fe090070.vac": "Warning! Selected destination is a ionstorm.",
+	"fe090071.vac": "Warning! Selected destination is a black hole.",
 }
+
+
+def getHardcodedName(input_dir, speakers, vac):
+	if vac.startswith("cm_"):
+		return "Computer Voice"
+	
+	assert(vac.startswith("fe"))
+	sid = int(vac[2:4], 16)
+	return getSpeakerName(input_dir, speakers, {"world": 0, "screen": 0, "id": sid})
+	
+	#if vac == "feff1401.vac" or "feff0801.vac":
+	#	return "alien"
+	#if vac.startswith("feff050"):
+	#	return "SPEAKER: Chodak Terminal"
+	#raise ValueError("Cannot identify speaker for file {}".format(vac))
+
 
 
 def getSpeakerName(input_dir, speakers, speaker):
@@ -90,12 +115,17 @@ def subtitles(input_dir, output_dir, names=False):
 
 		for vac in getVoiceFilesFromBst(bst):
 			if not vac["file"] in subs:
+				print("Error: Non existant file", vac["file"], vac["text"])
 				continue
 
 			vac["name"] = getSpeakerName(input_dir, speakers, vac["speaker"])
+			
 			if not "name" in subs[vac["file"]]:
 				subs[vac["file"]]["name"] = vac["name"]
 
+			if subs[vac["file"]]["name"].startswith("unknown-"):
+				print("Error: Non existant speaker", vac["file"], vac["text"])
+			
 			if len(subs[vac["file"]]["text"]) == 0:
 				subs[vac["file"]]["text"].append(vac["text"])
 
@@ -105,8 +135,14 @@ def subtitles(input_dir, output_dir, names=False):
 	for vac,s in subs.items():
 		if len(s["text"]) == 0:
 			if vac in hardcoded:
-				subs[vac] = hardcoded[vac]
+				subs[vac] = {
+					"text": hardcoded[vac],
+					"name": getHardcodedName(input_dir, speakers, vac),
+				}
+				if subs[vac]["name"].startswith("unknown-"):
+					print("Error: Non existant speaker", vac, subs[vac]["text"])
 			else:
+				print("Error: Missing subtitle for", vac)
 				subs[vac] = None
 		if len(s["text"]) == 1:
 			subs[vac]["text"] = s["text"][0]
