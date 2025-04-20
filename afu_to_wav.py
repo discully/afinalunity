@@ -1,42 +1,52 @@
 from argparse import ArgumentParser
 from pathlib import Path
+import audioop
 from audioop import adpcm2lin
 from wave import open as wave_open
 
 
-# This works for .mac and .rac and .vac files.
-# The .rac files are stereo, and I haven't quite figured out how to handle them correctly. So for
-# now we'll just strip out one of the channels and make them mono.
-
-
 _FILE_SPECS = {
 	".mac": {
+		"type": "mac",
 		"channels": 1,
-		"width": 2
+		"width": 2,
 	},
 	".vac": {
+		"type": "vac",
 		"channels": 1,
-		"width": 2
+		"width": 2,
 	},
 	".rac": {
+		"type": "rac",
 		"channels": 2,
-		"width": 1
+		"width": 2,
 	},
 }
+
+
+def _swapNibbles(b):
+	return (0xf0 & (b << 4)) | (0x0f & (b >> 4))
 
 
 def _toWav(input_file_path, output_dir):
 	spec = _FILE_SPECS[input_file_path.suffix]
 	output_file_path = output_dir.joinpath(input_file_path.name + ".wav")
 
-	adpcm = open(i["fname"], "rb").read()
-	if spec["channels"] == 2:
-		adpcm = bytes([x for x in adpcm[::2]])
-		spec["channels"] = 1
-	
-	lin = adpcm2lin(adpcm, spec["width"], None)[0]
+	adpcm = open(input_file_path, "rb").read()
+	adpcm = bytes([ _swapNibbles(b) for b in adpcm ])
 
-	wav = wave_open(output_file_path, "wb")
+	if spec["channels"] == 2:
+		adpcm_l = bytes([b for b in adpcm[::2]])
+		adpcm_r = bytes([b for b in adpcm[1::2]])
+		lin_l = adpcm2lin(adpcm_l, spec["width"], None)[0]
+		lin_r = adpcm2lin(adpcm_r, spec["width"], None)[0]
+		lin_l = audioop.tostereo(lin_l, spec["width"], 1, 0)
+		lin_r = audioop.tostereo(lin_r, spec["width"], 0, 1)
+		lin = audioop.add(lin_l, lin_r, spec["width"])
+	else:
+		lin = adpcm2lin(adpcm, spec["width"], None)[0]
+
+	wav = wave_open(str(output_file_path), "wb")
 	wav.setnchannels(spec["channels"])
 	wav.setsampwidth(spec["width"])
 	wav.setframerate(22050)
