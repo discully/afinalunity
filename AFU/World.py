@@ -214,9 +214,10 @@ def _adviceValueAndComment(s):
 def _adviceEntry(f):
 	
 	entry = {
-		"difficulty_advice": [
-			{"character_advice": []}
-		],
+		"advice": {
+			"easy": {},
+			"hard": {},
+		},
 	}
 	
 	line = f.readLine()
@@ -224,68 +225,59 @@ def _adviceEntry(f):
 		line = f.readLine()
 	
 	if line.startswith("EOF"):
-		# no level here, end of file
+		# no entry here, end of file
 		return None
 	
 	line = _adviceValueAndComment(line)
-	level_id = int(line[0])
+	entry["id"] = int(line[0])
 	if len(line) == 2:
 		entry["comment"] = line[1]
+	else:
+		entry["comment"] = ""
 	
 	line = f.readLine()
 	line = _adviceValueAndComment(line)
-	level_sub_id = int(line[0])
-	if len(line) == 2:
-		entry["difficulty_advice"][0]["comment"] = line[1]
-	
-	entry["id"] = (level_id, level_sub_id)
+	entry["wait"] = int(line[0])
+	difficulty = "easy"
+	# the comment is just 'Easy level'
 	
 	while True:
 		line = f.readLine()
-		
+				
 		if line.startswith("#"):
 			# end of entry
 			return entry
 		
 		if line.startswith("~"):
-			# new difficulty
-			entry["difficulty_advice"].append({"character_advice": []})
-			line = line.split("//")
-			assert (len(line) in (1, 2))
-			if len(line) == 2:
-				entry["difficulty_advice"][-1]["comment"] = line[1]
+			# hard difficulty
+			difficulty = "hard"
 			continue
 		
-		character_data = line.split(",")
-		if character_data[0].lower() in _ADVICE_CHARACTERS:
-			print(line)
-			if len(character_data) != 3:
-				# There are a couple of entries where for Butler the two numbers are separated by a '.'
-				assert (len(character_data) == 2)
-				character_data[1:] = character_data[1].split(".")
-			assert (len(character_data) == 3)
-			character_name = character_data[0]
-			character_adv0 = int(character_data[1].strip(" @"))
-			character_adv1 = int(character_data[2])
-			
-			entry["difficulty_advice"][-1]["character_advice"].append({
-				"name": character_name,
-				"advice": (character_adv0, character_adv1)
-			})
-			continue
+		character,hail = line.split(",", 1)
+
+		character = character.lower().strip()
+		assert(character in _ADVICE_CHARACTERS)
 		
-		raise ValueError("Unexpected value in file: '{}'".format(line))
+		hail = hail.strip()
+		assert(hail[0] == '@')
+
+		advice = hail[1:].split(',')
+		if len(advice) != 2:
+			advice = hail[1:].split('.')
+		assert(len(advice) == 2)
+		advice = [int(a) for a in advice]
+
+		#entry["advice"][difficulty][character] = hail
+		entry["advice"][difficulty][character] = advice
 
 
 def adviceDat(file_path):
-	# Reads w{world}a000.dat files. The contain information about characters giving the player advie.
-	# I'm pretty sure this file is not for the game to read.
-	# There're so many typos and variations, I'm pretty sure they're developer notes.
+	# Reads w{world}a000.dat files. The contain information about characters giving the player advice.
 	f = File(file_path)
-	entries = []
+	entries = {}
 	while not f.eof():
-		level = _adviceEntry(f)
-		if level is None:
+		entry = _adviceEntry(f)
+		if entry is None:
 			break
-		entries.append(level)
+		entries[entry["id"]] = entry
 	return entries
