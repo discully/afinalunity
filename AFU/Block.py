@@ -54,7 +54,7 @@ class BlockType (Enum):
 def _readBlockHeader(f):
 	block_offset = f.pos()
 	block_type = BlockType(f.readUInt8())
-	assert (f.readUInt8() == 0x11)
+	assert(f.readUInt8() == 0x11)
 
 	return {
 		"offset": block_offset,
@@ -73,45 +73,51 @@ def _readBlock(f):
 		if db: print("{:>6x} {}".format(f.pos(), block["type"]))
 
 		handlers = {
-			BlockType.ALTER: _readAlter,
 			BlockType.OBJECT: _readObject,
-			BlockType.CONV_RESPONSE: _readConvResponse,
 			BlockType.DESCRIPTION: _readDescription,
-			BlockType.VOICE: _readSpeechInfo,
-			BlockType.CONVERSATION: _readConversation,
-			BlockType.CONV_WHOCANSAY: _readConvWhocansay,
-			BlockType.CONV_CHANGEACT_DISABLE: _readChangeAction,
-			BlockType.CONV_CHANGEACT_ENABLE: _readChangeAction,
-			BlockType.CONV_CHANGEACT_SET: _readChangeAction,
-			BlockType.CONV_TEXT: _readConvText,
 			BlockType.USE_ENTRIES: _readList,
 			BlockType.GET_ENTRIES: _readList,
 			BlockType.LOOK_ENTRIES: _readList,
 			BlockType.TIMER_ENTRIES: _readList,
-			BlockType.LIST_BEGIN_ENTRY: _readListEntryBegin,
+			BlockType.CONDITION: _readCondition,
+			BlockType.ALTER: _readAlter,
+			BlockType.REACTION: _readReaction,
+			BlockType.COMMAND: _readCommand,
+			BlockType.SCREEN: _readScreen,
+			BlockType.PATH: _readPath,
+			BlockType.GENERAL: _readGeneral,
+			BlockType.CONVERSATION: _readConversation,
+			BlockType.BEAMDOWN: _readBeamdown,
+			BlockType.TRIGGER: _readTrigger,
+			BlockType.COMMUNICATE: _readCommunicate,
+			BlockType.CHOICE: _readChoice,
 			BlockType.LIST_END_ENTRY: _readEmptyBlock,
-			BlockType.CONV_RESULT: _readList,
+			BlockType.LIST_BEGIN_ENTRY: _readListEntryBegin,
 			BlockType.BLOCK_END: _readEmptyBlock,
 			BlockType.CHOICE1: _readEmptyBlock,
 			BlockType.CHOICE2: _readEmptyBlock,
-			BlockType.CONDITION: _readCondition,
-			BlockType.COMMAND: _readCommand,
-			BlockType.SCREEN: _readScreen,
-			BlockType.GENERAL: _readGeneral,
-			BlockType.PHASER_HEADER: _readPhaserHeader,
+			BlockType.CONV_RESPONSE: _readConvResponse,
+			BlockType.CONV_WHOCANSAY: _readConvWhocansay,
+			BlockType.CONV_CHANGEACT_DISABLE: _readChangeAction,
+			BlockType.CONV_CHANGEACT_SET: _readChangeAction,
+			BlockType.CONV_CHANGEACT_ENABLE: _readChangeAction,
+			# conv changeact unknown2
+			BlockType.CONV_TEXT: _readConvText,
+			BlockType.CONV_RESULT: _readList,
 			BlockType.PHASER_STUN: _readList,
 			BlockType.PHASER_GTP: _readList,
 			BlockType.PHASER_KILL: _readList,
+			BlockType.PHASER_HEADER: _readPhaserHeader,
+			BlockType.VOICE: _readSpeechInfo,
 		}
 		need_more = [
-			BlockType.TRIGGER,
 			BlockType.CONV_CHANGEACT_UNKNOWN2,
 		]
 
 		if block["type"] in handlers:
 			more = handlers[block["type"]](f, block)
 		else:
-			if db: print("Cannot read block type:", block["type"])
+			if db: print("Cannot read block type:", block["type"], f.file_name)
 			block["length"] = f.readUInt16()
 			f.setPosition(f.pos() + block["length"])
 			more = block["type"] in need_more #False
@@ -132,6 +138,7 @@ def _readBlock(f):
 
 
 def _readEmptyBlock(f, block):
+	block["length"] = 0
 	return False
 
 
@@ -205,7 +212,7 @@ class ObjectId:
 		elif name == "unused":
 			return (self.value >> 24) & 0xff
 		else:
-			return object.__getitem__(self, name)
+			raise KeyError("ObjectId does not have '{}'".format(name))
 	
 
 	def __setitem__(self, name, value):
@@ -219,7 +226,7 @@ class ObjectId:
 			assert(value == 0x0 or value == 0xff)
 			self.value = (self.value & 0x00ffffff) + ((value & 0xff) << 24)
 		else:
-			return object.__setitem__(self, name, value)
+			raise KeyError("ObjectId does not have '{}'".format(name))
 	
 
 	def __str__(self):
@@ -261,6 +268,7 @@ def _readEntryHeader(f, expected_header_type):
 	header["internal_object"] = internal
 
 	header["counter1"] = f.readUInt8()
+	assert(header["counter1"] == 0)
 	header["counter2"] = f.readUInt8()
 	header["counter3"] = f.readUInt8()
 	header["counter4"] = f.readUInt8()
@@ -362,7 +370,14 @@ def _readConvResponse(f, block):
 			break
 		if sub_block["type"] == BlockType.CONV_WHOCANSAY:
 			for whocansay in sub_block["blocks"]:
-				block["whocansay"].append(whocansay["who"])
+				# Todo: this is a temporary bodge to allow the code below to set the "file" and "vac" on this object id,
+				# which would fail if it's stored as an ObjectId
+				block["whocansay"].append({
+					"id": whocansay["who"]["id"],
+					"world": whocansay["who"]["world"],
+					"screen": whocansay["who"]["screen"],
+					"unused": whocansay["who"]["unused"],
+				})
 		elif sub_block["type"] == BlockType.CONV_TEXT:
 			block["text"] += sub_block["blocks"]
 		elif sub_block["type"] in conv_actions:
@@ -587,8 +602,7 @@ def _readDescription(f, block):
 	block["length"] = f.readUInt16()
 	assert (block["length"] == 0xa5)
 
-	block["speaker"] = {"id": f.readUInt8(), "world": 0, "screen":0, "unused": 0}
-	block["speaker"] = ObjectId(block["speaker"]["id"], 0, 0, 0)
+	block["speaker"] = ObjectId(f.readUInt8(), 0, 0, 0)
 
 	for i in range(7):
 		assert (f.readUInt16() == 0xffff)  # unknowna
@@ -815,6 +829,157 @@ def _readScreen(f, block):
 	return False
 
 
+def _readTrigger(f, block):
+	block["length"] = f.readUInt16()
+	assert(block["length"] == 0x78)
+	assert(f.readUInt16() == 9)
+
+	block["header"] = _readEntryHeader(f, 0x4b)
+	block["tigger_id"] = f.readUInt32()
+	flag = f.readUInt8()
+	assert(flag in (0,1))
+	block["enabled"] = flag == 1
+
+	for i in range(25):
+		assert(f.readUInt32() == 0)
+
+	return True
+
+
+def _readCommunicate(f, block):
+	block["length"] = f.readUInt16()
+	assert(block["length"] == 0x7c)
+	assert(f.readUInt16() == 9)
+	block["header"] = _readEntryHeader(f, 0x4c)
+
+	block["target"] = _readObjectId(f)
+	block["conversation_id"] = f.readUInt16()
+	block["sitaution_id"] = f.readUInt16()
+	block["hail_type"] = f.readUInt8()
+	assert(block["hail_type"] <= 0x10)
+
+	for i in range(25):
+		assert(f.readUInt32() == 0)
+	
+	return False
+
+
+def _readBeamdown(f, block):
+	block["length"] = f.readUInt16()
+	assert(block["length"] == 0x9f)
+	assert(f.readUInt16() == 9)
+	block["header"] = _readEntryHeader(f, 0x4a)
+
+	block["world_id"] = f.readUInt16()
+	block["unknown1"] = f.readUInt16()
+	assert(block["unknown1"] in (0xffff, 1, 4))
+	assert(f.readUInt16() == 0xffff)
+	assert(f.readUInt16() == 0xffff)
+	assert(f.readUInt16() == 0xffff)
+
+	block["unknown3"] = f.readUInt16()
+	assert(block["unknown3"] in (0, 0xffff))
+
+	assert(f.readUInt16() == 0xffff)
+	assert(f.readUInt16() == 0xffff)
+	assert(f.readUInt16() == 0xffff)
+
+	block["screen_id"] = f.readUInt16()
+	assert(block["screen_id"] in (0,1,2,3,4,0xffff))
+
+	assert(f.readUInt16() in (0xffff, 0, 0x60))
+	assert(f.readUInt16() in (0xffff, 0x20, 0x1b))
+	for i in range(3):
+		assert(f.readUInt16() == 0)
+		assert(f.readUInt32() == 0xffffffff)
+	for i in range(51):
+		assert(f.readUInt16() == 0)
+	
+	return False
+
+
+
+def _readChoice(f, block):
+	block["length"] = f.readUInt16()
+	assert(block["length"] == 0x10b)
+	assert(f.readUInt16() == 9)
+	block["header"] = _readEntryHeader(f, 0x4d)
+
+	block["unknown1"] = f.readUInt16()
+	block["unknown2"] = f.readUInt16()
+
+	block["question"] = f.readStringBuffer(100)
+	block["choice1"] = f.readStringBuffer(16)
+	block["choice2"] = f.readStringBuffer(16)
+
+	block["object_id"] = _readObjectId(f)
+
+	block["choice1_offset"] = f.readUInt32()
+	block["choice2_offset"] = f.readUInt32()
+	block["choice1_count"] = f.readUInt16()
+	block["choice2_count"] = f.readUInt16()
+
+	for i in range(25):
+		assert(f.readUInt32() == 0)
+
+
+def _readPath(f, block):
+	block["length"] = f.readUInt16()
+	assert(block["length"] == 0x17b)
+	assert(f.readUInt16() == 9)
+	block["header"] = _readEntryHeader(f, 0x47)
+
+	block["regions_activate"] = [f.readUInt8() for i in range(4)]
+	block["regions_deactivate"] = [f.readUInt8() for i in range(4)]
+
+	block["stops"] = []
+	for i in range(0x10):
+		stop = {}
+		stop["x"] = f.readUInt32()
+		stop["y"] = f.readUInt32()
+		stop["unknown0"] = f.readUInt16()
+		stop["unknown1"] = f.readUInt16()
+		stop["region_id"] = f.readUInt16()
+		stop["scale"] = f.readUInt16()
+	
+	for i in range(25):
+		assert(f.readUInt32() == 0)
+
+
+def _readReaction(f, block):
+	block["length"] = f.readUInt16()
+	assert(block["length"] == 0x87)
+	assert(f.readUInt16() == 9)
+	block["header"] = _readEntryHeader(f, 0x44)
+
+	block["target_id"] = _readObjectId(f)
+	block["dest_world"]= f.readUInt16()
+	block["dest_screen"]= f.readUInt16()
+	block["dest_entrance"]= f.readUInt16()
+	block["target_type"]= f.readUInt8()
+	block["action_type"]= f.readUInt8()
+	block["damage_amount"]= f.readUInt8()
+	block["beam_type"]= f.readUInt8()
+	block["dest_x"]= f.readUInt16()
+	block["dest_y"]= f.readUInt16()
+	block["dest_unknown"]= f.readUInt16()
+
+	assert(block["target_type"] in range(1, 8) or block["target_type"] == 0xff)
+	if block["target_type"] != 6:
+		assert(block["target_id"]["id"] == 0xff)
+	else:
+		assert(block["target_id"]["id"] != 0xff)
+	if block["damage_amount"] == 0:
+		assert(block["action_type"] <= 3 or block["action_type"] == 0xff)
+
+	for i in range(25):
+		assert(f.readUInt32() == 0)
+
+
+
+
+
+
 ########################################################################################################################
 # Phaser Blocks
 ########################################################################################################################
@@ -854,7 +1019,7 @@ def _readPhaserHeader(f, block):
 	block["unknown_gtp"] = [f.readUInt8() for i in range(4)]
 	block["unknown_kill"] = [f.readUInt8() for i in range(4)]
 
-	print(hex(f.pos()))
+	# todo: not reading to the end?
 
 	f.setPosition(start + block["length"])
 	return False
