@@ -87,9 +87,7 @@ def identify(file_path):
 		elif file_name.startswith("t_"):
 			return "terminal"
 		elif file_name.startswith("w"):
-			if len(file_name) == 8 and file_name[4] == 'c': # wXXXcXXX.bst
-				return "conversation"
-			elif( file_name.endswith("obj") ): # wXXXXobj.bst
+			if( file_name.endswith("obj") ): # wXXXXobj.bst
 				return "world_objects"
 			elif( file_name.endswith("con") ): # w_DDDcon.bst
 				return "world_list"
@@ -99,6 +97,8 @@ def identify(file_path):
 				return "start"
 			elif( file_name == "worlname" ):
 				return "world_list"
+			elif len(file_name) == 8 and file_name[4] == 'c': # wXXXcXXX.bst
+				return "conversation"
 	return "unknown"
 
 
