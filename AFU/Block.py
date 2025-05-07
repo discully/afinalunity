@@ -96,6 +96,7 @@ def _readBlock(f):
 			BlockType.CHOICE2: _readEmptyBlock,
 			BlockType.CONDITION: _readCondition,
 			BlockType.COMMAND: _readCommand,
+			BlockType.SCREEN: _readScreen,
 			BlockType.GENERAL: _readGeneral,
 			BlockType.PHASER_HEADER: _readPhaserHeader,
 			BlockType.PHASER_STUN: _readList,
@@ -186,12 +187,15 @@ def _readListEntryBegin(f, block):
 
 class ObjectId:
 
-	def __init__(self, id, screen, world, unused):
-		assert(unused == 0 or unused == 0xff)
-		self.value = (id & 0xff) + ((screen & 0xff) << 8) + ((world & 0xff) << 16) + ((unused & 0xff) << 24)
+	def __init__(self, id, screen=None, world=None, unused=None):
+		if screen is None and world is None and unused is None:
+			self.value = 0xffffffff & int(id)
+		else:
+			assert(unused == 0 or unused == 0xff)
+			self.value = (id & 0xff) + ((screen & 0xff) << 8) + ((world & 0xff) << 16) + ((unused & 0xff) << 24)
 	
-	
-	def __getattr__(self, name):
+
+	def __getitem__(self, name):
 		if name == "id":
 			return self.value & 0xff
 		elif name == "screen":
@@ -201,10 +205,10 @@ class ObjectId:
 		elif name == "unused":
 			return (self.value >> 24) & 0xff
 		else:
-			raise AttributeError(self, name)
+			return object.__getitem__(self, name)
+	
 
-
-	def __setattr__(self, name, value):
+	def __setitem__(self, name, value):
 		if name == "id":
 			self.value = (self.value & 0xffffff00) + (value & 0xff)
 		elif name == "screen":
@@ -215,7 +219,7 @@ class ObjectId:
 			assert(value == 0x0 or value == 0xff)
 			self.value = (self.value & 0x00ffffff) + ((value & 0xff) << 24)
 		else:
-			object.__setattr__(self, name, value)
+			return object.__setitem__(self, name, value)
 	
 
 	def __str__(self):
@@ -238,13 +242,13 @@ def _readObjectId(f):
 	obj_screen = f.readUInt8()
 	obj_world = f.readUInt8()
 	obj_unused = f.readUInt8()
-	#return ObjectId(obj_id, obj_screen, obj_world, obj_unused)
-	return {
-		"id": obj_id,
-		"screen": obj_screen,
-		"world": obj_world,
-		"unused": obj_unused,
-	}
+	#return {
+	#	"id": obj_id,
+	#	"screen": obj_screen,
+	#	"world": obj_world,
+	#	"unused": obj_unused,
+	#}
+	return ObjectId(obj_id, obj_screen, obj_world, obj_unused)
 
 
 def _readEntryHeader(f, expected_header_type):
@@ -584,6 +588,7 @@ def _readDescription(f, block):
 	assert (block["length"] == 0xa5)
 
 	block["speaker"] = {"id": f.readUInt8(), "world": 0, "screen":0, "unused": 0}
+	block["speaker"] = ObjectId(block["speaker"]["id"], 0, 0, 0)
 
 	for i in range(7):
 		assert (f.readUInt16() == 0xffff)  # unknowna
@@ -771,6 +776,43 @@ def _readGeneral(f, block):
 	block["unknown"] = [f.readUInt16() for i in range(3)]
 	for i in range(0x64):
 		assert(f.readUInt8() == 0)
+	
+	return False
+
+
+def _readScreen(f, block):
+	block["length"] = f.readUInt16()
+	assert(block["length"] == 0x90)
+	assert(f.readUInt16() == 9)
+
+	block["header"] = _readEntryHeader(f, 0x46)
+
+	block["screen_id"] = f.readUInt8()
+	block["entrance_id"] = f.readUInt8()
+	block["advice_screen"] = f.readUInt8()
+	block["advice_id"] = f.readUInt16()
+	block["world_id"] = f.readUInt16()
+
+	unknown = []
+	unknown.append(f.readUInt16())
+	unknown.append(f.readUInt32())
+	unknown.append(f.readUInt8())
+	unknown.append(f.readUInt32())
+	unknown.append(f.readUInt32())
+	unknown.append(f.readUInt16())
+	unknown.append(f.readUInt16())
+	unknown.append(f.readUInt16())
+	unknown.append(f.readUInt8())
+	unknown.append(f.readUInt8())
+	unknown.append(f.readUInt8())
+	block["unknown"] = unknown
+
+	block["advice_time"] = f.readUInt16() # should be 1 byte???
+
+	for i in range(24):
+		assert(f.readUInt32() == 0)
+	
+	return False
 
 
 ########################################################################################################################
