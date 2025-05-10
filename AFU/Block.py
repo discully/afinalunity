@@ -51,6 +51,24 @@ class BlockType (Enum):
 	VOICE = 0x40
 
 
+# Expected Header Types
+# ==
+# TypeName		TypeVal		HeaderTypeVal
+# Condition		0x06		0xff
+# Alter			0x07		0x43
+# Reaction		0x08		0x44
+# Command		0x09		0x45
+# Screen		0x10		0x46
+# Path			0x11		0x47
+#
+# General		0x13		0x48
+# Conversation	0x14		0x49
+# Beamdown		0x15		0x4a
+# Trigger		0x16		0x4b
+# Communicate	0x17		0x4c
+# Choice		0x18		0x4d
+
+
 def _readBlockHeader(f):
 	block_offset = f.pos()
 	block_type = BlockType(f.readUInt8())
@@ -230,7 +248,7 @@ class ObjectId:
 	
 
 	def __str__(self):
-		return "{:04x}".format(self.value)
+		return "{:06x}".format(self.value)
 	
 
 	def __eq__(self, value):
@@ -265,10 +283,9 @@ def _readEntryHeader(f, expected_header_type):
 	internal["id"] = f.readUInt8()
 	internal["screen"] = f.readUInt8()
 	internal["world"] = f.readUInt8()
-	header["internal_object"] = internal
+	internal["unused"] = f.readUInt8()
+	header["internal_object"] = ObjectId(internal["id"], internal["screen"], internal["world"], internal["unused"])
 
-	header["counter1"] = f.readUInt8()
-	assert(header["counter1"] == 0)
 	header["counter2"] = f.readUInt8()
 	header["counter3"] = f.readUInt8()
 	header["counter4"] = f.readUInt8()
@@ -370,8 +387,9 @@ def _readConvResponse(f, block):
 			break
 		if sub_block["type"] == BlockType.CONV_WHOCANSAY:
 			for whocansay in sub_block["blocks"]:
-				# Todo: this is a temporary bodge to allow the code below to set the "file" and "vac" on this object id,
+				# TODO: this is a temporary bodge to allow the code below to set the "file" and "vac" on this object id,
 				# which would fail if it's stored as an ObjectId
+				#block["whocansay"].append(whocansay["who"])
 				block["whocansay"].append({
 					"id": whocansay["who"]["id"],
 					"world": whocansay["who"]["world"],
@@ -507,11 +525,11 @@ def _readObject(f, block):
 
 	assert (f.readUInt8() == 0)  # unknown11
 
-	block["walk_type"] = ObjectWalkType(f.readUInt8()).name
+	block["walk_type"] = ObjectWalkType(f.readUInt8())
 	n_descriptions = f.readUInt8()
 	block["name"] = f.readStringBuffer(20)
 
-	for i, thing in enumerate(["DESCRIPTION", "USE", "LOOK", "WALK", "TIME"]):  # todo pointers to the relevant blocks?
+	for i, thing in enumerate(["DESCRIPTION", "USE", "LOOK", "WALK", "TIME"]):  # TODO: pointers to the relevant blocks?
 		f.readUInt16()  # unknowna
 		f.readUInt8()  # unknownb
 		f.readUInt8()  # unknownc
@@ -548,6 +566,7 @@ def _readObject(f, block):
 	if n_descriptions > 0:
 		description_blocks = _readBlock(f)
 		assert(description_blocks["type"] == BlockType.DESCRIPTION)
+		#block["descriptions"] = description_blocks["blocks"]
 		for description_block in description_blocks["blocks"]:
 
 			speaker = description_block["speaker"]
@@ -677,7 +696,8 @@ def _readCondition(f, block):
 		entry["check_status"] = f.readUInt8()
 		entry["check_state"] = f.readUInt8()
 		entries.append(entry)
-	#block["list"] = entries
+	# TODO: These are often all null, and make a lot of noise in the file. So commented out to remove the noise. Think about chekcing value then storing?
+	#block["list"] = entries 
 
 	assert(f.readUInt16() == 0xffff) # unknown1
 	assert(f.readUInt16() == 0xffff) # unknown2
