@@ -4,6 +4,29 @@ import AFU
 import json
 
 
+def _stripDebugElements(x):
+	if type(x) is list:
+		for y in x:
+			_stripDebugElements(y)
+	elif type(x) is dict:
+		for k in list(x.keys()):
+			if k.startswith("_"):
+				x.pop(k)
+			else:
+				_stripDebugElements(x[k])
+
+def _stripUnknownElements(x):
+	if type(x) is dict:
+		for k in list(x.keys()):
+			if k.startswith("unknown_"):
+				x.pop(k)
+			else:
+				_stripUnknownElements(x[k])
+	elif type(x) is list:
+		for y in x:
+			_stripUnknownElements(y)
+
+
 def main():
 	parser = ArgumentParser()
 	parser.add_argument("file", type=Path, help="Path to the file to be converted")
@@ -42,6 +65,8 @@ def main():
 		data = AFU.Astro.sectorAst(args.file)
 	elif file_type in ["conversation", "object", "phaser"]:
 		data = AFU.Block.bst(args.file)
+		_stripDebugElements(data)
+		_stripUnknownElements(data)
 	elif file_type == "list":
 		data = AFU.Sprite.lst(args.file)
 	elif file_type == "advice":

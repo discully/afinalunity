@@ -71,13 +71,14 @@ def getVoiceFilesFromBst(path):
 			if "vac" in entry:
 				output.append(entry["vac"])
 			for description in entry["descriptions"]:
-				if "vac" in description:
-					output.append(description["vac"])
+				if "file" in description:
+					output.append(description)
 			for action in ["uses", "gets", "looks", "timers"]:
 				for action_set in entry[action]:
 					for action_item in action_set:
-						if action_item["type"] == Block.BlockType.ALTER:
-							for action_block in action_item["blocks"]:
+						t = action_item[0]["type"] if type(action_item) is list else action_item["type"]
+						if t == Block.BlockType.ALTER:
+							for action_block in action_item:
 								if "vac" in action_block:
 									output.append(action_block["vac"])
 		elif entry["type"] == Block.BlockType.CONV_RESPONSE:
@@ -85,13 +86,14 @@ def getVoiceFilesFromBst(path):
 				if "vac" in say:
 					output.append(say["vac"])
 			for text in entry["text"]:
-				if "vac" in text:
-					output.append(text["vac"])
+				if "file" in text:
+					output.append(text)
 			for result in entry["results"]:
 				for result_set in result["entries"]:
 					for result_item in result_set:
-						if result_item["type"] == Block.BlockType.ALTER:
-							for action_block in result_item["blocks"]:
+						t = result_item[0]["type"] if type(result_item) is list else result_item["type"]
+						if t == Block.BlockType.ALTER:
+							for action_block in result_item: #["blocks"]:
 								if "vac" in action_block:
 									output.append(action_block["vac"])
 	return output
