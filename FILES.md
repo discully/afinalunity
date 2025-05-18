@@ -46,7 +46,7 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 | MRG       | menu graphics             |     11 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
 | MTL       |                           |     55 |                            |                    |                    |                    |
 | MTR       |                           |      9 |                            |                    |                    |                    |
-| PAL       | colour palette            |      1 | standard.pal               | :heavy_check_mark: |                    |                    |
+| PAL       | colour palette            |      1 | standard.pal               | :heavy_check_mark: | :heavy_check_mark: |                    |
 | PC1       |                           |      9 |                            |                    |                    |                    |
 | PC2       |                           |      9 |                            |                    |                    |                    |
 | PC3       |                           |      9 |                            |                    |                    |                    |

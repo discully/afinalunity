@@ -97,6 +97,8 @@ def main():
 		data = AFU.Font.font(args.file)
 	elif file_type == "menu":
 		data = AFU.Menu.mrg(args.file)
+	elif file_type == "palette":
+		data = AFU.Palette.pal(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 		return

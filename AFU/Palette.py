@@ -70,3 +70,8 @@ def getGlobalPalettePath(image_path, palette_path=None):
 		return palette_path
 	
 	raise RuntimeError("Could not find the palette standard.pal and no alternative was provided")
+
+
+def pal(file_path):
+	f = File(file_path)
+	return readSinglePalette(f)
