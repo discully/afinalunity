@@ -19,7 +19,7 @@ def _readImageHeader(f):
 	header = {}
 	header["_offset"] = f.pos()
 	header["size_header"] = f.readUInt16()
-	assert(header["size_header"] == 40)
+	assert(header["size_header"] == 0x28)
 	assert(f.readUInt16() == 0x1)
 	assert(f.readUInt16() == 0x10)
 	header["width"] = f.readUInt16()
@@ -62,7 +62,7 @@ def _readBlockHeader(f):
 	header = {}
 	header["_offset"] = f.pos()
 	header["size_header"] = f.readUInt16()
-	assert(header["size_header"] == 16)
+	assert(header["size_header"] == 0x10)
 	header["flags"] = f.readUInt16()
 	header["previous_block_size"] = f.readUInt32()
 	header["current_block_size"] = f.readUInt32()
@@ -126,10 +126,21 @@ def _readFrame(f):
 
 def _readBlock(f):
 	block = _readBlockHeader(f)
-	
-	"""block_end = block["_offset"] + block["current_block_size"]
-	print("    block end", block_end)
 	block["frames"] = []
+
+	block_end = block["_offset"] + block["current_block_size"]
+	while f.pos() < block_end:
+		frame = _readFrameHeader(f)
+		if frame is None:
+			break
+		print("    Frame", len(block["frames"]))
+		block["frames"].append(frame)
+		f.setPosition(frame["_offset"] + frame["size"])
+	return block
+	
+	block_end = block["_offset"] + block["current_block_size"]
+	print("    block end", block_end)
+	
 	while f.pos() < block_end:
 		
 		frame = _readFrame(f)
@@ -147,7 +158,7 @@ def _readBlock(f):
 	while f.pos() < block_end:
 		extra.append(f.readUInt8())
 	block["size_extra"] = len(extra)
-	print("    block extra size:", block["size_extra"])"""
+	print("    block extra size:", block["size_extra"])
 
 	return block
 
@@ -249,7 +260,7 @@ def fvf(file_path):
 	data["blocks"] = []
 	next = True
 	while next:
-		#print("Block {}".format(len(data["blocks"])))
+		print("Block {}".format(len(data["blocks"])))
 		start = f.pos()
 		block = _readBlock(f)
 		size = block["current_block_size"]
@@ -264,14 +275,17 @@ def fvf(file_path):
 
 		#assert(f.pos() == end)
 		data["blocks"].append(block)
-		#n_frames = sum([len(b["frames"]) for b in data["blocks"]])
-		#print("Total frames: {}".format(n_frames))
+		
 		
 		if next:
 			f.setPosition(block["_offset"] + block["current_block_size"])
 			while f.pos() % 2048:
 				assert(f.readUInt8() == 0x0)
 
+	n_frames = sum([len(b["frames"]) for b in data["blocks"]])
+	print("Total frames:")
+	print("    Got:      ",n_frames)
+	print("    Expected: ",data["image_header"]["n_frames"])
 	
 
 	return data
