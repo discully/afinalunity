@@ -55,6 +55,8 @@ def identify(file_path):
 		return "texture"
 	elif file_extension == ".fon":
 		return "font"
+	elif file_extension == ".fvf":
+		return "video"
 	elif file_extension == ".pal":
 		return "palette"
 	elif file_extension == ".db":
