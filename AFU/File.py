@@ -102,7 +102,7 @@ class File:
 
 
 	def readBits(self, n_bits):
-		if len(self.bits) < n_bits:
+		while len(self.bits) < n_bits:
 			self.bits += list("{0:08b}".format(self.readUInt8()))
 		bits = []
 		for i in range(n_bits):
