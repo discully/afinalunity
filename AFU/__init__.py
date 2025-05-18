@@ -16,6 +16,7 @@ __all__ = [
 	"Tactic",
 	"Terminal",
 	"Utils",
+	"Video",
 	"World",
 	]
 from . import *

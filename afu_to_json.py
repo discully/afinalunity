@@ -99,6 +99,8 @@ def main():
 		data = AFU.Menu.mrg(args.file)
 	elif file_type == "palette":
 		data = AFU.Palette.pal(args.file)
+	elif file_type == "video":
+		data = AFU.Video.fvf(args.file)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 		return
