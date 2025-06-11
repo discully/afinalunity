@@ -183,3 +183,5 @@ python3 afu_astro.py astro.db ast_stat.dat --name "Steger Delta"
 
 A lot of information required for writing this came from
 the work of [fuzzie](https://github.com/fuzzie/unity).
+
+I got started with video files from [Kostya's wiki description](https://wiki.multimedia.cx/index.php/FVF).
