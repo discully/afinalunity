@@ -84,7 +84,7 @@ It's not perfect yet, but the vast majority are correct.
 
 ## Video Files
 
-The `.fvf' files contain the cutscene videos. 
+The `.fvf` files contain the cutscene videos. 
 
 Support is still in active development.
 Note that `labarriv.fvf` does not currently work.
