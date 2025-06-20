@@ -131,11 +131,11 @@ def _readFrame(f, i_block, i_frame):
 	if frame["offset_extra"] != 0:
 		assert(f.pos() == frame["_offset"] + frame["offset_extra"])
 
-		# TODO: This overruns in labarriv.fvf
-		extra = []
-		while f.pos() != frame["_offset"] + frame["offset_audio"]:
-			extra.append(f.readUInt8())
-		frame["extra"] = extra
+		if frame["offset_audio"] != 0:
+			size_extra = frame["offset_audio"] - frame["offset_extra"]
+		else:
+			size_extra = frame["size"] - frame["offset_extra"]
+		frame["extra"] = [f.readUInt8() for i in range(size_extra)]
 	
 	if frame["offset_audio"] != 0:
 		assert(f.pos() == frame["_offset"] + frame["offset_audio"])

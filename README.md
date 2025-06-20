@@ -86,10 +86,8 @@ It's not perfect yet, but the vast majority are correct.
 
 The `.fvf` files contain the cutscene videos. 
 
-Support is still in active development.
-Note that `labarriv.fvf` does not currently work.
-Whilst the other files do run, I haven't verified that they do so correctly.
-Hence, video support is still in development.
+Support is still in active development, and correct output isn't be guaranteed.
+Whilst all the files run, I haven't verified that they do so correctly.
 
 The `afu_to_json.py` application will output a `.json` file describing a video file's structure,
 and the `afu_to_wav.py` applciation will output a `.wav` file with the video's audio in it.
