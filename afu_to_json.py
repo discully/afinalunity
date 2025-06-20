@@ -26,6 +26,17 @@ def _stripUnknownElements(x):
 		for y in x:
 			_stripUnknownElements(y)
 
+def _stripVideoData(x):
+	for block in x["blocks"]:
+		for frame in block["frames"]:
+			if "image" in frame and "data" in frame["image"]:
+				frame["image"].pop("data")
+			if "audio" in frame:
+				frame.pop("audio")
+			if "extra" in frame:
+				frame.pop("extra")
+
+
 
 def main():
 	parser = ArgumentParser()
@@ -101,6 +112,7 @@ def main():
 		data = AFU.Palette.pal(args.file)
 	elif file_type == "video":
 		data = AFU.Video.fvf(args.file)
+		_stripVideoData(data)
 	else:
 		print("Unsupported file type: {}".format(file_type))
 		return

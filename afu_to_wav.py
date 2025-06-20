@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from pathlib import Path
 import audioop
+import AFU
 from wave import open as wave_open
 
 
@@ -27,7 +28,7 @@ def _swapNibbles(b):
 	return (0xf0 & (b << 4)) | (0x0f & (b >> 4))
 
 
-def _toWav(input_file_path, output_dir):
+def _audioToWav(input_file_path, output_dir):
 	spec = _FILE_SPECS[input_file_path.suffix]
 	output_file_path = output_dir.joinpath(input_file_path.name + ".wav")
 
@@ -54,10 +55,27 @@ def _toWav(input_file_path, output_dir):
 	return output_file_path
 
 
+def _videoToWav(input_file_path, output_dir):
+	output_file_path = output_dir.joinpath(input_file_path.name + ".wav")
+	video = AFU.Video.fvf(input_file_path)
+	audio = []
+	for block in video["blocks"]:
+		for frame in block["frames"]:
+			if "audio" in frame:
+				audio += frame["audio"]
+	wav = wave_open(str(output_file_path), "wb")
+	wav.setnchannels(video["audio_header"]["n_channels"])
+	wav.setsampwidth(video["audio_header"]["bits_per_sample"] // 8)
+	wav.setframerate(video["audio_header"]["sample_rate"])
+	wav.writeframes(bytes(audio))
+
+	return output_file_path
+
+
 def main():
 
 	parser = ArgumentParser(description="Converts '.mac', '.rac' and '.vac' audio files to '.wav'.")
-	parser.add_argument("audio_file", type=Path, help="Path to the audio file(s)", nargs="+")
+	parser.add_argument("files", type=Path, help="Path(s) to the audio or video file(s)", nargs="+")
 	parser.add_argument("-o", "--output_dir", type=Path, help="Output directory to place wav files in", default=".")
 	args = parser.parse_args()
 
@@ -65,19 +83,23 @@ def main():
 		print("Output directory path is not a valid directory:", args.output_dir)
 		return
 
-	for input_file_path in args.audio_file:
+	for input_file_path in args.files:
 
 		if not input_file_path.is_file():
 			print("{} is not a file".format(input_file_path.name))
 			continue
 
-		if not input_file_path.suffix in [".mac", ".rac", ".vac"]:
-			print("{} is not a supported file type ('.mac', '.rac', '.vac')".format(input_file_path.name))
+		if input_file_path.suffix in [".mac", ".rac", ".vac"]:
+			output_file_path = _audioToWav(input_file_path, args.output_dir)
+			print("{} -> {}".format(input_file_path.name, output_file_path.name))
+		elif input_file_path.suffix == ".fvf":
+			output_file_path = _videoToWav(input_file_path, args.output_dir)			
+		else:
+			print("{} is not a supported file type ('.mac', '.rac', '.vac', '.fvf')".format(input_file_path.name))
 			continue
 
-		output_file_path = _toWav(input_file_path, args.output_dir)
-
 		print("{} -> {}".format(input_file_path.name, output_file_path.name))
+
 
 
 if __name__ == "__main__":
