@@ -1,5 +1,10 @@
 from AFU.File import File
 
+
+_PALETTE_FRAME_COUNT = 112
+_MICROSECONDS_PER_FRAME = 66666 # 15fps
+
+
 def _readFileHeader(f):
 	header = {}
 	header["_size"] = f.size()
@@ -21,19 +26,21 @@ def _readImageHeader(f):
 	assert(header["size_header"] == 0x28)
 	header["unknown_0"] = f.readUInt16()
 	assert(header["unknown_0"] == 0x1)
-	header["unknown_1"] = f.readUInt16()
-	assert(header["unknown_1"] == 0x10)
+	header["bpp"] = f.readUInt16()
+	assert(header["bpp"] == 0x10)
 	header["width"] = f.readUInt16()
 	header["height"] = f.readUInt16()
-	header["delay"] = f.readUInt32()
+	header["micros_per_frame"] = f.readUInt32() # microseconds per frame = 66666 = 15fps
+	assert(header["micros_per_frame"] == _MICROSECONDS_PER_FRAME)
 	assert(f.readUInt32() == 0x0)
 	header["n_frames"] = f.readUInt32()
 	assert(f.readUInt32() == 0x0)
 	header["unknown_4"] = f.readUInt16()
 	assert(header["unknown_4"] == 0x18)
-	header["palette_unknown_0"] = f.readUInt8()
-	header["palette_n_entries"] = f.readUInt8()
-	header["palette_offset"] = f.readUInt32()
+	header["palette_frame_count"] = f.readUInt8() # palette_entry_count (always 112?)
+	assert(header["palette_frame_count"] == _PALETTE_FRAME_COUNT)
+	header["palette_header_count"] = f.readUInt8() # header palette count (always 15?)
+	header["palette_offset"] = f.readUInt32() # header palette offset
 	header["unknown_5"] = [f.readUInt8() for x in range(2)]
 	assert(f.readUInt32() == 0x0)
 	assert(f.pos() == header["_offset"] + header["size_header"])
@@ -92,9 +99,8 @@ def _readFrameHeader(f):
 	header["size_header"] = f.readUInt16()
 	assert(header["size_header"] == 0x18)
 	header["size"] = f.readUInt32()
-	header["unknown_0"] = f.readUInt32()
-	assert(header["unknown_0"] == 0x18)
-	header["offset_extra"] = f.readUInt32()
+	header["offset_image"] = f.readUInt32()
+	header["offset_palette"] = f.readUInt32()
 	header["offset_audio"] = f.readUInt32()
 	assert(f.readUInt32() == 0x0)
 	header["unknown_2"] = [f.readUInt8() for x in range(2)]
@@ -106,15 +112,20 @@ def _readFrameHeader(f):
 def _readFrameImageHeader(f):
 	header = {}
 	header["_offset"] = f.pos()
-	header["size_data"] = f.readUInt32()
-	header["unknown_palette_change"] = f.readUInt16()
+	assert(f.readUInt16() == 0x0)
+	header["flags"] = f.readUInt16()
+	assert(header["flags"] & 0x8 == 0)
+	assert(header["flags"] in (0x0, 0x5, 0x4))
 	header["motion_vector_table_size"] = f.readUInt16()
-	header["motion_vector_table"] = [f.readUInt8() for x in range(header["motion_vector_table_size"])]
-	
-	# TODO: not sure this is right. Makes the offsets work, but might be part of the video data. Maybe 2bytes should be somewhere else?
-	header["unknown_0"] = f.readUInt16() 
-	
+	assert(header["motion_vector_table_size"] in (0, 16))
+	header["motion_vector_table"] = [f.readUInt16() for x in range(header["motion_vector_table_size"])]
 	return header
+
+
+def _readFrameImage(f, image):
+	image["_offset_data"] = f.pos()
+	image["data"] = [f.readUInt8() for i in range(image["size_data"])]
+
 
 
 def _readFrame(f, i_block, i_frame):
@@ -124,18 +135,23 @@ def _readFrame(f, i_block, i_frame):
 
 	frame |= _readFrameHeader(f)
 	
-	frame["image"] = _readFrameImageHeader(f)
-	image_size = frame["image"]["size_data"]  - 8 - frame["image"]["motion_vector_table_size"]
-	frame["image"]["data"] = [f.readUInt8() for i in range(image_size)]
+	if frame["offset_image"] != 0:
+		assert(f.pos() == frame["_offset"] + frame["offset_image"])
+		image_size = f.readUInt16()
+		frame["image"] = _readFrameImageHeader(f)
+		if frame["image"]["flags"] & 0x1:
+			assert(i_block == 0 and i_frame == 0)
+		
+		image_data_size = image_size - 6 - ( frame["image"]["motion_vector_table_size"] * 2)
 
-	if frame["offset_extra"] != 0:
-		assert(f.pos() == frame["_offset"] + frame["offset_extra"])
+		frame["image"]["size_data"] = image_data_size
+		_readFrameImage(f, frame["image"])
 
-		if frame["offset_audio"] != 0:
-			size_extra = frame["offset_audio"] - frame["offset_extra"]
-		else:
-			size_extra = frame["size"] - frame["offset_extra"]
-		frame["extra"] = [f.readUInt8() for i in range(size_extra)]
+	if frame["offset_palette"] != 0:
+		assert(f.pos() == frame["_offset"] + frame["offset_palette"])
+		# TODO: use _readPalette
+		size_palette = _PALETTE_FRAME_COUNT * 3
+		frame["palette"] = [ [f.readUInt8() for i in range(3)] for j in range(_PALETTE_FRAME_COUNT)]
 	
 	if frame["offset_audio"] != 0:
 		assert(f.pos() == frame["_offset"] + frame["offset_audio"])
@@ -171,28 +187,28 @@ def _readBlock(f, i_block):
 def fvf(file_path):
 	f = File(file_path)
 
-	data = _readFileHeader(f)
+	video = _readFileHeader(f)
 	
-	assert(f.pos() == data["offset_image_header"])
-	data["image_header"] = _readImageHeader(f)
+	assert(f.pos() == video["offset_image_header"])
+	video["image_header"] = _readImageHeader(f)
 
-	assert(f.pos() == data["image_header"]["palette_offset"])
-	data["palette"] = _readPalette(f, data["image_header"]["palette_n_entries"])
+	assert(f.pos() == video["image_header"]["palette_offset"])
+	video["palette"] = _readPalette(f, video["image_header"]["palette_header_count"])
 
-	assert(f.pos() == data["offset_audio_header"])
-	data["audio_header"] = _readAudioHeader(f)
+	assert(f.pos() == video["offset_audio_header"])
+	video["audio_header"] = _readAudioHeader(f)
 
-	while f.pos() < data["offset_block_0"]:
+	while f.pos() < video["offset_block_0"]:
 		assert(f.readUInt8() == 0x0)
 
-	data["blocks"] = []
+	video["blocks"] = []
 
 	next = True
 	while next:
 		offset = f.pos()
-		block = _readBlock(f, len(data["blocks"]))
+		block = _readBlock(f, len(video["blocks"]))
 		assert(f.pos() == offset + block["size_current_block"])
-		data["blocks"].append(block)
+		video["blocks"].append(block)
 		next = block["size_next_block"] > 0
 
 	assert(f.eof())
@@ -200,4 +216,4 @@ def fvf(file_path):
 
 	
 
-	return data
+	return video

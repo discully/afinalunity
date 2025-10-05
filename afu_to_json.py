@@ -33,8 +33,8 @@ def _stripVideoData(x):
 				frame["image"].pop("data")
 			if "audio" in frame:
 				frame.pop("audio")
-			if "extra" in frame:
-				frame.pop("extra")
+			if "palette" in frame:
+				frame.pop("palette")
 
 
 
