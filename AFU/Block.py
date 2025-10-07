@@ -575,6 +575,20 @@ def _readObject(f, block):
 	assert(len(block["looks"]) == n_looks)
 	assert(len(block["timers"]) <= 1) # timers can only have one result
 
+	if False:
+		for i,use in enumerate(block["uses"]):
+			for entry in use:
+				if type(entry) is list:
+					for l in entry:
+						assert(l["header"]["counter2"] == i + 1)
+				else:
+					print("")
+					print(entry)
+					if entry["type"] == BlockType.CHOICE:
+						assert(entry["header"]["counter3"] == i + 1)
+					else:
+						assert(entry["header"]["counter2"] == i + 1)
+
 	return False
 
 
@@ -887,8 +901,8 @@ def _readChoice(f, block):
 	assert(f.readUInt16() == 9)
 	block["header"] = _readEntryHeader(f, 0x4d)
 
-	block["unknown1"] = f.readUInt16()
-	block["unknown2"] = f.readUInt16()
+	block["x"] = f.readUInt16()
+	block["y"] = f.readUInt16()
 
 	block["question"] = f.readStringBuffer(100)
 	block["choice1"] = f.readStringBuffer(16)
@@ -903,6 +917,8 @@ def _readChoice(f, block):
 
 	for i in range(25):
 		assert(f.readUInt32() == 0)
+	
+	return False
 
 
 def _readPath(f, block):
@@ -926,6 +942,8 @@ def _readPath(f, block):
 	
 	for i in range(25):
 		assert(f.readUInt32() == 0)
+	
+	return False
 
 
 def _readReaction(f, block):
@@ -956,6 +974,8 @@ def _readReaction(f, block):
 
 	for i in range(25):
 		assert(f.readUInt32() == 0)
+	
+	return True
 
 
 
