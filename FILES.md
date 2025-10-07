@@ -35,7 +35,7 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 | IMG       | image (mostly 3d textures)|    197 |                            | :heavy_check_mark: |                    |                    |
 | DMG       | list of .img files        |      7 | enterprs.dmg               |                    |                    |                    |
 | `no ext`  | `multiple (see below)`    |      2 |                            |                    |                    |                    |
-| &vellip;  |                           |      1 | list                       |                    |                    |                    |
+| &vellip;  |                           |      1 | list                       |                    | :heavy_check_mark: |                    |
 | &vellip;  | computer state            |      1 | compstat                   |                    | :heavy_check_mark: |                    |
 | FON       | font                      |     10 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
 | FVF       | video                     |     27 |                            |                    | :heavy_check_mark: | :heavy_check_mark: |
@@ -62,7 +62,7 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 | &vellip;  | world screen polygons     |     74 | st{world}{screen}.scr      |                    | :heavy_check_mark: |                    |
 | SPR       | sprite                    |    666 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
 | SPT       | sprite (transporter room) |      9 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
-| TXT       | text (credits)            |      2 |                            |                    |                    |                    |
+| TXT       | text (credits)            |      2 | credit1.txt                |                    | :heavy_check_mark: |                    |
 | VAC       | audio (voice)             |  10182 |                            |                    |                    | :heavy_check_mark: |
 | &vellip;  | computer status alerts    |     23 | cm_###.vac                 |                    |                    | :heavy_check_mark: |
 | &vellip;  | object descriptions       |   1170 | ##l#{character}##.vac      |                    |                    | :heavy_check_mark: |

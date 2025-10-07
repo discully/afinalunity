@@ -66,6 +66,30 @@ def alert(file_path):
 	return data
 
 
-def damage(file_path):
+
+def txt(file_path):
 	f = File(file_path)
+	lines = []
+	while not f.eof():
+		lines.append(f.readLine())
+	return lines
+
+
+
+def credits(file_path):
+	f = File(file_path)
+	pages = [[], ]
+	while not f.eof() and f.peek() != 0x1a:
+		line = f.readLine()
+		if line == "NEWPAGE":
+			pages.append([])
+		else:
+			line = line.replace("NL1.5", "")
+			line = line.replace("NL", "")
+			line = line.replace(">", "\t")
+			line = line.replace("@", chr(0xf6))
+			pages[-1].append(line)
+	return pages
+		
+		
 	

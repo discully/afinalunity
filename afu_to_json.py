@@ -110,6 +110,10 @@ def main():
 		data = AFU.Menu.mrg(args.file)
 	elif file_type == "palette":
 		data = AFU.Palette.pal(args.file)
+	elif file_type == "text":
+		data = AFU.Data.txt(args.file)
+	elif file_type == "credits":
+		data = AFU.Data.credits(args.file)
 	elif file_type == "video":
 		data = AFU.Video.fvf(args.file)
 		_stripVideoData(data)

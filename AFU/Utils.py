@@ -19,8 +19,13 @@ def identify(file_path):
 	if "savegame" in file_name:
 		if file_extension != "idx":
 			return "savegame"
-	elif file_name == "compstat":
-		return "computer_state"
+	elif file_extension == "":
+		if file_name == "compstat":
+			return "computer_state"
+		elif file_name == "list":
+			return "text"
+	elif file_extension == ".txt":
+		return "credits"
 	elif file_extension in [".spr",".spt"]:
 		return "sprite"
 	elif file_extension == ".rm":
