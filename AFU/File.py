@@ -40,6 +40,18 @@ class File:
 		return value
 
 
+	def peek16(self):
+		value = self.readUInt16()
+		self.setPosition(self.pos() - 2)
+		return value
+
+
+	def peek32(self):
+		value = self.readUInt32()
+		self.setPosition(self.pos() - 4)
+		return value
+
+
 	def pos(self):
 		return self.f.tell()
 
