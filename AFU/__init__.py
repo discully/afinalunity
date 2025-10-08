@@ -8,6 +8,7 @@ __all__ = [
 	"File",
 	"Font",
 	"Image",
+	"Graphics",
 	"Menu",
 	"Map",
 	"Palette",

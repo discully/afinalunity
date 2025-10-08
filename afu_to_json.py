@@ -114,6 +114,8 @@ def main():
 		data = AFU.Data.txt(args.file)
 	elif file_type == "credits":
 		data = AFU.Data.credits(args.file)
+	elif file_type == "material":
+		data = AFU.Graphics.mtl(args.file)
 	elif file_type == "video":
 		data = AFU.Video.fvf(args.file)
 		_stripVideoData(data)
