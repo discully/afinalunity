@@ -117,8 +117,8 @@ def main():
 			afu_text = AFU.Font.text(afu_font, "STAR TREK: THE NEXT GENERATION")
 		export("{0}.text".format(output_file_name), afu_text)
 
-	elif file_type == "texture":
-		img = PIL_Image.open(args.image_file)
+	elif file_type == "image_gif":
+		img = AFU.Graphics.imgPil(args.image_file)
 		img.save("{}.png".format(output_file_name), "PNG")
 
 	elif file_type == "image_lbm":

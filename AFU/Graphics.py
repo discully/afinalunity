@@ -26,6 +26,28 @@ def mtl(file_path):
 	return m
 
 #
+# IMG Files
+#
+
+
+def imgPil(file_path):
+	return PIL_Image.open(file_path, "r", "GIF")
+
+
+def img(file_path):
+	gif = imgPil(file_path)
+	img = Image(gif.width, gif.height)
+	for x in range(gif.width):
+		for y in range(gif.height):
+			img.set(gif.getpixel((x,y)), x, y)
+	return {
+		"width": gif.width,
+		"height": gif.height,
+		"image": img,
+	}
+	
+
+#
 # LBM Files
 #
 

@@ -57,7 +57,7 @@ def identify(file_path):
 	elif file_extension in [".mac", ".rac", ".vac"]:
 		return "audio"
 	elif file_extension == ".img":
-		return "texture"
+		return "image_gif"
 	elif file_extension == ".lbm":
 		return "image_lbm"
 	elif file_extension == ".fon":
