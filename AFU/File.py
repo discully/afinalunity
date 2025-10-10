@@ -63,7 +63,11 @@ class File:
 
 	def readUInt32(self):
 		"""Read a 32-bit Unsigned Integer"""
-		return struct.unpack_from('I', self.read(4))[0]
+		return struct.unpack_from('<I', self.read(4))[0]
+	
+	def readUInt32BE(self):
+		"""Read a 32-bit  big-endian Unsigned Integer"""
+		return struct.unpack_from('>I', self.read(4))[0]
 
 
 	def readSInt16(self, be=False):
@@ -75,7 +79,12 @@ class File:
 
 	def readUInt16(self):
 		"""Read a 16-bit Unsigned Integer"""
-		return struct.unpack_from('H', self.read(2))[0]
+		return struct.unpack_from('<H', self.read(2))[0]
+
+
+	def readUInt16BE(self):
+		"""Read a 16-bit big-endian Unsigned Integer"""
+		return struct.unpack_from('>H', self.read(2))[0]
 
 
 	def readSInt8(self):

@@ -1,4 +1,6 @@
 from AFU.File import File
+from AFU.Image import Image
+from PIL import Image as PIL_Image
 
 
 
@@ -22,3 +24,148 @@ def mtl(file_path):
 		m["entries"].append(entry)
 	assert(f.eof())
 	return m
+
+#
+# LBM Files
+#
+
+def _lbmReadChunk(f, compressed):
+	chunk_type = f.readStringBuffer(4)
+	chunk_size = f.readUInt32BE()
+	chunk_start = f.pos()
+	chunk = {
+		"type": chunk_type,
+		"size": chunk_size,
+	}
+	
+	if chunk_type == "BMHD":
+		chunk["data"] = _lbmReadChunkBMHD(f)
+	elif chunk_type == "CMAP":
+		chunk["data"] = _lbmReadChunkCMAP(f, chunk_size)
+	elif chunk_type == "BODY":
+		chunk["data"] = _lbmReadChunkBODY(f, chunk_size, compressed)
+	elif chunk_type == "DPPS":
+		chunk["data"] = _lbmReadChunkDPPS(f, chunk_size)
+	elif chunk_type == "CRNG":
+		chunk["data"] = _lbmReadChunkCRNG(f)
+	elif chunk_type == "TINY":
+		chunk["data"] = _lbmReadChunkTINY(f, chunk_size, compressed)
+	else:
+		raise ValueError("Unknown chunk type: {0}".format(chunk_type))
+	assert(f.pos() == chunk_start + chunk_size)
+	return chunk
+
+
+def _lbmReadChunkBMHD(f):
+	data = {}
+	data["width"] = f.readUInt16BE()
+	data["height"] = f.readUInt16BE()
+	data["x_origin"] = f.readUInt16BE()
+	data["y_origin"] = f.readUInt16BE()
+	data["n_planes"] = f.readUInt8()
+	data["masking"] = f.readUInt8()
+	data["compression"] = f.readUInt8()
+	data["pad1"] = f.readUInt8()
+	data["transparent_color"] = f.readUInt16BE()
+	data["x_aspect"] = f.readUInt8()
+	data["y_aspect"] = f.readUInt8()
+	data["page_width"] = f.readUInt16BE()
+	data["page_height"] = f.readUInt16BE()
+	return data
+
+
+def _lbmReadChunkCMAP(f, chunk_size):
+	end = f.pos() + chunk_size
+	data = []
+	while f.pos() < end:
+		data.append( [f.readUInt8() for i in range(3)] )
+	return data
+
+
+def _lbmReadChunkBODY(f, chunk_size, compressed):
+	end = f.pos() + chunk_size
+	data = []
+	if compressed:
+		while f.pos() < end:
+			n = f.readUInt8()
+			if n < 128:
+				data += [f.readUInt8() for i in range(n+1)]
+			elif n > 128:
+				data += [f.readUInt8()] * (257 - n)
+			# 128 is no-op
+	else:
+		data = [f.readUInt8() for i in range(chunk_size)]
+	return data
+
+
+def _lbmReadChunkTINY(f, chunk_size, compressed):
+	end = f.pos() + chunk_size
+	data = {}
+	data["width"] = f.readUInt16BE()
+	data["height"] = f.readUInt16BE()
+	data["body"] = _lbmReadChunkBODY(f, chunk_size - 4, compressed)
+	assert(f.pos() == end)
+	return data
+
+
+def _lbmReadChunkCRNG(f):
+	assert(f.readUInt16BE() == 0)
+	data = {}
+	data["rate"] = f.readUInt16BE()
+	data["flags"] = f.readUInt16BE()
+	data["low"] = f.readUInt8()
+	data["high"] = f.readUInt8()
+	return data
+
+
+def _lbmReadChunkDPPS(f, chunk_size):
+	# DPPS chunks are not documented anywhere that I can find. Best guess seems to be that they are
+	# application settings to restore the state of the editor to where it was when you last edited it.
+	# So we can ignore it.
+	end = f.pos() + chunk_size
+	data = [f.readUInt8() for i in range(chunk_size)]
+	return data
+
+
+def lbm(file_path):
+	f = File(file_path)
+
+	# Read the IFF header
+	assert(f.readStringBuffer(4) == "FORM")
+	data_size = f.readUInt32BE()
+	assert(data_size == f.size() - 8)
+	file_type = f.readStringBuffer(4)
+	assert(file_type == "PBM ")
+
+	# Read the PBM data
+	compressed = False
+	chunks = {}
+	while not f.eof():
+		chunk = _lbmReadChunk(f, compressed)
+		chunk_type = chunk["type"]
+		if chunk_type == "CRNG":
+			if not chunk_type in chunks:
+				chunks[chunk_type] = []
+			chunks[chunk_type].append(chunk["data"])
+		else:
+			assert(not chunk_type in chunks)
+			chunks[chunk_type] = chunk["data"]
+		
+		if chunk_type == "BMHD":
+			if chunk["data"]["compression"] == 1:
+				compressed = True
+
+	# Create the image
+	# TODO: Create animated GIF when there are CRNG bhunks
+	img = Image(chunks["BMHD"]["width"], chunks["BMHD"]["height"])
+	for i,px in enumerate(chunks["BODY"]):
+		img.set(chunks["CMAP"][px], i)
+	chunks["image"] = img
+	
+	if "TINY" in chunks:
+		img = Image(chunks["TINY"]["width"], chunks["TINY"]["height"])
+		for i,px in enumerate(chunks["BODY"]):
+			img.set(chunks["CMAP"][px], i)
+		chunks["TINY"]["image"] = img
+
+	return chunks

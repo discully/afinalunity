@@ -39,7 +39,7 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 | &vellip;  | computer state            |      1 | compstat                   |                    | :heavy_check_mark: |                    |
 | FON       | font                      |     10 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
 | FVF       | video                     |     27 |                            |                    | :heavy_check_mark: | :heavy_check_mark: |
-| LBM       |                           |      4 |                            |                    |                    |                    |
+| LBM       |                           |      4 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
 | MAP       | Maps from object_id to *  |      3 | icon.map, movie.map, phaser.map |               | :heavy_check_mark: |                    |
 | MAC       | audio (sound effects)     |    103 |                            |                    |                    | :heavy_check_mark: |
 | LST       | list (index of sprites)   |      1 | sprites.lst                |                    | :heavy_check_mark: |                    |

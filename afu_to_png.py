@@ -121,6 +121,10 @@ def main():
 		img = PIL_Image.open(args.image_file)
 		img.save("{}.png".format(output_file_name), "PNG")
 
+	elif file_type == "image_lbm":
+		img = AFU.Graphics.lbm(args.image_file)["image"]
+		export(output_file_name, img)
+
 	elif file_type == "menu":
 		afu_menu = AFU.Menu.mrg(args.image_file, args.background, args.palette)
 		for i,image in enumerate(afu_menu):

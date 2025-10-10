@@ -116,6 +116,8 @@ def main():
 		data = AFU.Data.credits(args.file)
 	elif file_type == "material":
 		data = AFU.Graphics.mtl(args.file)
+	elif file_type == "image_lbm":
+		data = AFU.Graphics.lbm(args.file)
 	elif file_type == "video":
 		data = AFU.Video.fvf(args.file)
 		_stripVideoData(data)

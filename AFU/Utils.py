@@ -58,6 +58,8 @@ def identify(file_path):
 		return "audio"
 	elif file_extension == ".img":
 		return "texture"
+	elif file_extension == ".lbm":
+		return "image_lbm"
 	elif file_extension == ".fon":
 		return "font"
 	elif file_extension == ".fvf":
