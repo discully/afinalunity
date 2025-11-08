@@ -120,6 +120,8 @@ def main():
 		data = AFU.Graphics.img(args.file)
 	elif file_type == "image_lbm":
 		data = AFU.Graphics.lbm(args.file)
+	elif file_type == "damage_material":
+		data = AFU.Graphics.dmg(args.file)
 	elif file_type == "video":
 		data = AFU.Video.fvf(args.file)
 		_stripVideoData(data)

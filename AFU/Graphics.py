@@ -25,6 +25,41 @@ def mtl(file_path):
 	assert(f.eof())
 	return m
 
+
+def dmg(file_path):
+	"""Read a .dmg Damage Material file"""
+	from pathlib import Path
+	f = File(file_path)
+
+	d = {}
+	d["data_size"] = f.readUInt32()
+	d["n_entries"] = f.readUInt32()
+	assert(f.readUInt16() == 110)
+	d["txt_file"] = f.readStringBuffer(20) # Gets ignored and does not exist in the zip, so probably a dev file.
+	assert(f.pos() == 30)
+
+	assert(d["data_size"] == f.size() - 30)
+	assert(d["n_entries"] * 36 == d["data_size"])
+
+	d["entries"] = []
+	for i in range(d["n_entries"]):
+		entry = {}
+		entry["unknown0"] = f.readUInt32() # junk, gets ignored
+		assert(f.readUInt32() == 0)
+		entry["type"] = f.readUInt32()
+		# Usually set to 1, but two ships have an entry set to 3.
+		# In these cases, the file name is partically nulled out.
+		# Perhaps no damaged version of that texture?
+		assert(entry["type"] in (1,3))
+		assert(f.readUInt32() == 0)
+		entry["img_file"] = f.readStringBuffer(13)
+		for i in range(7):
+			assert(f.readUInt8() == 0x3d)
+		d["entries"].append(entry)	
+	
+	return d
+
+
 #
 # IMG Files
 #

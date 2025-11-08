@@ -76,6 +76,8 @@ def identify(file_path):
 		return "tactic"
 	elif file_extension == ".mtl":
 		return "material"
+	elif file_extension == ".dmg":
+		return "damage_material"
 	elif file_extension == ".map":
 		if file_name == "icon":
 			return "icon_map"
