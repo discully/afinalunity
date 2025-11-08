@@ -33,7 +33,7 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 | &vellip;  | astrogation database      |      2 | [astro.db, astromap.db](ASTRO.md) |             | :heavy_check_mark: |                    |
 | &vellip;  | computer database         |      1 | computer.db                | :heavy_check_mark: | :heavy_check_mark: |                    |
 | IMG       | image (mostly 3d textures)|    197 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
-| DMG       | list of .img files        |      7 | enterprs.dmg               |                    |                    |                    |
+| DMG       | list of .img files        |      7 | enterprs.dmg               |                    | :heavy_check_mark: |                    |
 | `no ext`  | `multiple (see below)`    |      2 |                            |                    |                    |                    |
 | &vellip;  |                           |      1 | list                       |                    | :heavy_check_mark: |                    |
 | &vellip;  | computer state            |      1 | compstat                   |                    | :heavy_check_mark: |                    |
