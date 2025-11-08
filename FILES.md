@@ -55,7 +55,7 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 | PC6       |                           |      9 |                            |                    |                    |                    |
 | PIC       | image (same format as .rm)|      4 | compute1.pic is .mrg format| :heavy_check_mark: |                    |                    |
 | RAC       | audio (ambient)           |     69 |                            |                    |                    | :heavy_check_mark: |
-| RM        | background image (room?)  |      5 | bridge.rm, transp.rm, viewscr.rm | :heavy_check_mark: |              |                    |
+| RM        | background image (room?)  |      5 | bridge.rm                  | :heavy_check_mark: |                    |                    |
 | SCR       | `multiple (see below)`    |    153 |                            |                    |                    |                    |
 | &vellip;  | world screen background   |     73 | sb{world}{screen}.scr      | :heavy_check_mark: |                    |                    |
 | &vellip;  | world                     |      6 | sl{world}.scr              |                    | :heavy_check_mark: |                    |
