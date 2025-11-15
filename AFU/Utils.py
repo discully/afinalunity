@@ -74,10 +74,8 @@ def identify(file_path):
 		return "list"
 	elif file_extension == ".bin":
 		return "tactic"
-	elif file_extension == ".mtl":
+	elif file_extension in (".mtl", ".mtr", ".dmg"):
 		return "material"
-	elif file_extension == ".dmg":
-		return "damage_material"
 	elif file_extension == ".map":
 		if file_name == "icon":
 			return "icon_map"

@@ -4,8 +4,10 @@ from PIL import Image as PIL_Image
 
 
 
-def mtl(file_path):
+def material(file_path):
+	"""Reads .mtl, .mtr, .dmg material files."""
 	f = File(file_path)
+
 	m = {}
 	m["data_size"] = f.readUInt32()
 	m["n_entries"] = f.readUInt32()
@@ -13,51 +15,27 @@ def mtl(file_path):
 	format = f.readUInt16()
 	assert(format == 110)
 	m["format"] = format * 0.01
-	[f.readUInt8() for i in range(20)] # junk bytes
+
+	m["txt_file"] = f.readStringBuffer(20) # Gets ignored and does not exist in the zip, so probably a dev file.
 	assert(f.pos() == 0x1e)
+
 	m["entries"] = []
 	for i in range(m["n_entries"]):
 		entry = {}
-		entry["unknown1"] =[f.readUInt32() for i in range(4)]
-		entry["texture"] = f.readStringBuffer(11)
-		entry["unknown3"] = [f.readUInt8() for i in range(9)]
+		
+		entry["unknown0"] = f.readUInt32() # junk, gets ignored
+		entry["unknown1"] = f.readUInt32()
+		entry["type"] = f.readUInt32()
+		assert(entry["type"] in (1,2,3,2561))
+		assert(f.readUInt32() == 0)
+
+		entry["img_file"] = f.readStringBuffer(13)
+		entry["obj_name"] = f.readStringBuffer(7)
+
 		m["entries"].append(entry)
-	assert(f.eof())
+	
 	return m
 
-
-def dmg(file_path):
-	"""Read a .dmg Damage Material file"""
-	from pathlib import Path
-	f = File(file_path)
-
-	d = {}
-	d["data_size"] = f.readUInt32()
-	d["n_entries"] = f.readUInt32()
-	assert(f.readUInt16() == 110)
-	d["txt_file"] = f.readStringBuffer(20) # Gets ignored and does not exist in the zip, so probably a dev file.
-	assert(f.pos() == 30)
-
-	assert(d["data_size"] == f.size() - 30)
-	assert(d["n_entries"] * 36 == d["data_size"])
-
-	d["entries"] = []
-	for i in range(d["n_entries"]):
-		entry = {}
-		entry["unknown0"] = f.readUInt32() # junk, gets ignored
-		assert(f.readUInt32() == 0)
-		entry["type"] = f.readUInt32()
-		# Usually set to 1, but two ships have an entry set to 3.
-		# In these cases, the file name is partically nulled out.
-		# Perhaps no damaged version of that texture?
-		assert(entry["type"] in (1,3))
-		assert(f.readUInt32() == 0)
-		entry["img_file"] = f.readStringBuffer(13)
-		for i in range(7):
-			assert(f.readUInt8() == 0x3d)
-		d["entries"].append(entry)	
-	
-	return d
 
 
 #
