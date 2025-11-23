@@ -36,6 +36,12 @@ def _stripVideoData(x):
 			if "palette" in frame:
 				frame.pop("palette")
 
+def _stripTacticMetadata(x):
+	for page in x:
+		page.pop("data")
+		for entry in page["entries"]:
+			if "data" in entry: entry.pop("data")
+
 
 
 def main():
@@ -102,6 +108,8 @@ def main():
 		data = AFU.SaveGame.savegame(args.file)
 	elif file_type == "tactic":
 		data = AFU.Tactic.bin(args.file)
+		_stripDebugElements(data)
+		_stripTacticMetadata(data)
 	elif file_type == "alert":
 		data = AFU.Data.alert(args.file)
 	elif file_type == "font":
