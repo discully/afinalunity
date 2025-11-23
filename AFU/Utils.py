@@ -76,6 +76,8 @@ def identify(file_path):
 		return "tactic"
 	elif file_extension in (".mtl", ".mtr", ".dmg"):
 		return "material"
+	elif file_extension in [".3dv", ".3dr", ".pc1", ".pc2", ".pc3", ".pc4", ".pc5", ".pc6"]:
+		return "3dobject"
 	elif file_extension == ".map":
 		if file_name == "icon":
 			return "icon_map"
