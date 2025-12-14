@@ -14,7 +14,7 @@ def material(file_path):
 	assert(m["data_size"] == m["n_entries"] * 36)
 	format = f.readUInt16()
 	assert(format == 110)
-	m["format"] = format * 0.01
+	m["format"] = "1.10"
 
 	m["txt_file"] = f.readStringBuffer(20) # Gets ignored and does not exist in the zip, so probably a dev file.
 	assert(f.pos() == 0x1e)
