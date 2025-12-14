@@ -6,8 +6,8 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 
 | Extension | Description               | Number | Interesting Files          | afu_to_png         | afu_to_json        | afu_to_wav         |
 | :---      | :---                      | ---:   | :---                       | :---               | :---               | :---               |
-| 3DR       |                           |      9 |                            |                    |                    |                    |
-| 3DV       |                           |     49 |                            |                    |                    |                    |
+| 3DR       | 3D ship model             |      9 | enterprs.3dr               |                    | :heavy_check_mark: |                    |
+| 3DV       | 3D ship model             |     49 | enterprs.3dv               |                    | :heavy_check_mark: |                    |
 | ANM       | animation (same format as .mrg) |      1 | phaser.anm           | :heavy_check_mark: |                    |                    |
 | AST       | `multiple (see below)`    |      3 |                            |                    |                    |                    |
 | &vellip;  | Panel background image    |      2 | astropnl.ast, compupnl.ast | :heavy_check_mark: |                    |                    |
@@ -47,12 +47,12 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 | MTL       | 3d material               |     55 |                            |                    | :heavy_check_mark: |                    |
 | MTR       |                           |      9 |                            |                    | :heavy_check_mark: |                    |
 | PAL       | colour palette            |      1 | standard.pal               | :heavy_check_mark: | :heavy_check_mark: |                    |
-| PC1       |                           |      9 |                            |                    |                    |                    |
-| PC2       |                           |      9 |                            |                    |                    |                    |
-| PC3       |                           |      9 |                            |                    |                    |                    |
-| PC4       |                           |      9 |                            |                    |                    |                    |
-| PC5       |                           |      9 |                            |                    |                    |                    |
-| PC6       |                           |      9 |                            |                    |                    |                    |
+| PC1       | 3D ship model             |      9 |                            |                    | :heavy_check_mark: |                    |
+| PC2       | 3D ship model             |      9 |                            |                    | :heavy_check_mark: |                    |
+| PC3       | 3D ship model             |      9 |                            |                    | :heavy_check_mark: |                    |
+| PC4       | 3D ship model             |      9 |                            |                    | :heavy_check_mark: |                    |
+| PC5       | 3D ship model             |      9 |                            |                    | :heavy_check_mark: |                    |
+| PC6       | 3D ship model             |      9 |                            |                    | :heavy_check_mark: |                    |
 | PIC       | image (same format as .rm)|      4 | compute1.pic is .mrg format| :heavy_check_mark: |                    |                    |
 | RAC       | audio (ambient)           |     69 |                            |                    |                    | :heavy_check_mark: |
 | RM        | background image (room?)  |      5 | bridge.rm                  | :heavy_check_mark: |                    |                    |
