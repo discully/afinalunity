@@ -129,7 +129,7 @@ def main():
 	elif file_type == "image_lbm":
 		data = AFU.Graphics.lbm(args.file)
 	elif file_type == "3dobject":
-		data = AFU.Graphics.pcn(args.file)
+		data = AFU.Graphics.model(args.file)
 	elif file_type == "video":
 		data = AFU.Video.fvf(args.file)
 		_stripVideoData(data)

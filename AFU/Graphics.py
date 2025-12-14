@@ -24,8 +24,12 @@ def material(file_path):
 		entry = {}
 		
 		entry["unknown0"] = f.readUInt32() # junk, gets ignored
-		entry["unknown1"] = f.readUInt32()
+		entry["unknown1"] = f.readUInt32() # Always 0x0, except in shield_*.mtl.
 		entry["type"] = f.readUInt32()
+		# 1 - .IMG
+		# 2 - .LBM (except STATW.IMG in station.mtl - mistype???)
+		# 3 - no file
+		# 2561 - .img files, and only in *x.mtl files which are for testing. So type 1 with some flag???
 		assert(entry["type"] in (1,2,3,2561))
 		assert(f.readUInt32() == 0)
 
@@ -191,7 +195,7 @@ def lbm(file_path):
 				compressed = True
 
 	# Create the image
-	# TODO: Create animated GIF when there are CRNG bhunks
+	# TODO: Create animated GIF when there are CRNG chunks
 	img = Image(chunks["BMHD"]["width"], chunks["BMHD"]["height"])
 	for i,px in enumerate(chunks["BODY"]):
 		img.set(chunks["CMAP"][px], i)
@@ -212,7 +216,7 @@ def lbm(file_path):
 #
 
 
-def _pcnReadHeader(f):
+def _modelReadHeader(f):
 	assert(f.pos() == 0x0)
 	header = {}
 	header["data_size"] = f.readUInt32()
@@ -233,10 +237,10 @@ def _pcnReadHeader(f):
 
 
 
-def _pcnReadMesh(f):
+def _modelReadMesh(f):
 	import math
 	mesh = {}
-	mesh["vertices_n"] = f.readSInt32() # TODO: what to do different if this is negative?
+	mesh["vertices_n"] = f.readSInt32() # TODO: what to do different if this is negative? (only the *board.3dv files)
 	mesh["surfaces_n"] = f.readUInt32()
 	assert(f.readUInt32() == 2)
 	
@@ -263,7 +267,9 @@ def _pcnReadMesh(f):
 		mesh["triangles"] = []
 		for i in range(mesh["surfaces_n"]):
 			tri = {}
-			tri["material"] = f.readUInt16()
+			x = f.readUInt16()
+			tri["material"] = x & 0x7fff
+			tri["flag"] = (x & 0x8000) != 0 # unknown flag
 			tri["vertices"] = (f.readUInt16(), f.readUInt16(), f.readUInt16())
 			mesh["triangles"].append(tri)
 	
@@ -283,12 +289,12 @@ def _pcnReadMesh(f):
 	return mesh
 
 
-def pcn(file_name):
+def model(file_name):
 	"""Reads .3dv .3dr and .pc* 3D model files."""
 	f = DatabaseFile(file_name)
 
 	pcn = {}
-	pcn["header"] = _pcnReadHeader(f)
+	pcn["header"] = _modelReadHeader(f)
 
 	data_start = f.pos()
 	pcn["_data_offset_base"] = data_start
@@ -326,6 +332,6 @@ def pcn(file_name):
 	f.setOffset(model["_meshes_offset"])
 	pcn["meshes"] = []
 	for i in range(n):
-		pcn["meshes"].append(_pcnReadMesh(f))
+		pcn["meshes"].append(_modelReadMesh(f))
 
 	return pcn
