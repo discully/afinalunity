@@ -190,6 +190,7 @@ class File:
 
 
 class DatabaseFile(File):
+	# TODO: Absorb this into the File class. Raise exceptions if _offset_base is not set before use.
 
 	def __init__(self, file_path):
 		self._offset_base = 0
