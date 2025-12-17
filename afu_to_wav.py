@@ -72,10 +72,28 @@ def _videoToWav(input_file_path, output_dir):
 	return output_file_path
 
 
+def _sprToWav(input_file_path, output_dir):
+	sprite = AFU.Sprite.sprite(input_file_path, input_file_path.with_name("standard.pal"), input_file_path.with_name("standard.pal"))
+	spec = _FILE_SPECS[".mac"]
+	for block in sprite["blocks"]:
+		if block["name"] == "DIGI":
+			output_file_path = output_dir.joinpath(f"{input_file_path.name}.{block['offset']}.wav")
+			wav = wave_open(str(output_file_path), "wb")
+			wav.setnchannels(spec["channels"])
+			wav.setsampwidth(spec["width"])
+			wav.setframerate(22050)
+			adpcm = block["audio"]
+			adpcm = bytes([ _swapNibbles(b) for b in adpcm ])
+			lin = audioop.adpcm2lin(adpcm, spec["width"], None)[0]
+			wav.writeframes(lin)
+			print("    -> {}".format(output_file_path.name))
+
+
+
 def main():
 
-	parser = ArgumentParser(description="Converts '.mac', '.rac' and '.vac' audio files to '.wav'.")
-	parser.add_argument("files", type=Path, help="Path(s) to the audio or video file(s)", nargs="+")
+	parser = ArgumentParser(description="Converts '.mac', '.rac' and '.vac' audio files to '.wav'. Or extracts audio from '.fvf' video files and '.spr' sprite files.")
+	parser.add_argument("files", type=Path, help="Path(s) to the input file(s)", nargs="+")
 	parser.add_argument("-o", "--output_dir", type=Path, help="Output directory to place wav files in", default=".")
 	args = parser.parse_args()
 
@@ -89,16 +107,21 @@ def main():
 			print("{} is not a file".format(input_file_path.name))
 			continue
 
+		print(input_file_path.name)
+
 		if input_file_path.suffix in [".mac", ".rac", ".vac"]:
 			output_file_path = _audioToWav(input_file_path, args.output_dir)
-			print("{} -> {}".format(input_file_path.name, output_file_path.name))
+			print("    -> {}".format(output_file_path.name))
 		elif input_file_path.suffix == ".fvf":
-			output_file_path = _videoToWav(input_file_path, args.output_dir)			
+			output_file_path = _videoToWav(input_file_path, args.output_dir)
+			print("    -> {}".format(output_file_path.name))
+		elif input_file_path.suffix == ".spr":
+			_sprToWav(input_file_path, args.output_dir)
 		else:
-			print("{} is not a supported file type ('.mac', '.rac', '.vac', '.fvf')".format(input_file_path.name))
+			print("{} is not a supported file type ('.mac', '.rac', '.vac', '.fvf', '.spr')".format(input_file_path.name))
 			continue
 
-		print("{} -> {}".format(input_file_path.name, output_file_path.name))
+		#print("{} -> {}".format(input_file_path.name, output_file_path.name))
 
 
 

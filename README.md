@@ -66,6 +66,9 @@ python3 afu_to_wav.py redalert.mac
 ```
 will output `readalert.mac.wav`.
 
+The `afu_to_wav.py` application will also extract audio from `.fvf` video files,
+and from any `.spr` files which contain `DIGI` audio blocks.
+
 
 ### Finding Voice Files
 

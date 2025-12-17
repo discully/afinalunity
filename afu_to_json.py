@@ -42,6 +42,12 @@ def _stripTacticMetadata(x):
 		for entry in page["entries"]:
 			if "data" in entry: entry.pop("data")
 
+def _stripSpriteAudio(file_path, x):
+	for block in x["blocks"]:
+		if block["name"] in ["DIGI"]:
+			block.pop("audio")
+			block["audio"] = f"{file_path.name}.{block["offset"]}.mac"
+
 
 
 def main():
@@ -77,7 +83,7 @@ def main():
 		data = AFU.World.worldStScr(args.file)
 	elif file_type == "sprite":
 		data = AFU.Sprite.sprite(args.file, args.file.with_name("standard.pal"), args.file.with_name("standard.pal"))
-		AFU.Sprite.combine(data)
+		_stripSpriteAudio(args.file, data)
 	elif file_type == "sector_names":
 		data = AFU.Astro.sectorAst(args.file)
 	elif file_type in ["conversation", "object", "phaser"]:

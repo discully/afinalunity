@@ -170,7 +170,7 @@ def sprite(sprite_path, background_path, palette_path=None):
 			palette = Palette.readFullPalette(f)
 		
 		elif block["name"] == "DIGI":
-			block["data"] = f.read(block["length"] - 8)
+			block["audio"] = f.read(block["length"] - 8)
 		
 		elif block["name"] == "SNDW":
 			pass

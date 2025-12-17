@@ -54,7 +54,7 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 | SCR       | world screen background   |     73 | sb{world}{screen}.scr      | :heavy_check_mark: |                    |                    |
 | &vellip;  | world                     |      6 | sl{world}.scr              |                    | :heavy_check_mark: |                    |
 | &vellip;  | world screen polygons     |     74 | st{world}{screen}.scr      |                    | :heavy_check_mark: |                    |
-| SPR       | sprite                    |    666 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
+| SPR       | sprite                    |    666 |                            | :heavy_check_mark: | :heavy_check_mark: | :heavy_check_mark: |
 | SPT       | sprite (transporter room) |      9 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
 | TXT       | text (credits)            |      2 | credit1.txt                |                    | :heavy_check_mark: |                    |
 | VAC       | audio (voice)             |  10182 |                            |                    |                    | :heavy_check_mark: |
