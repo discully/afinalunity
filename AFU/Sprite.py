@@ -194,7 +194,7 @@ def sprite(sprite_path, background_path, palette_path=None):
 
 
 def _imageName(sprite_path, image_offset):
-	return "{}.{}{}".format(sprite_path.stem, image_offset, sprite_path.suffix)
+	return "{}.{}.png".format(sprite_path.name, image_offset)
 
 
 def _readBlockHeader(f):
