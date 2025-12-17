@@ -184,6 +184,9 @@ def sprite(sprite_path, background_path, palette_path=None):
 		elif block["name"] == "SILE":
 			pass
 
+		elif block["name"] == "BSON":
+			pass
+
 		else:
 			raise ValueError("Unknown block {} at {:#x}".format(block["name"], block["offset"]))
 		
