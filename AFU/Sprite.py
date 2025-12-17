@@ -180,6 +180,9 @@ def sprite(sprite_path, background_path, palette_path=None):
 		
 		elif block["name"] == "OBJS":
 			block["obj_state"] = f.readUInt32()
+		
+		elif block["name"] == "SILE":
+			pass
 
 		else:
 			raise ValueError("Unknown block {} at {:#x}".format(block["name"], block["offset"]))
