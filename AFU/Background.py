@@ -7,30 +7,40 @@ HEIGHT = 480
 
 def background(input_path, palette_path=None):
 
-	# TODO: Will not work for sb002004.scr, sb002007.scr, sb002009.scr, sb002016.scr, sb002018.scr, sb005012.scr, sb006015.scr,sb006016.scr, sb007004.scr
-
 	f = File.File(input_path)
 
-	n_palettes = (len(f) - (WIDTH * HEIGHT)) // (Palette._LENGTH_SINGLE * 3)
-
-	if n_palettes < 1 or n_palettes > 2:
-		raise ValueError("Background file contains an unexpected number of palettes: {}".format(n_palettes))
+	f_size = len(f)
+	if f_size == 256384:
+		rows = 400
+		extra_palette = False
+	elif f_size == 307584:
+		rows = 480
+		extra_palette = False
+	elif f_size == 307968:
+		rows = 480
+		extra_palette = True
+	else:
+		raise ValueError("Unsupported background file size: {}".format(f_size))
 
 	local_palette = Palette.readSinglePalette(f)
-	if n_palettes == 1:
+	if extra_palette:
+		global_palette = Palette.readSinglePalette(f)
+	else:
 		palette_path = Palette.getGlobalPalettePath(input_path, palette_path)
 		global_palette = Palette.singlePalette(palette_path)
-	else:
-		global_palette = Palette.readSinglePalette(f)
 	palette = Palette.combinePalettes(local_palette, global_palette)
 	
 	image = Image.Image(WIDTH, HEIGHT)
 	image.name = input_path.name + ".png"
 	
-	n_pixels = WIDTH * HEIGHT
+	n_pixels = WIDTH * rows
 	for pixel in range(n_pixels):
 		colour_index = f.readUInt8()
 		image.set(palette[colour_index], pixel)
+	
+	for row in range(rows, HEIGHT):
+		for col in range(WIDTH):
+			image.set((0, 0, 0), row * WIDTH + col)
 
 	assert(f.eof())
 	
