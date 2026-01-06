@@ -6,7 +6,7 @@ from AFU.Utils import identify
 
 
 def output(bst, path):
-	print("{}    {:<24}    {}".format(path.name, "'" + bst[0]["name"] + "'", bst[0]["id"]))
+	print("{}    {:<24}    {}".format(path.name, "'" + bst[0]["name"] + "'", bst[0]["object_id"]))
 
 
 
