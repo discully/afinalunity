@@ -170,7 +170,7 @@ Total length: 36 bytes.
 |   0x23 |     35 | system_station_type  |   8u | If a station is present, either 131 (starbase) or 132 (outpost) |
 |   0x24 |     36 | system_star_class_int|  16u | See "System Star Class" below |
 |   0x26 |     38 | system_star_magnitude|  16s | Divide by 10.0 to get the magnitude of the primary star |
-|   0x28 |     40 | system_random_seed_2 |  32u | Used during execution to seed generation of planets, etc. |
+|   0x28 |     40 | system_scale         |  32u | Set's the scale of the system, relative to Earth's solar system |
 |   0x2C |     44 | system_n_planets     |  32u | Number or planets (set during execution) |
 |   0x30 |     48 | system_ptr_alias     |  32u | String for an alternative system name (e.g. "Frigis") |
 |   0x34 |     52 | system_ptr_notable_name |  32u | String to the name of a notable planet within the system |

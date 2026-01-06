@@ -46,42 +46,49 @@ def readAstroState(f):
 	# 	previous = 'origin' when travelling, 'current' when not travelling
 	#	selected = the most recent object chosen in the astrogation menu
 
-	unknown0 = [f.readUInt16() for x in range(8)]
-	enterprise_warp = round(float(f.readUInt32()) / 100.0, 1)
+	journey_time_start = f.readUInt32()
+	journey_time_total = f.readFloat()
+	journey_progress = f.readFloat()
+	journey_is_moving = (False, True)[f.readUInt32()]
+
+	#current_warp = round(float(f.readUInt32()) / 100.0, 1) # TODO: Think this is just 'speed' and won't work if at Impulse
+	speed = f.readUInt32()
+	#if speed <= 10:
+	#	speed *= 100
+	#else:
+	#	speed = round(float(f.readUInt32()) / 100.0, 1)
 	# aststat.dat offset = 0x14
-	enterprise_current_x = f.readUInt32()
-	enterprise_current_y = f.readUInt32()
-	enterprise_current_z = f.readUInt32()
-	enterprise_origin_x = f.readUInt32()
-	enterprise_origin_y = f.readUInt32()
-	enterprise_origin_z = f.readUInt32()
-	enterprise_destination_x = f.readUInt32()
-	enterprise_destination_y = f.readUInt32()
-	enterprise_destination_z = f.readUInt32()
-	#fpos(f)
-	previous_location_values = [f.readUInt32() for i in range(2)]
-	assert(f.readUInt32() == 0x0)
-	assert(f.readUInt32() == 0x0)
-	assert(f.readUInt32() == 0x0)
-	assert(f.readUInt32() == 0x0)
-	destination_location_values = [f.readUInt32() for i in range(2)]
-	assert(f.readUInt32() == 0x0)
+	current_space_coords = [f.readUInt32() for i in range(3)]
+	origin_space_coords = [f.readUInt32() for i in range(3)]
+	destination_space_coords = [f.readUInt32() for i in range(3)]
+	current_system_coords = [f.readUInt32() for i in range(3)]
+	origin_system_coords = [f.readUInt32() for i in range(3)]
+	destination_system_coords = [f.readUInt32() for i in range(3)]
 	
 	# aststat.dat offset = 0x5c
-	previous_location_info = readLocationInfo(f)
+	origin_location_info = readLocationInfo(f) # 6 ushorts
 	prev_system_id = f.readUInt16()
-	if prev_system_id == 255 and previous_location_info["system_index"] is None:
+	if prev_system_id == 255 and origin_location_info["system_index"] is None:
 		prev_system_id = None
-	previous_location_info["system_id"] = prev_system_id
-	previous_location_info["location_type"] = readLocationType(f)
+	origin_location_info["system_id"] = prev_system_id
+	origin_location_info["location_type"] = readLocationType(f)
 	
-	#fpos(f)
 	destination_location_info  = readLocationInfo(f)
 	assert(f.readUInt16() == 0x0)
 	destination_location_info["location_type"] = readLocationType(f)
-	
-	unknown1a = [f.readUInt8() for x in range(444)]
-	unknown1b = [f.readUInt16() for x in range(6)]
+
+	destination_name = f.readStringBuffer(64)
+	unknown_graphic_data = [f.readUInt8() for i in range(384)]
+	unknown_flags = [f.readUInt8() for i in range(2)]
+	is_impulse = (False, True)[f.readUInt8()]
+
+	if is_impulse:
+		speed *= 10
+	else:
+		speed = round(float(speed) / 100.0, 1)
+
+	unknown_flags.append(f.readUInt8())
+	journey_distance_space = f.readFloat() # not sure about what this is yet
 	
 	selected_location_info = readLocationInfo(f)
 	
@@ -127,44 +134,58 @@ def readAstroState(f):
 	# 2a0 [u16]
 	# 2a2 [u16] display_which_systems
 	# 2a4 [u16] display_which_features
-	# 2a6 [u16] display_is_rotating ???code<-
-	# 2a8 [u32] display_is_rotating ???ghidra
+	# 2a6 [u16] display_is_rotating -
+	# 2a8 [u32] display_is_rotating 
 	# 2ac [u32] unknown_sector_id
 	#
 
 	# (astrogation)
 	# ast_stat.dat offset = 2e0 = 25c + (21*4)
 
-	astrogation_which_screen = f.readUInt8() # 0=space, 1=sector, 2=system
-	#assert(f.readUInt8() == 0) # padding
-	print(f.readUInt8()) # padding?
+	astrogation_which_screen = ("space", "sector", "system")[f.readUInt8()]
+	astrogation_which_panel = ("info", "course", "display")[f.readUInt8()]
 
-	astrogation_speed_mode = "warp" if f.readUInt16() == 0 else "impulse"
+	astrogation_speed_mode = ("warp", "impulse")[f.readUInt16()]
 	astrogation_speed_warp = round(float(f.readUInt32()) / 100.0, 1)
 	astrogation_speed_impulse = f.readUInt32() * 10
-	astrogation_max_warp = f.readUInt32()
+	astrogation_max_warp = round(float(f.readUInt32()) / 100.0, 1)
 	
-	unknown2a = [f.readUInt32() for x in range(6)]
+	astrogation_dist = {}
+	astrogation_dist["light_years"] = f.readUInt32()
+	astrogation_dist["light_months"] = f.readUInt32()
+	astrogation_dist["light_days"] = f.readUInt32()
+	astrogation_dist["light_hours"] = f.readUInt32()
+	astrogation_dist["light_minutes"] = f.readUInt32()
+	astrogation_dist["light_seconds"] = f.readUInt32()
 
 	astrogation_distance1 = f.readDouble()
 	astrogation_distance2 = f.readDouble()
-
-	unknown2b = [f.readUInt32() for i in range(2)]
+	astrogation_x1 = f.readUInt32()
+	astrogation_x2 = f.readUInt32()
 	
-	selected_major_x = f.readUInt32()
-	selected_major_y = f.readUInt32()
-	selected_major_z = f.readUInt32()
-	selected_minor_x = f.readUInt32()
-	selected_minor_y = f.readUInt32()
-	selected_minor_z = f.readUInt32()
-	
-	unknown2c = [f.readUInt32() for i in range(2)]
-	selected_location_info["location_values"] = [f.readUInt16() for x in range(2)]
+	selected_major_coords = [f.readUInt32() for i in range(3)]
+	selected_minor_coords = [f.readUInt32() for i in range(3)]
+	selected_system_coords = [f.readUInt32() for i in range(3)]
 
 	astrogation_a_deg = f.readUInt16()
 	astrogation_e_deg = f.readUInt16()
+
+	assert(f.readUInt16() == 0) # Game sets this to zero, but never reads it.
 	
-	unknown2d = [f.readUInt16() for x in range(7)]
+	for i in range(10): # Unused
+		assert(f.readUInt8() == 0)
+	
+	# Tested but not set by the game.
+	# Will only draw certain systems/planets if this value matches some flags which are set.
+	# Those flags are:
+	# When drawing the Space screen:
+	#     * 0x1 if  Inhabited and UNKNOWN_SCAN is set
+	#     * 0x2 if  UNKNOWN_LETHE is set
+	# When drawing thje System screen
+	#     * 0x1 if  Inhabited
+	#     * 0x2 if  UNKNOWN_LETHE is set
+	#     * 0x4 if  Starbase
+	assert(f.readUInt16() == 0) # Could be a series of flags, shwowing what to disply, but never set.
 
 	d0 = f.readUInt16()
 	d1 = f.readUInt16()
@@ -180,8 +201,9 @@ def readAstroState(f):
 		"starbases": (d1 & 0b00001000) != 0,
 	}
 	
-	astrogation_rotating = f.readUInt16() == 1
-	unknown5 = [f.readUInt32() for x in range(2)]
+	astrogation_rotating = (False,True)[f.readUInt16()]
+	unknown5 = f.readUInt32()
+	astrogation_selected_sector_id = f.readUInt32()
 
 	assert(f.readUInt16() == 0)
 
@@ -202,7 +224,7 @@ def readAstroState(f):
 			#              [x3853]
 			#  0      0000 [x1123] invisible, unscanned
 			#  1      0001 [x1322] visible,  unscanned
-			#  4      0100 [   x1] invisible, only Lethe Beta (it has 7 planets. If you set to 5, the description doesn't inlclude the number of planets, the view shows no planets. If you set to 9, the description does)
+			#  4      0100 [   x1] invisible, only Lethe Beta (it has 7 planets. If you set to 5 (101), the description doesn't inlclude the number of planets, the view shows no planets. If you set to 9 (1001), the description does)
 			#  5      0101 [ x263] Only stellar bodies (no star systems). No obvious difference from 1.
 			#  6      0110 [   x1] invisible, only Lethe Zeta
 			#  9      1001 [ x392] visible, scanned (but if there's no planets, the system view says 'unscanned', even though the description suggests sanned). One body, all the rest are systems.
@@ -252,43 +274,54 @@ def readAstroState(f):
 		# a lot of the comm relays etc. become destroyed. Will need to investigate.
 	
 	return {
-		"unknown0": unknown0,
-		"enterprise": {
-			"current": (enterprise_current_x, enterprise_current_y, enterprise_current_z),
-			"destination": (enterprise_destination_x, enterprise_destination_y, enterprise_destination_z),
-			"origin": (enterprise_origin_x, enterprise_origin_y, enterprise_origin_z),
-			"warp": enterprise_warp,
+		"ship": {
+			"journey_time_start": journey_time_start,
+			"journey_time_total": journey_time_total,
+			"journey_progress": journey_progress,
+			"journey_is_moving": journey_is_moving,
+			
+			"current_space_coords": current_space_coords,
+			"destination_space_coords": destination_space_coords,
+			"origin_space_coords": origin_space_coords,
+			"current_system_coords": current_system_coords,
+			"destination_system_coords": destination_system_coords,
+			"origin_system_coords": origin_system_coords,
+			"current_speed": speed, #current_warp,
+			"previous_location_info": origin_location_info,
+			"destination_location_info": destination_location_info,
+			"destination_name": destination_name,
+			"unknown_graphic_data": unknown_graphic_data,
+			"unknown_flags": unknown_flags,
+			"is_impulse": is_impulse,
+			"journey_distance_space": journey_distance_space,
+			"unknown1c": unknown1c,
 		},
-		"previous_location_values": previous_location_values,
-		"destination_location_values": destination_location_values,
-		"previous_location_info": previous_location_info,
-		"destination_location_info": destination_location_info,
-		"unknown1a": unknown1a,
-		"unknown1b": unknown1b,
-		"unknown1c": unknown1c,
-#		"unknown1d": unknown1d,
 		"astrogation": {
 			"course": {
 				"speed_mode": astrogation_speed_mode,
 				"speed_warp": astrogation_speed_warp,
 				"speed_impulse": astrogation_speed_impulse,
+				"speed_warp_max": astrogation_max_warp,
+				"distance": astrogation_dist,
+				"distance_1": astrogation_distance1,
+				"distance_2": astrogation_distance2,
+				"x1": astrogation_x1,
+				"x2": astrogation_x2,
 			},
 			"space_rotation_a": astrogation_a_deg,
 			"space_rotation_e": astrogation_e_deg,
 			"space_rotating": astrogation_rotating,
 			"selected": {
 				"info": selected_location_info,
-				"major_coords": (selected_major_x, selected_major_y, selected_major_z),
-				"minor_coords": (selected_minor_x, selected_minor_y, selected_minor_z),
-#				"system_unknown": selected_system_unknown,
-#				"location_unknown": selected_location_unknown,
+				"major_coords": selected_major_coords,
+				"minor_coords": selected_minor_coords,
+				"system_coords": selected_system_coords,
 			},
+			"selected_sector_id": astrogation_selected_sector_id,
 			"display": display,
 			"which_screen": astrogation_which_screen,
+			"which_panel": astrogation_which_panel,
 		},
-		"unknown2a": unknown2a,
-		"unknown2c": unknown2c,
-		"unknown2d": unknown2c,
 		"unknown5": unknown5,
 		"systems_bodies": systems_bodies,
 		"stations": stations,

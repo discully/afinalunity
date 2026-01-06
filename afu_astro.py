@@ -55,7 +55,6 @@ def main():
 				system.pop("station_planet_index")
 				system.pop("station_type")
 				system.pop("_star_class_int")
-				system.pop("random_seed_2")
 				if system["binary"]:
 					system["binary"].pop("_class_int")
 				for planet in system["planets"]:

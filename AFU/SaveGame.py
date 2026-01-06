@@ -24,112 +24,88 @@ def readBlockTravelHistory(f, block):
 	print("Travel History:")
 	data = []
 	f.setPosition(block["data_offset"])
-	f.readUInt8()
+	assert(f.readUInt8() == 0) # padding
+	
 	while f.pos() != block["end_offset"]:
+		
+		entry = {}
+		data_size = f.readUInt32()
+		data_start = f.pos()
 
-		# Some kind of type info?
-		#   - Moons >= 200
-		#   - Planets,stations >= 100
-		#   - Sectors < 100.
-		# Except Cymkoe IV is 99? Because this is actually mertens orbital station??
-		unknown_location_number = f.readUInt32() 
-
-		addrs = []
-		addrs.append(f.readUInt32())
-		addrs.append(f.readUInt32())
+		f.readUInt32() # ptr name
+		f.readUInt32() # ptr text
 		assert(f.readUInt16() == 0)
-		#assert(f.readUInt16() == 16)
-		f.readUInt16() == 16
-		addrs.append(f.readUInt32())
-		addrs.append(f.readUInt32())
+		has_extra = {0: False, 0x10: True}[f.readUInt16()]
+		f.readUInt32() # ptr name
+		f.readUInt32() # ptr text
 		assert(f.readUInt32() == 0)
-		addrs.append(f.readUInt32())
+		f.readUInt32() # ptr dest 2
 
-		ua_sector_id = f.readUInt16()
-		ua_system_index = f.readUInt16()
-		ua_planet_index = f.readUInt16()
-		ua_location_type = f.readUInt8()
-		ua_unknown1 = f.readUInt8() 			# 0xFF for stations,sectors,systems. 0 otherwise.
-		ua_unknown2 = f.readUInt16()			# 0xFFFF for stations. 0 otherwise.
+		dest_sector_id = f.readUInt16()
+		dest_system_index = f.readUInt16()
+		dest_planet_index = f.readUInt16()
+		dest_object_type = f.readUInt16()
+		dest_body_station_index = f.readUInt16()
 		assert(f.readUInt16() == 0x0)
-		
-		addrs.append(f.readUInt32())
 
-		x = f.readUInt32()
-		y = f.readUInt32()
-		z = f.readUInt32()
-
-		unknown_location_values = [f.readUInt32() for i in range(2)] # [0,0] for sectors,systems,stations. Two integer values for planets,moons. Values seem less than ~60. Colour information???
-		assert(f.readUInt32() == 0x0)
-		assert(f.readUInt32() == 0xffffffff)
-
-		# There is a second set of information here (differs in that location_type is not set for star systems)
-		# Ordinarily, it gets set to the same place as the first set.
-		# But if you go to a Deep Space Station, it will be the previous location.
-		# Ocasionally, that also happens for an Outpost, but not always??
-
-		ub_sector_id = f.readUInt16()
-		ub_location_type = f.readUInt8()
-		ub_unknown = f.readUInt8() 				# 0 for moons,sectors. 1 for systems,planets,stations.
-		assert(f.readUInt16() == 0)
-		ub_system_index = f.readUInt16() 		# index of system within sector, or 0xff if not in system
-		ub_planet_index = f.readUInt16()		# index of planet within system. moon gets planets' index. 0xff if not in system.
-		assert(f.readUInt16() == 0)
-		#assert(f.readUInt16() == 0)
-		#assert(f.readUInt16() == 0)
-		f.readUInt16()
-		f.readUInt16()
-
-		if ua_system_index == 0xffff:
-			ua_system_index = None
-		if ua_planet_index == 0xffff:
-			ua_planet_index = None
-
-		if ua_location_type == 0xff:			# Empty location in a sector.
-			ua_location_type = None
+		if dest_system_index == 0xffff: dest_system_index = None
+		if dest_planet_index == 0xffff: dest_planet_index = None
+		if dest_body_station_index == 0xffff: dest_body_station_index = None
+		if dest_object_type == 0xffff:
+			dest_object_type = None
 		else:
-			ua_location_type = Astro.ObjectType(ua_location_type)
-		
-		if ub_location_type == 0xff:			# Empty location in a sector.
-			ub_location_type = None
-		else:
-			ub_location_type = Astro.ObjectType(ub_location_type)
-		
-		if ub_system_index == 0xffff:
-			ub_system_index = None
-		if ub_planet_index == 0xffff:
-			ub_planet_index = None
-		
-		assert(ua_unknown1 in (0x0,0xff))
-		#assert(ua_unknown2 in (0x0,0xffff))
-		assert(ub_unknown in (1,0))
+			dest_object_type = Astro.ObjectType(dest_object_type)
 
-		name = f.readString()
-		desc = f.readString()
-		data.append({
-			"name": name,
-			"description": desc,
-			"coords": [x, y, z],
-			"info_a" : {
-				"sector_id": ua_sector_id,
-				"system_index": ua_system_index,
-				"planet_index": ua_planet_index,
-				"location_type": ua_location_type,
-				"unknown": [ua_unknown1, ua_unknown2],
-			},
-			"info_b" : {
-				"sector_id": ub_sector_id,
-				"system_index": ub_system_index,
-				"planet_index": ub_planet_index,
-				"location_type": ub_location_type,
-				"unknown": ub_unknown,
-			},
-			"addrs": addrs,
-			"unknown_location_number": unknown_location_number,
-			"unknown_location_values": unknown_location_values,
-		})
+		entry["destination"] = {
+			"sector_id": dest_sector_id,
+			"system_index": dest_system_index,
+			"planet_index": dest_planet_index,
+			"object_type": dest_object_type,
+			"body_station_index": dest_body_station_index,
+		}
+		
+		# Arrival
 
-		print("    {0:<25} {1:>3} ({2[0]:>3},{2[1]:>3})".format(name,unknown_location_number,unknown_location_values))
+		if has_extra:
+			f.readUInt32() # ptr name
+			extra_global_coords = [f.readUInt32() for i in range(3)]
+			extra_system_coords = [f.readUInt32() for i in range(3)]
+			assert(f.readUInt32() == 0xffffffff)
+
+			extra_sector_id = f.readUInt16()
+			extra_oject_type = f.readUInt8()
+			extra_status = f.readUInt8() # TODO: Either 1 or 0. Think this is something to do with having been scanned/charterd.
+			assert(f.readUInt16() == 0)
+			extra_system_index = f.readUInt16()
+			extra_planet_index = f.readUInt16()
+			assert(f.readUInt16() == 0)
+			extra_body_unknown26 = f.readUInt32()
+
+			if extra_system_index == 0xffff: extra_system_index = None
+			if extra_planet_index == 0xffff: extra_planet_index = None
+			if extra_oject_type == 0xff:
+				extra_oject_type = None
+			else:
+				extra_oject_type = Astro.ObjectType(extra_oject_type)
+
+			entry["extra"] = {
+				"global_coords": extra_global_coords,
+				"system_coords": extra_system_coords,
+				"sector_id": extra_sector_id,
+				"object_type": extra_oject_type,
+				"status": extra_status,
+				"system_index": extra_system_index,
+				"planet_index": extra_planet_index,
+				"body_unknown26": extra_body_unknown26,
+			}
+
+		entry["name"] = f.readString()
+		entry["desc"] = f.readString()
+		
+		data_end = f.pos()
+		assert(data_end - data_start == data_size)
+
+		data.append(entry)
 
 	assert(f.pos() == block["end_offset"])
 	return {

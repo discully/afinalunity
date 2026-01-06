@@ -97,7 +97,7 @@ def readSystem(f):
 	system_station_type = f.readUInt8()
 	system_class_int = f.readUInt16()
 	system_magnitude = f.readSInt16()
-	system_random_seed_2 = f.readUInt32()
+	system_scale = f.readUInt32()
 	system_n_planets = f.readUInt32()
 	system_ptr_alias = f.readUInt32()
 	system_ptr_notable_name = f.readUInt32()
@@ -119,7 +119,7 @@ def readSystem(f):
 		"_star_class_int": system_class_int,
 		"star_class": starClassFromInt(system_class_int),
 		"star_mag": system_magnitude / 10.0,
-		"random_seed_2": system_random_seed_2,
+		"scale": system_scale,
 		"n_planets": system_n_planets,
 		"_ptr_alias": system_ptr_alias,
 		"_ptr_notable_name": system_ptr_notable_name,
@@ -186,7 +186,7 @@ def readPlanet(f):
 		"index": planet_index,
 		"unknown4": planet_unknown4,
 		"random_seed": planet_random_seed,
-		"coords_system": (planet_x,planet_y,planet_z),
+		"orbit": (planet_x,planet_y,planet_z),
 		"_ptr_desc": planet_ptr_desc,
 		"_ptr_name": planet_ptr_name,
 		"flags": planet_flags,
@@ -226,7 +226,7 @@ def readMoon(f):
 		"unknown0": moon_unknown0,
 		"unknown4": moon_unknown4,
 		"random_seed": moon_random_seed,
-		"coords_system": (moon_x, moon_y, moon_z),
+		"orbit": (moon_x, moon_y, moon_z),
 		"_ptr_desc": moon_ptr_desc,
 		"_ptr_name": moon_ptr_name,
 		"unknown": (moon_unknown32, moon_unknown33, moon_unknown35),

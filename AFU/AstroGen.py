@@ -302,7 +302,7 @@ def _planetInit(system, planet):
 
 	planet["random_seed"] = _random(0xffff) & 0xffff
 	planet["nth_created"] = _GLOB_SYSTEM_PLANETS_CREATED
-	_utilsSetCoords(planet, system["random_seed_2"] & 0xffff, planet["nth_created"])
+	_utilsSetOrbit(planet, system["scale"] & 0xffff, planet["nth_created"])
 	planet["_class_int"] = planetGetClass(system, planet)
 	
 	if system["flags"] & SystemFlags.STARBASE == 0:
@@ -339,7 +339,7 @@ def _planetInit(system, planet):
 			moon = {
 				"index": i,
 			}
-			moonSetCoords(planet, system["random_seed_2"] & 0xffff, moon)
+			moonSetCoords(planet, system["scale"] & 0xffff, moon)
 			moon["random_seed"] = _randomNext()
 			moon["name"] = planet["name"] + MOON_POSTFIXES[i]
 			moon["_class_int"] = moonGetClass(system, planet, moon)
@@ -376,7 +376,7 @@ def planetSetInhabited(planet, optional):
 
 
 def planetGetClass(system, planet):
-	u3 = _utilsCombineCoords(planet["coords_system"][0], planet["coords_system"][1], planet["coords_system"][2])
+	u3 = _utilsCombineCoords(planet["orbit"][0], planet["orbit"][1], planet["orbit"][2])
 	s1 = _utilsGetValueFromStar(system["_star_class_int"], u3)
 	if s1 < 1 or 3 < s1:
 		if s1 < 1:
@@ -468,28 +468,28 @@ def moonSetCoords(planet, system_u2, moon):
 	if planet["index"] == 14:
 		scale = 63
 	else:
-		_utilsSetCoords(next_planet, system_u2, planet["index"] + 1)
-		u0 = planet["coords_system"][0] + planet["coords_system"][1] * 60 + planet["coords_system"][2] * 3600
-		u1 = next_planet["coords_system"][0] + next_planet["coords_system"][1]*60 + next_planet["coords_system"][2]*3600
+		_utilsSetOrbit(next_planet, system_u2, planet["index"] + 1)
+		u0 = planet["orbit"][0] + planet["orbit"][1] * 60 + planet["orbit"][2] * 3600
+		u1 = next_planet["orbit"][0] + next_planet["orbit"][1]*60 + next_planet["orbit"][2]*3600
 		delta = u1 - u0
 		scale = delta - delta//10 >> 2
 	
 	if 63 < scale or scale == 0:
 		scale = 63
 	
-	moon["coords_system"] = [0,0,0]
+	moon["orbit"] = [0,0,0]
 	delta = scale >> 1
 	l30 = _random(delta & 0xffff) + delta
-	delta = planet["coords_system"][0] + l30 + moon["index"]*scale + planet["coords_system"][1]*60 + planet["coords_system"][2]*3600
-	moon["coords_system"][2] = delta // 3600
-	delta = delta - moon["coords_system"][2]*3600
-	moon["coords_system"][1] = delta // 60
-	l34 = delta - moon["coords_system"][1]*60
-	moon["coords_system"][0] = l34
+	delta = planet["orbit"][0] + l30 + moon["index"]*scale + planet["orbit"][1]*60 + planet["orbit"][2]*3600
+	moon["orbit"][2] = delta // 3600
+	delta = delta - moon["orbit"][2]*3600
+	moon["orbit"][1] = delta // 60
+	l34 = delta - moon["orbit"][1]*60
+	moon["orbit"][0] = l34
 
 
 def moonGetClass(system, planet, moon):
-	u3 = _utilsCombineCoords(moon["coords_system"][0], moon["coords_system"][1], moon["coords_system"][2])
+	u3 = _utilsCombineCoords(moon["orbit"][0], moon["orbit"][1], moon["orbit"][2])
 	s1 = _utilsGetValueFromStar(system["_star_class_int"], u3)
 	if s1 < 1 or 3 < s1:
 		if s1 < 1:
@@ -601,7 +601,7 @@ def stationDescription(station):
 
 
 _GLOB_PLANET_INIT_0015f5b5 = 0
-_GLOB_SEED_COORDS_0015f5fa = [ 0x04, 0x07, 0x0a, 0x10, 0x1c, 0x34, 0x64, 0xc4, 0x184, 0x304, 0x604]
+_GLOB_PLANET_ORBITS_dAU = [ 0x04, 0x07, 0x0a, 0x10, 0x1c, 0x34, 0x64, 0xc4, 0x184, 0x304, 0x604]
 _GLOB_SEED_BINARY_0015f634 = [
 	0xba,0xff,0xbd,0xff,0xc0,0xff,0xc3,0xff,0xc6,0xff,0xc9,0xff,0xcb,0xff,0xce,0xff,
 	0xd1,0xff,0xd4,0xff,0xd8,0xff,0xdf,0xff,0xe5,0xff,0xec,0xff,0xf3,0xff,0xf6,0xff,
@@ -615,13 +615,13 @@ _GLOB_SEED_BINARY_0015f634 = [
 	]
 
 
-def _utilsSetCoords(object, system_u2, planet_nth):
-	i1 = (_GLOB_SEED_COORDS_0015f5fa[planet_nth] * system_u2) // 10
-	z = i1 // 3600
-	i1 = i1 + z * -3600
-	y = i1 // 60
-	x = i1 + y * -60
-	object["coords_system"] = [x,y,z]
+def _utilsSetOrbit(object, system_scale, planet_nth):
+	orbit = (_GLOB_PLANET_ORBITS_dAU[planet_nth] * system_scale) // 10
+	orbit_Ls = orbit // 3600
+	orbit = orbit - (orbit_Ls * 3600)
+	orbit_Lmin = orbit // 60
+	orbit_LH = orbit - (orbit_Lmin * 60)
+	object["orbit"] = [orbit_LH,orbit_Lmin,orbit_Ls]
 
 
 def _utilsCombineCoords(x,y,z):
