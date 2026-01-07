@@ -1,6 +1,6 @@
 from pathlib import Path
 from AFU.File import File, fpos
-from AFU import Astro, Computer, Block
+from AFU import Astro, Computer, Block, World
 
 # [offset      ][block][size][contents             ]
 #  0x0    0      Header 14
@@ -17,11 +17,7 @@ from AFU import Astro, Computer, Block
 #  0x51f2 20978  ONT    81           ??
 
 
-
-
-
 def readBlockTravelHistory(f, block):
-	print("Travel History:")
 	data = []
 	f.setPosition(block["data_offset"])
 	assert(f.readUInt8() == 0) # padding
@@ -44,14 +40,14 @@ def readBlockTravelHistory(f, block):
 		dest_sector_id = f.readUInt16()
 		dest_system_index = f.readUInt16()
 		dest_planet_index = f.readUInt16()
-		dest_object_type = f.readUInt16()
+		dest_object_type = f.readUInt16() & 0xff # Stored in a short but only the little byte gets set
 		dest_body_station_index = f.readUInt16()
 		assert(f.readUInt16() == 0x0)
 
 		if dest_system_index == 0xffff: dest_system_index = None
 		if dest_planet_index == 0xffff: dest_planet_index = None
 		if dest_body_station_index == 0xffff: dest_body_station_index = None
-		if dest_object_type == 0xffff:
+		if dest_object_type == 0xff:
 			dest_object_type = None
 		else:
 			dest_object_type = Astro.ObjectType(dest_object_type)
@@ -64,7 +60,7 @@ def readBlockTravelHistory(f, block):
 			"body_station_index": dest_body_station_index,
 		}
 		
-		# Arrival
+		# Extra structure
 
 		if has_extra:
 			f.readUInt32() # ptr name
@@ -131,22 +127,55 @@ def readBlockCompstat(f, block):
 	# many bytes from memory. The COMPSTAT file is 388 bytes. But
 	# the game copies 540 bytes in/out of memory. That means the last
 	# 152 bytes of this section are just junk.
-	f.read(152)
-
-	#assert(f.readStringBuffer(8) == "COMPSTAT")
-
-	#assert(f.readUInt32() == 0)
-
-	#unknown = []
-	#for j in range(5):
-	#	unknowna = [f.readUInt32() for i in range(3)]
-	#	unknownb = [f.readUInt8() for i in range(8)]
-	#	unknownc = [f.readUInt8() for i in range(8)]
-	#	unknown.append([unknowna, unknownb, unknownc])
-	#data["computer_unknown"] = unknown
+	f.setPosition(f.pos() + 152)
 
 	assert(f.pos() == block["end_offset"])
 	return data
+
+
+def readVideos(f, block):
+	data = {}
+	f.setPosition(block["data_offset"])
+
+	i = 0
+	videos = []
+	while f.pos() < block["end_offset"]:
+		visible = (False, True)[f.readUInt8()]
+		videos.append({"index": i, "visible": visible})
+		i += 1
+	data["videos"] = videos
+
+	assert(f.pos() == block["end_offset"])
+	return data
+
+
+def readScreenRegions(f, block):
+	data = {}
+	f.setPosition(block["data_offset"])
+
+	screen_regions = []
+	while True:
+		n = f.readUInt32()
+		if n == 0xffffffff: break
+
+		world_id = World.WorldId(f.readUInt32())
+		screen_id = f.readUInt32()
+		n_regions = f.readUInt32()
+		region_types = [World.ScreenRegionType(f.readUInt8()) for i in range(n_regions)]
+
+		[f.readUInt8() for i in range(3)] # either padding or an error in the game's arithmetic
+
+		screen_regions.append({
+			"world_id": world_id,
+			"screen_id": screen_id,
+			"n_regions": n_regions,
+			"region_types": region_types
+		})
+	
+	assert(f.pos() == block["end_offset"])
+	return {
+		"screen_regions": screen_regions,
+	}
 
 
 def readBlockConverations(f, block):
@@ -212,11 +241,13 @@ def readBlockConverations(f, block):
 	recent_vacs = [f.readStringBuffer(14) for j in range(3)]
 
 	return {
-		"conversation_buffer": conversation_buffer,
-		"situation_buffer": situation_buffer,
-		"action_buffer": action_buffer,
-		"conversation_history": conversation_history,
-		"recent_vacs": recent_vacs,
+		"conversations": {
+			"conversation_buffer": conversation_buffer,
+			"situation_buffer": situation_buffer,
+			"action_buffer": action_buffer,
+			"conversation_history": conversation_history,
+			"recent_vacs": recent_vacs,
+		}
 	}
 
 
@@ -455,6 +486,33 @@ def readBlockObjects(f, block):
 	return data
 
 
+def readGlobalSettings(f, block):
+	data = {}
+	f.setPosition(block["data_offset"])
+	
+	while True:
+		x = f.readUInt32()
+		if x == 0:
+			data["dialogue_scrollable_pos"] = (f.readUInt16(), f.readUInt16())
+		elif x == 1:
+			data["dialogue_talking_pos"] = (f.readUInt16(), f.readUInt16())
+		elif x == 2:
+			data["unknown"] = [f.readUInt8() for i in range(0x20)]
+			#for i in range(0x20):
+			#	assert(f.readUInt8() == 0x0)
+		elif x == 3:
+			data["astrogation_location_updated"] = (False, True)[f.readUInt8()]
+		elif x == 4:
+			data["warpout_video_state"] = f.readUint8()
+		elif x == 5:
+			data["phaser_setting"] = f.readUInt32()
+		elif x == 0xffffffff:
+			break
+
+	assert(f.pos() == block["end_offset"])
+	return {"globals": data}
+
+
 def readBlockHeader(f):
 	block_offset = f.pos()
 	block_type = f.readStringBuffer(4)
@@ -476,6 +534,12 @@ def readBlockHeaders(f):
 	while not f.eof():
 		blocks.append(readBlockHeader(f))
 		f.setPosition(blocks[-1]["end_offset"])
+	
+	assert(len(blocks) == 9)
+	names = ["compstat", "aststat", "videos", "screen_regions", "converations", "travel_history", "objects", "enterprise", "globals"]
+	for i,name in enumerate(names):
+		blocks[i]["name"] = name
+
 	return blocks
 
 
@@ -489,23 +553,25 @@ def savegame(input_path):
 	blocks = readBlockHeaders(f)
 	assert(len(blocks) == 9)
 
-	print(blocks[0]) # compstat
+	print(blocks[0])
 	data |= readBlockCompstat(f, blocks[0])
-	#return data
-	print(blocks[1]) # aststat
+	print(blocks[1])
 	data |= readBlockAststat(f, blocks[1])
-	print(blocks[2]) # videos
-	print(blocks[3]) # unknown
+	print(blocks[2])
+	data |= readVideos(f, blocks[2])
+	print(blocks[3])
+	data |= readScreenRegions(f, blocks[3])
 	print(blocks[4])
 	data |= readBlockConverations(f, blocks[4])
 	print(blocks[5])
 	data |= readBlockTravelHistory(f, blocks[5])
-	print(blocks[6]) # chunks
+	print(blocks[6])
 	try:
 		data |= readBlockObjects(f, blocks[6])
 	except:
 		print("AN ERROR OCURRED FETCHING OBJECTS - SAVEGAME SUPPORT IS A WORK IN PROGRESS")
 	print(blocks[7]) # enterprise
-	print(blocks[8]) # unknown
+	print(blocks[8])
+	data |= readGlobalSettings(f, blocks[8])
 
 	return data

@@ -1,9 +1,9 @@
 from AFU.File import File
 from AFU.Block import _readObjectId
-from enum import IntEnum
+from enum import Enum
 
 
-class WorldId (IntEnum):
+class WorldId (Enum):
 	UNSET	= 		0x0
 	ALLANOR =		0x2
 	MORASSIA =		0x3
@@ -16,6 +16,13 @@ class WorldId (IntEnum):
 	COMBAT =		0x10
 	ENTERPRISE =	0x5f
 	NONE =			0xffffffff
+
+
+class ScreenRegionType (Enum):
+	TILE_INACTIVE = 0x0
+	TILE = 0x1
+	UNKNOWN_3 = 0x3
+	SCENE = 0x4
 
 
 def worldStrt(file_path):
