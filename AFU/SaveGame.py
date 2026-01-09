@@ -436,7 +436,6 @@ def readBlockObjects(f, block):
 	data = {}
 	f.setPosition(block["data_offset"])
 
-	print(block)
 	fpos(f)
 
 	while f.pos() <= block["end_offset"]:
@@ -484,6 +483,90 @@ def readBlockObjects(f, block):
 			assert(False)
 
 	return data
+
+
+
+def readEnterprise(f, block):
+	data = {}
+	f.setPosition(block["data_offset"])
+
+	assert(f.readUInt32() == 0x08080808)
+	combat = {}
+	combat["unknown_1"] = f.readUInt32()
+	combat["screen"] = f.readUInt32()
+	if combat["screen"] == 0xffffffff: combat["screen"] = None
+	
+	assert(f.readUInt32() == 0x0a0a0a0a)
+	enterprise = {}
+	enterprise["name"] = f.readStringBuffer(30)
+	enterprise["n_systems"] = f.readUInt32()
+	enterprise["type"] = f.readUInt32()
+	# Power
+	power = {"generators":[]}
+	for i in range(2):
+		generator = {}
+		generator["unknown_g1"] = f.readUInt32()
+		generator["power_free"] = f.readUInt32()
+		generator["unknown_g2"] = f.readUInt32()
+		generator["time_last_power_update"] = f.readUInt32()
+		generator["time_normal_operation_update"] = f.readUInt32()
+		generator["unknown_g3"] = f.readUInt32()
+		generator["ptr_system"] = f.readUInt32()
+		power["generators"].append(generator)
+	power["total_power_free"] = f.readUInt32()
+	power["unknown_1"] = f.readUInt32()
+	power["time_repair_update"] = f.readUInt32()
+	power["ptr_battery_system"] = f.readUInt32()
+	power["unknown_2"] = [f.readUInt32() for i in range(6)]
+	power["total_power_requested"] = f.readUInt32()
+	power["total_power_applied"] = f.readUInt32()
+	enterprise["power"] = power
+	
+	enterprise["h"] = [f.readUInt32() for i in range(14)]
+
+	enterprise["systems"] = []
+	for i in range(enterprise["n_systems"]):
+		system = {}
+		system["charge_current"] = f.readUInt32()
+		system["charge_target"] = f.readUInt32()
+		f.readUInt32()
+		f.readUInt32()
+		system["rate_usage"] = f.readUInt32() # not sure this is the right label
+		system["health_damage"] = f.readUInt32()
+		system["unknown_64"] = f.readUInt32()
+		f.readUInt32()
+		f.readUInt32()
+		f.readUInt32()
+		f.readUInt32()
+		system["charge_requested_min"] = f.readUInt32() # not sure this is the right label
+		system["charge_requested"] = f.readUInt32()
+		system["unknown_94"] = f.readUInt32()
+		system["readout_power_target"] = f.readUInt32()
+		system["readout_power_current"] = f.readUInt32()
+		system["readout_repair_target"] = f.readUInt32()
+		system["readout_repair_current"] = f.readUInt32()
+		enterprise["systems"].append(system)
+	assert(f.readUInt32() == 0xa0a0a0a0)
+
+	assert(f.readUInt32() == 0x0b0b0b0b)
+	tactical = {}
+	tactical["weapons_lock"] = (False, True)[f.readUInt8()]
+	tactical["torpedo_spread"] = f.readUInt32() / 46
+	tactical["shields_raised"] = (False, True)[f.readUInt8()]
+	tactical["deletgate_on"] = (False, True)[f.readUInt8()]
+	f.readUInt8()
+	tactical["unknown_74"] = f.readUInt8()
+	tactical["alert_level"] = f.readUInt32()
+	assert(f.readUInt32() == 0xb0b0b0b0)
+
+	assert(f.readUInt32() == 0x80808080)
+
+	assert(f.pos() == block["end_offset"])
+	return { "ncc1701d": {
+		"combat": combat,
+		"enterprise": enterprise,
+		"tactical": tactical,
+	}}
 
 
 def readGlobalSettings(f, block):
@@ -571,6 +654,7 @@ def savegame(input_path):
 	except:
 		print("AN ERROR OCURRED FETCHING OBJECTS - SAVEGAME SUPPORT IS A WORK IN PROGRESS")
 	print(blocks[7]) # enterprise
+	data |= readEnterprise(f, blocks[7])
 	print(blocks[8])
 	data |= readGlobalSettings(f, blocks[8])
 
