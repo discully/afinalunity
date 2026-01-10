@@ -114,6 +114,7 @@ will output `astro.db.json`.
 ## Object Files
 
 The `.bst` files are objects representing characters, items, events, etc., but there are over 2500.
+`afu_to_json.py` does support them, but I don't know a lot of the fields, and I'm not confident all those I have labelled are correct.
 To find and idenitfy the right `.bst` file you can use the `afu_objects.py` utility.
 
 ### Identifying Object Files
@@ -145,9 +146,9 @@ The `--name` search term is case insensitive, and will match any object which co
 ## SAVEGAME Files
 
 The SAVEGAME files are found in the install directory.
-SAVEGAME.0 is the default save for starting the game.
+`SAVEGAME.0` is the default save for starting the game.
 Those numbered 1-9 are the slots you can save progress in.
-There is very early support for SAVEGAME files in afu_to_json.py.
+Similar to object files, `afu_to_json.py` supports them, but I've not identified a lot of the fields yet.
 
 For example:
 ```sh
