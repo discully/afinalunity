@@ -416,42 +416,48 @@ def _readChunksWorld2(f):
 
 
 def _readChunksTriggers(f):
+
+	# Standard triggers (can be id'd in triggers.dat)
+	assert(f.readUInt32() == 0x30303030)
 	total_size = f.readUInt32()
-	triggers_enabled = []
+	triggers_standard = []
 	for i in range(total_size):
 		trigger = {}
 		trigger["id"] = f.readUInt32()
 		trigger["enabled"] = (False, True)[f.readUInt32()]
-		triggers_enabled.append(trigger)
-	
+		triggers_standard.append(trigger)
 	assert(f.readUInt32() == 0x06060606)
+
+
+	# Dynamically generated triggers
+	# TODO: None of my files had this in them, so it's untested.
 	assert(f.readUInt32() == 0x03030303)
 	total_size = f.readUInt32()
-	# TODO: None of my files had this in them, so it's untested.
-	triggers = []
+	triggers_dynamic = []
 	if total_size != 0:
 		end = f.pos() + total_size
 		while f.pos() < end:
 			trigger = {}
 			trigger["id"] = f.readUInt32()
-			trigger["header_size"] = f.readUInt8()
+			trigger["data_size"] = f.readUInt8()
 			trigger["unknown_6"] = [f.readUInt8() for i in range(3)]
 			trigger_type = f.readUInt32()
 			if trigger_type == 0:
-				data_size = trigger["header_size"] + 0x18 - 12
+				data_size = trigger["data_size"] + 0x18 - 12
 			elif trigger_type == 1:
-				data_size = trigger["header_size"] + 0x20 - 12
+				data_size = trigger["data_size"] + 0x20 - 12
 			elif trigger_type == 2:
-				data_size = trigger["header_size"] + 0x28 - 12
+				data_size = trigger["data_size"] + 0x28 - 12
 			elif trigger_type == 3:
-				data_size = trigger["header_size"] + 0x1c - 12
+				data_size = trigger["data_size"] + 0x1c - 12
+			# TODO: Interpret trigger structure better
 			trigger["data"] = [f.readUInt8() for i in range(data_size)]
-			triggers.append(trigger)
-	
+			triggers_dynamic.append(trigger)
 	assert(f.readUInt32() == 0x06060606)
+
 	return {
-		"enabled": triggers_enabled,
-		"triggers": triggers,
+		"standard": triggers_standard,
+		"dynamic": triggers_dynamic,
 	}
 
 
@@ -486,7 +492,6 @@ def _readBlockChunks(f, block):
 	assert(f.readUInt32() == 0x20202020)
 	data["object_lists"] = _readChunksObjectLists(f)
 	data["world2"] = _readChunksWorld2(f)
-	assert(f.readUInt32() == 0x30303030)
 	data["triggers"] = _readChunksTriggers(f)
 	data["commands"] = _readChunksCommands(f)
 
