@@ -639,7 +639,7 @@ def savegame(input_path):
 	# Header
 	assert(f.readString() == "STTNG_GAME")
 
-	blocks = _readBlockHeaders(f)
+	blocks = readBlockHeaders(f)
 	assert(len(blocks) == 9)
 
 	data |= _readBlockCompstat(f, blocks[0])
