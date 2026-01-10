@@ -1,23 +1,10 @@
 from pathlib import Path
 from AFU.File import File, fpos
 from AFU import Astro, Computer, Block, World
-
-# [offset      ][block][size][contents             ]
-#  0x0    0      Header 14
-#  0xf    15     GNT    544
-#                             0x13   compstat
-#                             0x1a0  ?
-#  0x233  563    GNT    9600         ast_stat
-#  0x27b7 10167  GNT    31
-#  0x27da 10202  GNT    8
-#  0x27e6 10214  GNT    2177
-#  0x306b 12395  GNT    5            travel history
-#  0x3074 12404  GNT    5799         objects (ships, characters, away team, etc.)
-#  0x471f 18207  ONT    2767         enterprise status??
-#  0x51f2 20978  ONT    81           ??
+from enum import Enum
 
 
-def readBlockTravelHistory(f, block):
+def _readBlockTravelHistory(f, block):
 	data = []
 	f.setPosition(block["data_offset"])
 	assert(f.readUInt8() == 0) # padding
@@ -109,7 +96,7 @@ def readBlockTravelHistory(f, block):
 	}
 
 
-def readBlockAststat(f, block):
+def _readBlockAststat(f, block):
 	data = {}
 	f.setPosition(block["data_offset"])
 	data["astro_state"] = Astro.readAstroState(f)
@@ -117,7 +104,7 @@ def readBlockAststat(f, block):
 	return data
 
 
-def readBlockCompstat(f, block):
+def _readBlockCompstat(f, block):
 	data = {}
 	f.setPosition(block["data_offset"])
 
@@ -133,7 +120,7 @@ def readBlockCompstat(f, block):
 	return data
 
 
-def readVideos(f, block):
+def _readBlockVideos(f, block):
 	data = {}
 	f.setPosition(block["data_offset"])
 
@@ -149,7 +136,7 @@ def readVideos(f, block):
 	return data
 
 
-def readScreenRegions(f, block):
+def _readBlockScreenRegions(f, block):
 	data = {}
 	f.setPosition(block["data_offset"])
 
@@ -178,7 +165,7 @@ def readScreenRegions(f, block):
 	}
 
 
-def readBlockConverations(f, block):
+def _readBlockConverations(f, block):
 	f.setPosition(block["data_offset"])
 
 	assert(f.readUInt8() == 0)
@@ -228,15 +215,6 @@ def readBlockConverations(f, block):
 			conversation.append(c_line)
 		assert(f.pos() == c_start + c_size)
 		conversation_history.append(conversation)
-	
-	#print("Conversation History")
-	#for i,conversation in enumerate(conversation_history):
-	#	if i == 0:
-	#		print("    Previous Conversation")
-	#	else:
-	#		print("    Conversation", i)
-	#	for line in conversation:
-	#		print("       ", line)
 
 	recent_vacs = [f.readStringBuffer(14) for j in range(3)]
 
@@ -251,242 +229,272 @@ def readBlockConverations(f, block):
 	}
 
 
-def readBlockObjectHeader(f):
-	addr = f.readUInt32()
-	type_1 = f.readUInt32()
-	id = Block._readObjectId(f)
-	type_2 = f.readUInt32()
-	assert(type_1 == type_2)
-	assert(f.readUInt32() == 0x0)
-	next = f.readUInt32()
+class BlockDiffType (Enum):
+	CORE = 0x1
+	OBJ = 0x2
+	PHASER = 0x4
+	SCREEN = 0x8
+	UNKNOWN_9 = 0x9
+	START = 0x10
+	UNKNOWN_11 = 0x11
+	RESULT_COUNTER = 0x20
+
+
+def _readDiffHeader(f):
+	diff = {}
+	diff["target"] = f.readUInt32()
+	diff["type"] = f.readUInt32()
+	diff["unknown_8"] = f.readUInt32()
+	diff["ptr_next"] = f.readUInt32()
+	if diff["target"] != 0xffffffff:
+		diff["type"] = BlockDiffType(diff["type"])
+	return diff
+
+
+def _readDiff(f):
+	diff_type = f.readUInt32()
+	if diff_type == 0xffffffff: return None
+	diff_type = BlockDiffType(diff_type)
+
+	diff = _readDiffHeader(f)
+
+	assert(diff_type == diff["type"])
+
+	if diff_type == BlockDiffType.CORE:
+		data = [f.readUInt8() for i in range(0x24)]
+	elif diff_type == BlockDiffType.OBJ:
+		data = [f.readUInt8() for i in range(0xd4)]
+	elif diff_type == BlockDiffType.PHASER:
+		data = [f.readUInt8() for i in range(0x14)]
+	elif diff_type == BlockDiffType.SCREEN:
+		data = [f.readUInt8() for i in range(0x0c)]
+	elif diff_type == BlockDiffType.START:
+		data = [f.readUInt8() for i in range(0x28)]
+	else:
+		raise ValueError(f"Unexpected diff type: {diff_type}")
+	diff["data"] = data
+
+	return diff
+
+
+def _readDiffObj(f):
+	diff = _readDiffHeader(f)
+	diff["flags"] = f.readUInt32()
+	diff["state"] = f.readUInt16()
+	diff["y_adjust"] = f.readUInt16()
+	diff["anim_index"] = f.readUInt16()
+	diff["sprite_id"] = f.readUInt16()
+	diff["world_coords"] = [f.readUInt32() for i in range(3)]
+	diff["universe_coords"] = [f.readUInt32() for i in range(3)]
+	diff["unknown_34"] = f.readUInt32()
+	diff["unknown_38"] = f.readUInt32()
+	diff["curr_screen"] = f.readUInt8()
+	diff["cursor_id"] = f.readUInt8()
+	diff["cursor_flag"] = f.readUInt8()
+	diff["unkonwn_3f"] = f.readUInt8()
+	diff["voice"] = {}
+	diff["voice"]["id"] = f.readUInt32()
+	diff["voice"]["group"] = f.readUInt32()
+	diff["voice"]["subgroup"] = f.readUInt16()
+	diff["width"] = f.readUInt16()
+	diff["height"] = f.readUInt16()
+	diff["name"] = f.readStringBuffer(20)
+	diff["talk"] = f.readStringBuffer(100)
+	diff["unknown_c6"] = f.readUInt8()
+	diff["unknown_c7"] = f.readUInt8()
+	diff["region_id"] = f.readUInt32()
+	diff["unknown_c8"] = f.readUInt8()
+	diff["walk_type"] = f.readUInt8()
+	diff["unknown_ce"] = f.readUInt16()
+	diff["transition_object_id"] = f.readUInt32()
+	diff["skills"] = f.readUInt16()
+	diff["timer"] = f.readUInt16()
+	diff["unknown_d8"] = f.readUInt16()
+	diff["unknown_da"] = f.readUInt16()
+	diff["unknown_dc"] = f.readUInt16()
+	diff["unknown_de"] = f.readUInt16()
+	diff["time_next_update"] = f.readUInt32()
+	return diff
+	
+
+def _readChunksDiff(f):
+	diffs = []
+	while True:
+		diff = _readDiff(f)
+		if diff is None: break
+		diffs.append(diff)
+	return diffs
+
+
+def _readChunksWorld(f):
+	world = {}
+	world["unknown_0"] = f.readUInt8()
+	world["phaser_level"] = f.readUInt32()
+	world["team_lead_id"] = f.readUInt32()
+	world["exit_id"] = f.readUInt32()
+	world["screen_id"] = f.readUInt32()
+	world["world_id"] = f.readUInt32()
+	world["entrance_id"] = f.readUInt32()
+	world["unknown_2c"] = f.readUInt32()
+	world["mission_screen_id"] = f.readUInt32()
+	world["mission_world_id"] = f.readUInt32()
+	world["mission_entrance_id"] = f.readUInt32()
+
+	if world["world_id"] == 0xffffff00: world["world_id"] = None
+	if world["mission_world_id"] == 0xffffff00: world["mission_world_id"] = None
+
+	return world
+
+
+def _readChunksWalkQueues(f):
+	queue = []
+	n = f.readUInt32()
+	for i in range(n):
+		entry = {}
+		entry["object_id"] = f.readUInt32()
+		entry["event_type"] = f.readUInt32()
+		entry["ptr_object"] = f.readUInt32()
+		entry["other"] = f.readUInt32()
+		entry["who"] = f.readUInt32()
+		entry["x"] = f.readUInt32()
+		entry["y"] = f.readUInt32()
+		queue.append(entry)
+	
+	return queue
+
+
+def _readChunksObjDiffs(f):
+	obj_diffs = []
+	while True:
+		diff = _readDiffObj(f)
+		if diff["target"] == 0xffffffff: break
+		obj_diffs.append(diff)
+	return obj_diffs
+
+
+def _readChunksObjectLists(f):
+	list_keys = [
+		"crew_ship",
+		None,
+		None,
+		"inventory_away",
+		"inventory_ship",
+		"unknown_88",
+		"unknown_8c",
+		"unknown_90",
+		"unknown_94",
+		"unknown_98",
+		"unknown_9c",
+		"unknown_a0",
+		"unknown_a8",
+		"unknown_ac",
+		"unknown_b0",
+		"crew_away_original"
+	]
+	object_lists = { key:[] for key in list_keys}
+	while True:
+		list_id = f.readUInt32()
+		object_id = f.readUInt32()
+		if list_id == 0x11: break
+		assert(object_id != 0xffffffff)
+		object_lists[ list_keys[list_id] ].append(object_id)
+	return object_lists
+		
+
+def _readChunksWorld2(f):
+	world = {}
+	world["unknown_60"] = f.readUInt8()
+	world["unknown_64"] = f.readUInt32()
+	world["unknown_68"] = [f.readUInt32() for i in range(3)]
+	world["unknown_b8"] = f.readUInt8()
+	world["unknown_bc_object_id"] = f.readUInt32()
+	world["unknown_c4"] = f.readUInt32()
+	world["unknown_c0"] = f.readUInt32()
+	world["unknown_c8"] = [f.readUInt32() for i in range(2)]
+	world["difficulty"] = f.readUInt32()
+	return world
+
+
+def _readChunksTriggers(f):
+	total_size = f.readUInt32()
+	triggers_enabled = []
+	for i in range(total_size):
+		trigger = {}
+		trigger["id"] = f.readUInt32()
+		trigger["enabled"] = (False, True)[f.readUInt32()]
+		triggers_enabled.append(trigger)
+	
+	assert(f.readUInt32() == 0x06060606)
+	assert(f.readUInt32() == 0x03030303)
+	total_size = f.readUInt32()
+	# TODO: None of my files had this in them, so it's untested.
+	triggers = []
+	if total_size != 0:
+		end = f.pos() + total_size
+		while f.pos() < end:
+			trigger = {}
+			trigger["id"] = f.readUInt32()
+			trigger["header_size"] = f.readUInt8()
+			trigger["unknown_6"] = [f.readUInt8() for i in range(3)]
+			trigger_type = f.readUInt32()
+			if trigger_type == 0:
+				data_size = trigger["header_size"] + 0x18 - 12
+			elif trigger_type == 1:
+				data_size = trigger["header_size"] + 0x20 - 12
+			elif trigger_type == 2:
+				data_size = trigger["header_size"] + 0x28 - 12
+			elif trigger_type == 3:
+				data_size = trigger["header_size"] + 0x1c - 12
+			trigger["data"] = [f.readUInt8() for i in range(data_size)]
+			triggers.append(trigger)
+	
+	assert(f.readUInt32() == 0x06060606)
 	return {
-		"addr": addr,
-		"type_1": type_1,
-		"id": id,
-		"type_2": type_2,
-		"next": next,
+		"enabled": triggers_enabled,
+		"triggers": triggers,
 	}
 
 
-def readBlockObjectType4(f):
-	unknown = []
-	unknown.append([f.readUInt8() for i in range(8)])
-	unknown.append([f.readUInt32() for i in range(7)])
-	unknown.append([f.readUInt8() for i in range(4)])
-	unknown.append(f.readUInt32())
-	unknown.append(f.readUInt32())
-	for u in unknown:
-		print("**4**", u)
-	return {
-		"unknown": unknown
-	}
-def readBlockObjectType4B(f):
-	unknown = []
-	unknown.append([f.readUInt8() for i in range(8)])
-	n4 = f.readUInt32()
-	unknown.append(n4)
-	for j in range(n4):
-		unknown.append([f.readUInt8() for i in range(6)])
-	unknown.append([f.readUInt8() for i in range(78)])
-	fpos(f, "here")
-	#unknown.append([f.readUInt8() for i in range(14)])
-	name = f.readStringBuffer(20)
-	desc = f.readStringBuffer(100)
-	unknown_5 = f.readUInt16()
-	unknown_6 = f.readUInt32()
-	unknown_7 = [f.readUInt32(), f.readUInt32(), f.readUInt16(), f.readUInt16(), f.readUInt32(), f.readUInt32()]
-	for u in unknown:
-		print("**4**", u)
-	print("**44**", name)
-	return {
-		"unknown": unknown,
-		"name": name,
-		"desc": desc,
-	}
+def _readChunksCommands(f):
+	# TODO: Also untested
+	cmds = []
+	while True:
+		n = f.readUInt32()
+		if n == 0xffffffff: break
+		cmd = f.readStringBuffer(n)
+		cmds.append(cmd)
+	return cmds
 
 
-def readBlockObjectType1(f, obj_type):
-	flags = f.readUInt32()
-	state = f.readUInt8()
-	anim_index = f.readUInt8()
-	y_adjust = f.readSInt16()
-	region_id = f.readUInt16()
-	sprite_id = f.readUInt16()
-	xyz = [f.readSInt32() for i in range(3)]
-	universe_xyz = [f.readSInt32() for i in range(3)]
-	unknown_1 = [f.readUInt32() for i in range(2)]
-	curr_screen = f.readUInt32()
-	voice_id = Block._readVoiceId(f)
-	unknown_2 = [f.readUInt8() for i in range(4)]
-
-	unknown_3 = None
-	unknown_4 = None
-	if obj_type == 16:
-		unknown_3 = [f.readUInt16() for i in range(2)]
-	if obj_type == 16 or obj_type == 1:
-		unknown_4 = [f.readUInt8() for i in range(56)]
-
-	name = f.readStringBuffer(20)
-	desc = f.readStringBuffer(100)
-
-	unknown_5 = f.readUInt16()
-	unknown_6 = f.readUInt32()
-	unknown_7 = [f.readUInt32(), f.readUInt32(), f.readUInt16(), f.readUInt16(), f.readUInt32(), f.readUInt32()]
-
-	unknown_8 = None
-	if obj_type == 16 and unknown_1[1] == 16: # this is a complete guess as to what's signalling the extra data, or if this is where it is
-		unknown_8 = [f.readUInt8() for i in range(8)]
-
-	data = {
-		"flags": flags,
-		"state": state,
-		"anim_index": anim_index,
-		"y_adjust": y_adjust,
-		"region_id": region_id,
-		"sprite_id": sprite_id,
-		"xyz": xyz,
-		"universe_xyz": universe_xyz,
-		"curr_screen": curr_screen,
-		"voice_id": voice_id,
-		"name": name,
-		"desc": desc,
-		"unknown": [unknown_1, unknown_2, unknown_3, unknown_4, unknown_5, unknown_6, unknown_7, unknown_8]
-	}
-
-	return data
-
-
-
-def readBlockObjects2(f):
-	# The Away Team ?
-
-	data = []
-	id = None
-	for i in range(7):
-		fpos(f)
-
-		# Some characters have multiple (identical?) entries.
-		# The first entry has their ID, the subsequent ones have ID of 0xffffffff.
-		new_id = f.readUInt32()
-		if new_id != 0xffffffff:
-			id = new_id
-
-		type = f.readUInt32()
-		#assert(type == 2)
-
-		unknown1 = []
-		unknown1.append([f.readUInt32() for i in range(3)]) #
-		unknown1.append([f.readUInt16() for i in range(4)]) #
-		unknown1.append([f.readUInt32() for i in range(8)]) #
-		unknown1.append([f.readUInt16() for i in range(9)]) # 78
-		name = f.readStringBuffer(9) # todo: check this with Carlstrom in the team
-		unknown2 = [f.readUInt8() for i in range(141)] # almost looks like bocks of four, but not quite
-
-		print(id, type, name)
-
-		data.append({
-			"id": id,
-			"type": type,
-			"name": name,
-			"unknown1": unknown1,
-			"unknown2": unknown2
-		})
-	return data
-
-
-def readBlockObjects1(f):
-	data = {}
-	next = 0xffffffff
-	while next != 0x0:
-		p = f.pos()
-		obj = readBlockObjectHeader(f)
-
-		if obj["type_1"] == 4:
-			#obj |= readBlockObjectType4(f)
-			#key = ""
-			obj |= readBlockObjectType4B(f)
-			key = obj["name"]
-		elif obj["type_1"] in (1, 2, 16):
-			obj |= readBlockObjectType1(f, obj["type_1"])
-			key = obj["name"]
-		else:
-			raise ValueError("Unknown object type: {}".format(obj["type_1"]))
-
-		if key == "":
-			key = "{0[id]}-{0[screen]}-{0[world]}".format(obj["id"])
-
-		if key in data:
-			raise ValueError("Key already exists in data: {}".format(key))
-
-		obj_size = f.pos() - p
-		obj_delta_next = obj["next"] - next
-
-		data[key] = obj
-		next = obj["next"]
-
-		print("{} {:>2} {:<25} {}".format(hex(p), obj["type_1"], key, hex(p + obj_delta_next + 4)))
-
-	return data
-
-
-def readBlockObjects(f, block):
-
-	dat = Path("../../data/STTNG/")
-
+def _readBlockChunks(f, block):
 	data = {}
 	f.setPosition(block["data_offset"])
 
-	fpos(f)
+	assert(f.readUInt32() == 0x01010101)
+	data["current_time"] = f.readUInt32()
+	data["diffs"] = _readChunksDiff(f)
+	assert(f.readUInt32() == 0x10101010)
+	data["world"] = _readChunksWorld(f)
+	assert(f.readUInt32() == 0x40404040)
+	data["walk_queue_1"] = _readChunksWalkQueues(f)
+	assert(f.readUInt32() == 0x04040404)
+	data["walk_queue_2"] = _readChunksWalkQueues(f)
+	assert(f.readUInt32() == 0x02020202)
+	data["crew_away_diffs"] = _readChunksObjDiffs(f)
+	data["crew_stunned_diffs"] = _readChunksObjDiffs(f)
+	data["unknown_a4_diffs"] = _readChunksObjDiffs(f)
+	assert(f.readUInt32() == 0x20202020)
+	data["object_lists"] = _readChunksObjectLists(f)
+	data["world2"] = _readChunksWorld2(f)
+	assert(f.readUInt32() == 0x30303030)
+	data["triggers"] = _readChunksTriggers(f)
+	data["commands"] = _readChunksCommands(f)
 
-	while f.pos() <= block["end_offset"]:
-		section = [f.readUInt8() for i in range(4)]
-
-		print("===========", section, "===========")
-		if section[0] == 1: # Lots of objects
-			data |= readBlockObjects1(f)
-			unknown_addr = f.readUInt32()
-			assert(f.readUInt32() == 0xffffffff)
-		elif section[0] == 64:
-			n64 = f.readUInt32()
-			assert(n64 == 0)
-		elif section[0] == 16:
-			assert(f.readUInt8() == 0)
-			# e.g. [2, 4, 4294967295, 7, 4, 0, 4294967295, 1, 4, 0]
-			# Is the '7' the number of away team members under '2,2,2,2' ???
-			# Todo: try an away team with fewer than four members
-			print([f.readUInt32() for i in range(10)])
-		elif section[0] == 4:
-			n4 = f.readUInt32()
-			assert(n4 == 0)
-		elif section[0] == 2: # Away team
-			readBlockObjects2(f)
-		elif section[0] == 32:
-			s32 = [f.readUInt32()]
-			while s32[-1] != 17:
-				s32.append(f.readUInt32())
-			s32u = [f.readUInt8() for i in range(46)]
-			print(s32)
-			print(s32u)
-		elif section[0] == 48:
-			n48 = f.readUInt32()
-			print(n48)
-			print([f.readUInt32() for i in range(2*n48)])
-		elif section[0] == 6:
-			pass
-		elif section[0] == 3:
-			print([f.readUInt8() for i in range(92)])
-			name3 = f.readString()
-			print(name3)
-		elif section[0] == 0xff:
-			break
-		else:
-			assert(False)
-
-	return data
+	assert(f.pos() == block["end_offset"])
+	return {"objects": data}
 
 
-
-def readEnterprise(f, block):
+def _readBlockEnterprise(f, block):
 	data = {}
 	f.setPosition(block["data_offset"])
 
@@ -569,7 +577,7 @@ def readEnterprise(f, block):
 	}}
 
 
-def readGlobalSettings(f, block):
+def _readBlockGlobals(f, block):
 	data = {}
 	f.setPosition(block["data_offset"])
 	
@@ -581,8 +589,6 @@ def readGlobalSettings(f, block):
 			data["dialogue_talking_pos"] = (f.readUInt16(), f.readUInt16())
 		elif x == 2:
 			data["unknown"] = [f.readUInt8() for i in range(0x20)]
-			#for i in range(0x20):
-			#	assert(f.readUInt8() == 0x0)
 		elif x == 3:
 			data["astrogation_location_updated"] = (False, True)[f.readUInt8()]
 		elif x == 4:
@@ -596,7 +602,7 @@ def readGlobalSettings(f, block):
 	return {"globals": data}
 
 
-def readBlockHeader(f):
+def _readBlockHeader(f):
 	block_offset = f.pos()
 	block_type = f.readStringBuffer(4)
 	assert(block_type in ["GNT", "ONT"])
@@ -615,7 +621,7 @@ def readBlockHeader(f):
 def readBlockHeaders(f):
 	blocks = []
 	while not f.eof():
-		blocks.append(readBlockHeader(f))
+		blocks.append(_readBlockHeader(f))
 		f.setPosition(blocks[-1]["end_offset"])
 	
 	assert(len(blocks) == 9)
@@ -633,29 +639,17 @@ def savegame(input_path):
 	# Header
 	assert(f.readString() == "STTNG_GAME")
 
-	blocks = readBlockHeaders(f)
+	blocks = _readBlockHeaders(f)
 	assert(len(blocks) == 9)
 
-	print(blocks[0])
-	data |= readBlockCompstat(f, blocks[0])
-	print(blocks[1])
-	data |= readBlockAststat(f, blocks[1])
-	print(blocks[2])
-	data |= readVideos(f, blocks[2])
-	print(blocks[3])
-	data |= readScreenRegions(f, blocks[3])
-	print(blocks[4])
-	data |= readBlockConverations(f, blocks[4])
-	print(blocks[5])
-	data |= readBlockTravelHistory(f, blocks[5])
-	print(blocks[6])
-	try:
-		data |= readBlockObjects(f, blocks[6])
-	except:
-		print("AN ERROR OCURRED FETCHING OBJECTS - SAVEGAME SUPPORT IS A WORK IN PROGRESS")
-	print(blocks[7]) # enterprise
-	data |= readEnterprise(f, blocks[7])
-	print(blocks[8])
-	data |= readGlobalSettings(f, blocks[8])
+	data |= _readBlockCompstat(f, blocks[0])
+	data |= _readBlockAststat(f, blocks[1])
+	data |= _readBlockVideos(f, blocks[2])
+	data |= _readBlockScreenRegions(f, blocks[3])
+	data |= _readBlockConverations(f, blocks[4])
+	data |= _readBlockTravelHistory(f, blocks[5])
+	data |= _readBlockChunks(f, blocks[6])
+	data |= _readBlockEnterprise(f, blocks[7])
+	data |= _readBlockGlobals(f, blocks[8])
 
 	return data
