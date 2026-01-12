@@ -246,7 +246,7 @@ Represents astronomical bodies: Ion Storms, Quasaroids, Black Holes, Subspace Vo
 |   0x18 |     24 | body_ptr_desc    | 32u  | String for body's description (set during execution) |
 |   0x1C |     28 | body_ptr_name    | 32u  | String for name of body |
 |   0x22 |     32 | body_zone_radius | 32u  | Radius of known zone of influence, in LY |
-|   0x26 |     36 | body_unknown0    | 32u  | Set based upon station type. Not used? |
+|   0x26 |     36 | body_encounter_func| 32u  | Function pointer, called when within the radius |
 
 Total length: 40 bytes.
 
