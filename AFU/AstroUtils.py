@@ -25,16 +25,6 @@ def majorCoords(global_coords):
 # Standard Structs
 #
 
-def readLocation(f):
-	loc = {}
-	loc["sector_id"] = f.readUInt16()
-	loc["system_index"] = f.readUInt16()
-	loc["planet_index"] = f.readUInt16()
-	loc["obj_type"] = f.readUInt16()
-	loc["body_station_index"] = f.readUInt16()
-	loc["body_index"] = f.readUInt16()
-	return loc
-
 
 def locationIndex(x, y, z):
 	return x*1000000 + y*1000 + z
