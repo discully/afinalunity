@@ -1035,9 +1035,8 @@ def _readPhaserHeader(f, block):
 
 def identifyObject(dir, id):
 	o = getObject(dir, id)
-	if o:
-		id["name"] = o[0]["name"]
-	return id
+	if o: return o[0]["name"]
+	return None
 
 
 def getObject(dir, id):

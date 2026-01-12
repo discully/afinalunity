@@ -15,36 +15,47 @@ def triggers(file_path):
 	f = File(file_path)
 	data = []
 	while not f.eof():
-		trigger = {
-			"id": f.readUInt32()
-		}
+		trigger = {}
 		
-		assert(f.readUInt8() == 0xff)
-		assert(f.readUInt8() == 0xff)
-		trigger["unknown_a"] = f.readUInt8()
-		assert (f.readUInt8() == 0xff)
+		trigger["id"] = f.readUInt32()
+		assert(f.readUInt8() == 0xff) # data size
+		assert(f.readUInt8() == 0xff) # to_save
+		trigger["on_mission"] = (False, True)[f.readUInt8()]
+		assert (f.readUInt8() == 0xff) # unused
 		trigger["type"] = TriggerType(f.readUInt32())
-		id = _readObjectId(f)
-		trigger["target"] = identifyObject(file_path.parent, id)
-		trigger["enabled"] = bool( f.readUInt8() )
-		trigger["unknown_b"] = f.readUInt8()
-		assert (f.readUInt16() == 0xffff)
-		trigger["timer_start"] = f.readUInt32()
-	
+		trigger["target_id"] = _readObjectId(f)
+		obj_name = identifyObject(file_path.parent, trigger["target_id"])
+		if obj_name:
+			trigger["target_name"] = obj_name
+		trigger["is_enabled"] = (False, True)[f.readUInt8()]
+		trigger["unknown_11"] = f.readUInt8() # A counter of some kind? Either 0cff or 0x5
+		
+		if trigger["type"] == TriggerType.NORMAL:
+			assert (f.readUInt16() == 0xffff)
+			trigger["timer_start"] = f.readUInt32()
 		if trigger["type"] == TriggerType.TIMER:
-			assert( f.readUInt32() == 0)
-			assert( f.readUInt32() == 0)
+			assert (f.readUInt16() == 0xffff) # unused
+			trigger["duration"] = f.readUInt32()
+			trigger["time_started"] = f.readUInt32()
+			trigger["time_to_fire"] = f.readUInt32()
 		elif trigger["type"] == TriggerType.PROXIMITY:
-			trigger["distance"] = f.readUInt16()
+			trigger["global_coords"] = [f.readUInt16() for i in range(3)]
+			trigger["radius"] = f.readUInt16()
+			assert(f.readUInt16() == 0xffff) # unused
+			trigger["from_id"] = _readObjectId(f)
+			obj_name = identifyObject(file_path.parent, trigger["from_id"])
+			if obj_name:
+				trigger["from_name"] = obj_name
+			trigger["to_id"] = _readObjectId(f)
+			obj_name = identifyObject(file_path.parent, trigger["to_id"])
+			if obj_name:
+				trigger["to_name"] = obj_name
+			trigger["use_radius"] = (False, True)[f.readUInt8()]
+			trigger["unknown_25"] = (False, True)[f.readUInt8()]
 			assert(f.readUInt16() == 0xffff)
-			id = _readObjectId(f)
-			trigger["from"] = identifyObject(file_path.parent, id)
-			id = _readObjectId(f)
-			trigger["to"] = identifyObject(file_path.parent, id)
-			trigger["reversed"] = bool(f.readUInt8())
-			trigger["instant"] = bool(f.readUInt8())
-			assert(f.readUInt16() == 0xffff)
-		elif trigger["type"] == TriggerType.UNUSED:
+		elif trigger["type"] == TriggerType.UNUSED:	
+			assert (f.readUInt16() == 0xffff) # unused
+			trigger["time_next_update"] = f.readUInt32()
 			assert(f.readUInt32() == 0)
 		
 		data.append(trigger)
