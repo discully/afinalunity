@@ -140,8 +140,6 @@ def astroDb(file_path):
 			assert(offset == 0)
 			offset = body.pop("_ptr_name")
 			if offset != 0xFFFFFFFF: body["name"] = f.readOffsetString(offset)
-			assert(body["unknown0"] == 0)
-			body["unknown0"] = BODY_UNKNOWN0[body["type"]]
 
 		for station in sector["stations"]:			
 			offset = station.pop("_ptr_desc")

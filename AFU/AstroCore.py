@@ -267,7 +267,7 @@ def readBody(f):
 	body_ptr_desc = f.readUInt32()
 	body_ptr_name = f.readUInt32()
 	body_zone_radius = f.readUInt32()  # radius of known zone of influence, in LY
-	body_unknown0 = f.readUInt32() # todo: 0 in astro.db, non-zero in astromap.db
+	body_encounter_func = f.readUInt32() # Pointer to a function. 0 in astro.db, non-zero in astromap.db
 
 	assert(body_random_seed == 0) # Set during execution
 	assert(body_ptr_desc == 0) # Set during execution
@@ -280,7 +280,6 @@ def readBody(f):
 		"_ptr_desc": body_ptr_desc,
 		"_ptr_name": body_ptr_name,
 		"zone_radius": body_zone_radius,
-		"unknown0": body_unknown0,
 	}
 
 
