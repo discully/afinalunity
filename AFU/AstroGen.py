@@ -536,16 +536,6 @@ def moonDescription(moon):
 #
 
 
-BODY_UNKNOWN0 = {
-	ObjectType.ION_STORM: 8591061,
-	ObjectType.QUASAROID: 8591388,
-	ObjectType.BLACK_HOLE: 8592151,
-	ObjectType.SUBSPACE_VORTEX: 8592697,
-	ObjectType.UNITY_DEVICE: 0,
-	ObjectType.SPECIAL_ITEM: 0,
-}
-
-
 def bodyDescription(body):
 	# Todo: this is a guess, and needs to be replaced with the actual function
 	if body["type"] == ObjectType.SPECIAL_ITEM:  # Special item (Alien device, Unity device, Ruinore sector, USS Ayers, Singelea sector)
