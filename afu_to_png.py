@@ -89,74 +89,70 @@ def main():
 	afu_file = AFU.File.File(args.image_file)
 	output_file_name = args.output_dir.joinpath(args.image_file.name)
 
-	file_type = AFU.Utils.identify( args.image_file )
+	file_type = AFU.identify( args.image_file )
 
-	if file_type == "sprite":
+	if file_type == AFU.FileType.SPRITE:
 
 		if args.background is None:
 			print("Path to background image required for sprite but not provided.")
 			parser.print_help()
 			return
 
-		afu_sprite = AFU.Sprite.sprite(args.image_file, args.background, args.palette)
+		afu_sprite = AFU.sprite(args.image_file, args.background, args.palette)
 		for offset,image in afu_sprite["images"].items():
 			export("{0}.{1}".format(output_file_name, offset), image["image"])
 
-	elif file_type == "background":
-		afu_background = AFU.Background.background(args.image_file)
+	elif file_type == AFU.FileType.IMG_BACKGROUND:
+		afu_background = AFU.background(args.image_file)
 		export(output_file_name, afu_background["image"])
 
-	elif file_type == "font":
-		afu_font = AFU.Font.font(args.image_file, args.background, args.palette)
+	elif file_type == AFU.FileType.FONT:
+		afu_font = AFU.font(args.image_file, args.background, args.palette)
 		for char,afu_character in afu_font["chars"].items():
 			export("{0}.{1}".format(output_file_name,ord(char)), afu_character["image"])
 		
 		try:
-			afu_text = AFU.Font.text(afu_font, "Star Trek: The Next Generation")
+			afu_text = AFU.text(afu_font, "Star Trek: The Next Generation")
 		except ValueError:
-			afu_text = AFU.Font.text(afu_font, "STAR TREK: THE NEXT GENERATION")
+			afu_text = AFU.text(afu_font, "STAR TREK: THE NEXT GENERATION")
 		export("{0}.text".format(output_file_name), afu_text)
 
-	elif file_type == "image_gif":
-		img = AFU.Graphics.imgPil(args.image_file)
+	elif file_type == AFU.FileType.IMG_GIF:
+		img = AFU.Graphics.imgPil(args.image_file) ############################################################################################
 		img.save("{}.png".format(output_file_name), "PNG")
 
-	elif file_type == "image_lbm":
-		img = AFU.Graphics.lbm(args.image_file)["image"]
+	elif file_type == AFU.FileType.IMG_LBM:
+		img = AFU.lbm(args.image_file)["image"]
 		export(output_file_name, img)
 
-	elif file_type == "menu":
-		afu_menu = AFU.Menu.mrg(args.image_file, args.background, args.palette)
+	elif file_type == AFU.FileType.IMG_MENU:
+		afu_menu = AFU.mrg(args.image_file, args.background, args.palette)
 		for i,image in enumerate(afu_menu):
 			export("{}.{}".format(output_file_name, i), image)
 	
-	elif file_type == "cursor":
-		cursors = AFU.Cursor.cursor(args.image_file, global_palette_path)
+	elif file_type == AFU.FileType.CURSOR:
+		cursors = AFU.cursor(args.image_file, global_palette_path)
 		for cursor in cursors:
 			export(output_file_name.with_name(cursor.name), cursor)
 
-	elif file_type == "database":
-		if args.image_file.stem == "computer":
+	elif file_type == AFU.FileType.DATABASE_COMPUTER:
+		background_path = getFilePath("compupnl.ast", args.image_file, args.background)
+		if background_path is None:
+			print("Path to background image required for computer database, but was not provided and could not be guessed.")
+			parser.print_help()
+			return
+		
+		palette = AFU.Palette.fullPalette(background_path, global_palette_path)
 
-			background_path = getFilePath("compupnl.ast", args.image_file, args.background)
-			if background_path is None:
-				print("Path to background image required for computer database, but was not provided and could not be guessed.")
-				parser.print_help()
-				return
-			
-			palette = AFU.Palette.fullPalette(background_path, global_palette_path)
-
-			computer = AFU.Computer.computerDb(args.image_file)
-			for offset,entry in computer.items():
-				if "image" in entry:
-					image = AFU.Image.Image(entry["image"]["width"], entry["image"]["height"])
-					for i,b in enumerate(entry["image"]["data"]):
-						image.set(palette[b], i)
-					image.export("{}.{}.png".format(output_file_name, offset))
-		else:
-			print("Unsupported database file: {}".format(args.image_file.name))
-	elif file_type == "palette":
-		image = drawPalette( AFU.Palette.singlePalette(args.image_file) )
+		computer = AFU.computerDb(args.image_file)
+		for offset,entry in computer.items():
+			if "image" in entry:
+				image = AFU.Image.Image(entry["image"]["width"], entry["image"]["height"])
+				for i,b in enumerate(entry["image"]["data"]):
+					image.set(palette[b], i)
+				image.export("{}.{}.png".format(output_file_name, offset))
+	elif file_type == AFU.FileType.PALETTE:
+		image = drawPalette( AFU.pal(args.image_file) )
 		image.export("{}.png".format(output_file_name))
 
 	else:
