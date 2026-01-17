@@ -11,7 +11,48 @@ from enum import Enum, IntEnum
 # '.3dr', '.lst', '.ast', '.anm', '.txt', '.pc2'}
 
 
+class FileType (Enum):
+	ADVICE = 0
+	ALERT = 1
+	ASTRO_STATE = 2
+	AUDIO = 3
+	COMPUTER_STATE = 4
+	CONVERSATION = 5
+	CREDITS = 6
+	CURSOR = 7
+	DATABASE = 8
+	FONT = 9
+	G3D_MATERIAL = 10
+	G3D_OBJECT = 11
+	ICON_MAP = 12
+	IMG_BACKGROUND = 13
+	IMG_GIF = 14
+	IMG_LBM = 15
+	IMG_MENU = 16
+	LIST = 17
+	MOVIE_MAP = 18
+	OBJECT = 19
+	PALETTE = 20
+	PHASER = 21
+	PHASER_MAP = 22
+	POLYGONS = 23
+	SAVEGAME = 24
+	SECTOR_NAMES = 25
+	SPRITE = 26
+	TACTIC = 27
+	TERMINAL = 28
+	TEXT = 29
+	TRIGGERS = 30
+	UNKNOWN = 31
+	VIDEO = 32
+	WORLD = 33
+	WORLD_LIST = 34
+	WORLD_OBJECTS = 35
+	WORLD_START = 36
+
+
 def identify(file_path):
+	# TODO: remove this function and use identifyFile instead
 	file_path = PurePath(file_path)
 	file_extension = file_path.suffix.lower()
 	file_name = file_path.stem.lower()
@@ -114,6 +155,49 @@ def identify(file_path):
 				return "conversation"
 	return "unknown"
 
+
+def identifyFile(file_path):
+	type_str = identify(file_path)
+	type_map = {
+		"advice": FileType.ADVICE,
+		"alert": FileType.ALERT,
+		"astro_state": FileType.ASTRO_STATE,
+		"audio": FileType.AUDIO,
+		"computer_state": FileType.COMPUTER_STATE,
+		"conversation": FileType.CONVERSATION,
+		"credits": FileType.CREDITS,
+		"cursor": FileType.CURSOR,
+		"database": FileType.DATABASE,
+		"font": FileType.FONT,
+		"material": FileType.G3D_MATERIAL,
+		"3dobject": FileType.G3D_OBJECT,
+		"icon_map": FileType.ICON_MAP,
+		"background": FileType.IMG_BACKGROUND,
+		"image_gif": FileType.IMG_GIF,
+		"image_lbm": FileType.IMG_LBM,
+		"menu": FileType.IMG_MENU,
+		"list": FileType.LIST,
+		"movie_map": FileType.MOVIE_MAP,
+		"object": FileType.OBJECT,
+		"palette": FileType.PALETTE,
+		"phaser": FileType.PHASER,
+		"phaser_map": FileType.PHASER_MAP,
+		"polygons": FileType.POLYGONS,
+		"savegame": FileType.SAVEGAME,
+		"sector_names": FileType.SECTOR_NAMES,
+		"sprite": FileType.SPRITE,
+		"tactic": FileType.TACTIC,
+		"terminal": FileType.TERMINAL,
+		"text": FileType.TEXT,
+		"triggers": FileType.TRIGGERS,
+		"video": FileType.VIDEO,
+		"world": FileType.WORLD,
+		"world_list": FileType.WORLD_LIST,
+		"world_objects": FileType.WORLD_OBJECTS,
+		"start": FileType.WORLD_START,
+		"unknown": FileType.UNKNOWN,
+	}
+	return type_map.get(type_str, FileType.UNKNOWN)
 
 
 class Encoder (JSONEncoder):
