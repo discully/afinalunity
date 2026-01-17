@@ -46,7 +46,6 @@ def _readUnknownType6(f, offset):
 	f.setOffset(offset)
 	pos = f.pos()
 	data = [f.readUInt8() for i in range(8)]
-	print(data)
 	return {
 		"pos": pos,
 		"offset": offset,

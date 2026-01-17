@@ -72,7 +72,6 @@ def alert(file_path):
 			"system": sys,
 			"value": f.readUInt32(),
 		})
-		print(sys)
 	assert(f.eof())
 	return data
 
