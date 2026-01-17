@@ -2,6 +2,7 @@ from enum import Enum
 
 
 from .Astro import astroDb, astromapDb, astStatDat, sectorAst, astrogation
+from .Audio import audio, toWav
 from .Background import background
 from .Block import bst, getObject, identifyObject
 from .Computer import compstat, computerDb
@@ -22,8 +23,9 @@ from .World import WorldId, worldStrt, worldList, worldObj, worldSlScr, worldStS
 
 
 __all__ = [
-	"FileType", "handler", "identify"
-	"astroDb", "astromapDb", "astStatDat", "sectorAst", "astrogation"
+	"FileType", "handler", "identify",
+	"astroDb", "astromapDb", "astStatDat", "sectorAst", "astrogation",
+	"audio", "toWav",
 	"background",
 	"bst", "getObject", "identifyObject",
 	"compstat", "computerDb",
