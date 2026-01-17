@@ -1,50 +1,46 @@
 from enum import Enum
 
 
-from . import Astro
-from . import Background
-from . import Block
-from . import Computer
-from . import Cursor
-from . import Data
-from . import File
-from . import Font
-from . import Image
-from . import Graphics
-from . import Menu
-from . import Map
-from . import Palette
-from . import SaveGame
-from . import Sprite
-from . import Tactic
-from . import Terminal
-from . import Utils
-from . import Video
-from . import World
+from .Astro import astroDb, astromapDb, astStatDat, sectorAst, astrogation
+from .Background import background
+from .Block import bst, getObject, identifyObject
+from .Computer import compstat, computerDb
+from .Cursor import cursor, defaultCursor
+from .Data import TriggerType, triggers, alert, txt, credits
+from .Font import font, text_width, text
+from .Graphics import material, img, imgPil, lbm, model
+from .Map import iconMap, movieMap, phaserMap
+from .Menu import mrg
+from .Palette import pal
+from .SaveGame import savegame
+from .Sprite import sprite, spriteLst
+from .Tactic import bin
+from .Terminal import terminal
+from .Utils import Encoder
+from .Video import fvf
+from .World import WorldId, worldStrt, worldList, worldObj, worldSlScr, worldStScr, adviceDat
 
 
 __all__ = [
 	"FileType", "handler", "identify"
-	"Astro",
-	"Background",
-	"Block",
-	"Computer",
-	"Cursor",
-	"Data",
-	"File",
-	"Font",
-	"Image",
-	"Graphics",
-	"Menu",
-	"Map",
-	"Palette",
-	"SaveGame",
-	"Sprite",
-	"Tactic",
-	"Terminal",
-	"Utils",
-	"Video",
-	"World",
+	"astroDb", "astromapDb", "astStatDat", "sectorAst", "astrogation"
+	"background",
+	"bst", "getObject", "identifyObject",
+	"compstat", "computerDb",
+	"cursor", "defaultCursor",
+	"TriggerType", "triggers", "alert", "txt", "credits",
+	"font", "text_width", "text",
+	"material", "img", "imgPil", "lbm", "model",
+	"iconMap", "movieMap", "phaserMap",
+	"mrg",
+	"pal",
+	"savegame",
+	"sprite", "spriteLst",
+	"bin",
+	"terminal",
+	"Encoder",
+	"fvf",
+	"WorldId", "worldStrt", "worldList", "worldObj", "worldSlScr", "worldStScr", "adviceDat",
 	]
 
 
@@ -103,16 +99,16 @@ _FILE_HANDLERS = {
 	FileType.CONVERSATION:        Block.bst,
 	FileType.OBJECT:              Block.bst,
 	FileType.PHASER:              Block.bst,
-	FileType.LIST:                Sprite.lst,
+	FileType.LIST:                Sprite.spriteLst,
 	FileType.ADVICE:              World.adviceDat,
 	FileType.TERMINAL:            Terminal.terminal,
 	FileType.WORLD_START:         World.worldStrt,
 	FileType.WORLD_LIST:          World.worldList,
 	FileType.WORLD_OBJECTS:       World.worldObj,
 	FileType.TRIGGERS:            Data.triggers,
-	FileType.ICON_MAP:            Map.icon,
-	FileType.MOVIE_MAP:           Map.movie,
-	FileType.PHASER_MAP:          Map.phaser,
+	FileType.ICON_MAP:            Map.iconMap,
+	FileType.MOVIE_MAP:           Map.movieMap,
+	FileType.PHASER_MAP:          Map.phaserMap,
 	FileType.SAVEGAME:            SaveGame.savegame,
 	FileType.TACTIC:              Tactic.bin,
 	FileType.ALERT:               Data.alert,

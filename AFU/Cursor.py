@@ -55,7 +55,7 @@ DEFAULT_CURSOR_COLOURS = {
 }
 
 
-def default():
+def defaultCursor():
 	img = Image.Image(DEFAULT_CURSOR_WIDTH, DEFAULT_CURSOR_HEIGHT)
 	for y in range(DEFAULT_CURSOR_HEIGHT):
 		for x in range(DEFAULT_CURSOR_WIDTH):

@@ -1,7 +1,7 @@
 from AFU.File import File
 
 
-def icon(file_path):
+def iconMap(file_path):
 	f = File(file_path)
 	icons = {}
 	while f.peek() != 0x1a:
@@ -18,7 +18,7 @@ def icon(file_path):
 	return icons
 
 
-def movie(file_path):
+def movieMap(file_path):
 	f = File(file_path)
 	movies = {}
 	while f.peek() != 0x1a:
@@ -34,7 +34,7 @@ def movie(file_path):
 	return movies
 
 
-def phaser(file_path):
+def phaserMap(file_path):
 	f = File(file_path)
 	ids = []
 	comment = ""

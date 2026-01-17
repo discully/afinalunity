@@ -2,7 +2,7 @@ from AFU.File import File, DatabaseFile
 from AFU.AstroCore import *
 from AFU.AstroUtils import N_SECTORS
 from AFU.AstroState import readAstroState
-from AFU.AstroGen import BODY_UNKNOWN0, systemGenerate
+from AFU.AstroGen import systemGenerate
 from AFU.Utils import identify
 from AFU.SaveGame import savegame
 
@@ -229,7 +229,7 @@ def astStatDat(file_path):
 	return state
 
 
-def fixDarienBeta(astro_db):
+def _fixDarienBeta(astro_db):
 	"""In astro.db, the co-ordinates of Darien Beta are set to (0,0,0).
 	This looks to be an error, and it results in Darien Beta not being
 	visible in the game. This function will correct that with the
@@ -252,7 +252,7 @@ def astrogation(astro_db_path, astro_stat_path):
 		raise ValueError("Astro state file not recognised ({})".format(astro_stat_path.name))
 
 	astro = astroDb(astro_db_path)
-	fixDarienBeta(astro)
+	_fixDarienBeta(astro)
 
 	for sector in astro:
 		for system in sector["systems"]:

@@ -29,7 +29,7 @@ from AFU import Palette
 #	BSON - used only in legaleze.spr
 
 
-def lst(file_path):
+def spriteLst(file_path):
 	f = File(file_path)
 	n = f.readUInt32()
 	entries = []
