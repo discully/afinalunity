@@ -36,7 +36,7 @@ def spriteLst(file_path):
 	while not f.eof():
 		entries.append(f.readString())
 	assert(n == len(entries))
-	return entries
+	return { i:entry for i,entry in enumerate(entries) }
 
 
 def combine(spr):
