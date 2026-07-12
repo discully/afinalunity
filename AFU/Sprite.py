@@ -1,5 +1,8 @@
+from matplotlib.pylab import block
+from pathlib import Path
+
 from AFU.File import File
-from AFU.Image import Image
+from AFU.Image import Image, _IMG_BLANK
 from AFU import Palette
 
 
@@ -17,13 +20,13 @@ from AFU import Palette
 #	RAND - wait for a random time
 #	JUMP - jump to another place in the sprite. Specifies an index into the array of offsets in LIST.
 #	SCOM - compressed image data representing speech
-#	DIGI - unknown. audio?!
-#	SNDW - wait for sound to finish
-#	SNDF - unknown. is always 75, 95 or 100. could be volume?
-#	PLAY - play sound? or play sprite after sound wait?
+#	DIGI - load embedded audio
+#	SNDW - play loaded audio
+#	SNDF - load audio file
+#	PLAY - play loaded audio (on loop?)
 #	RPOS - relative position change(?)
 #	MPOS - mouth position (relative to parent)
-#	SILE - stop+reset sound
+#	SILE - unload audio
 #	OBJS - set parent object state
 #	RGBP - palette (256*3 bytes, each 0-63)
 #	BSON - used only in legaleze.spr
@@ -68,12 +71,9 @@ def combine(spr):
 			block.update(spr["images"][block["image_offset"]])
 
 
-def sprite(sprite_path, background_path, palette_path=None):
+def sprite(sprite_path, background_path=None, palette_path=None, render=True):
 	
-	palette_path = Palette.getGlobalPalettePath(sprite_path, palette_path)
-	global_palette = Palette.singlePalette(palette_path)
-	local_palette = Palette.singlePalette(background_path)
-	palette = Palette.combinePalettes(local_palette, global_palette)
+	palette = None
 	
 	f = File(sprite_path)
 
@@ -85,7 +85,7 @@ def sprite(sprite_path, background_path, palette_path=None):
 
 	block = _readBlockHeader(f)
 	assert(block["name"] == "SPRT")
-	assert(f.readUInt32() == 0x100)
+	assert(f.readUInt32() == 0x100) # Sprite format version 1.00? Or palette size 256?
 	eof = block["offset"] + block["length"]
 	
 	block_offsets = []
@@ -108,13 +108,9 @@ def sprite(sprite_path, background_path, palette_path=None):
 			block["y"] = f.readUInt32()
 
 		elif block["name"] == "COMP":
-			image = _readImage(f, block, palette)
-			image["block"] = "COMP"
-			offset = image.pop("offset")
-			block["image_offset"] = offset
-			if image["image"] is not None:
-				image["image"].name = _imageName(sprite_path, offset)
-				spr["images"][offset] = image
+			image_data = _readImageHeader(f, block)
+			block["image_block"] = image_data["block_offset"]
+			block["image_type"] = image_data["type"]
 
 		elif block["name"] == "TIME":
 			block["time"] = f.readUInt32()
@@ -126,13 +122,9 @@ def sprite(sprite_path, background_path, palette_path=None):
 			pass
 
 		elif block["name"] == "SCOM":
-			image = _readImage(f, block, palette)
-			image["block"] = "SCOM"
-			offset = image.pop("offset")
-			block["image_offset"] = offset
-			if image["image"] is not None:
-				image["image"].name = _imageName(sprite_path, offset)
-				spr["images"][offset] = image
+			image_data = _readImageHeader(f, block)
+			block["image_block"] = image_data["block_offset"]
+			block["image_type"] = image_data["type"]
 
 		elif block["name"] == "RAND":
 			rand_extra = f.readUInt32()
@@ -168,6 +160,7 @@ def sprite(sprite_path, background_path, palette_path=None):
 
 		elif block["name"] == "RGBP":
 			palette = Palette.readFullPalette(f)
+			block["palette"] = palette
 		
 		elif block["name"] == "DIGI":
 			block["audio"] = f.read(block["length"] - 8)
@@ -194,6 +187,23 @@ def sprite(sprite_path, background_path, palette_path=None):
 		block.pop("length") # we don't need this any more
 		spr["blocks"].append(block)
 	
+	if render:
+		if palette is None:
+			palette_path = Palette.getGlobalPalettePath(sprite_path, palette_path)
+			global_palette = Palette.singlePalette(palette_path)
+			local_palette = Palette.singlePalette(background_path)
+			palette = Palette.combinePalettes(local_palette, global_palette)
+
+		for block in spr["blocks"]:
+			if not block["name"] in ("COMP", "SCOM"): continue
+			if block["image_type"] == 0x3: continue
+			offset = block["image_block"]
+			assert(not offset in spr["images"])
+
+			image = _readImageBlock(f, offset, palette)
+			image["image"].name = _imageName(sprite_path, offset)
+			spr["images"][offset] = image
+	
 	for block in spr["blocks"]:
 		if block["name"] == "LIST":
 			for entry in block["entries"]:
@@ -203,6 +213,7 @@ def sprite(sprite_path, background_path, palette_path=None):
 
 
 def _imageName(sprite_path, image_offset):
+	sprite_path = Path(sprite_path)
 	return "{}.{}.png".format(sprite_path.name, image_offset)
 
 
@@ -217,7 +228,7 @@ def _readBlockHeader(f):
 	}
 
 
-def _readImage(f, block, palette):
+def _readImageHeader(f, block):
 	image_width = f.readUInt32()
 	image_height = f.readUInt32()
 	image_encoding = f.readUInt16()
@@ -225,26 +236,76 @@ def _readImage(f, block, palette):
 
 	if image_type == 0x3:
 		offset = f.readUInt32()
-		image_offset = block["offset"] - offset
-		image_image = None
+		image_block_offset = block["offset"] - offset
+		assert( f.pos() == block["offset"] + block["length"])
 	else:
-		image_offset = block["offset"]
+		image_block_offset = block["offset"]
+		f.setPosition(block["offset"] + block["length"])
+	
+	return {
+		"block_offset": image_block_offset,
+		"width": image_width,
+		"height": image_height,
+		"encoding": image_encoding,
+		"type": image_type,
+	}
 
-		if image_encoding == 0xd:
-			if image_type == 0x1:
-				image_image = _readImage1(f, image_width, image_height, palette)
-			elif image_type == 0x2:
-				image_image = _readImage2(f, image_width, image_height, palette)
-			else:
-				raise ValueError("Unknown image type {:#x}".format(image_type))
 
-		elif image_encoding == 0x0:
+
+#
+# Image Processing
+#
+
+
+def _readImageBlock(f, block_offset, palette):
+	f.setPosition(block_offset)
+	block = _readBlockHeader(f)
+	assert(block["name"] in ("COMP", "SCOM"))
+	image = _readImage(f, block, palette)
+	image["block"] = block["name"]
+	offset = image.pop("offset")
+	image["image_offset"] = offset
+	if image["image"] is not None:
+		image["image"].name = _imageName(f.name(), offset)
+	return image
+
+
+def _readImage(f, block, palette):
+	image_width = f.readUInt32()
+	image_height = f.readUInt32()
+	image_encoding = f.readUInt16()
+	image_type = f.readUInt16()
+
+	assert(image_type in (0x1, 0x2))
+	
+	image_offset = block["offset"]
+
+	if image_encoding == 0xd:
+
+		# TODO: I suspect image_encoding is in fact indicating what palette index should
+		# be treated as transparent. But I need to validate this.
+		pal = palette.copy()
+		pal[0xd] = _IMG_BLANK
+
+		if image_type == 0x1:
+			image_image = _readImage1(f, image_width, image_height, pal)
+		elif image_type == 0x2:
+			image_image = _readImage2(f, image_width, image_height, pal)
+		else:
+			raise ValueError("Unknown image type {:#x}".format(image_type))
+
+	elif image_encoding == 0x0:
+		if image_type != 0x2:
+			print("!!!!!!! not 0x2")
+			f.setPosition(block["offset"] + block["length"])
+			image_image = None
+		else:
 			assert(image_type == 0x2)
 			image_image = _readImage2(f, image_width, image_height, palette)
 			assert(f.pos() == block["offset"] + block["length"])
 
-		else:
-			raise ValueError("Unknown image encoding {:#x}".format(image_encoding))
+	else:
+		raise ValueError("Unknown image encoding {:#x}".format(image_encoding))
 
 	return {
 		"offset": image_offset,
@@ -274,7 +335,7 @@ def _readImage1(f, width, height, palette):
 	n_pixels = len(image)
 	curr_pixel = 0
 	colour = 0
-
+	
 	while curr_pixel < n_pixels:
 		if f.readBitsToInt(1) == 0:
 			# bit 0 set: single pixel, 3 bit colour offset
@@ -304,8 +365,8 @@ def _readImage1(f, width, height, palette):
 		elif f.readBitsToInt(1) == 0:
 			# bit 3 set: 5 bit length (+1), use previous colour
 			length = f.readBitsToInt(5) + 1
-			# curr_pixel = _setNPixels(image, curr_pixel, length, palette[colour]) # I've changed this to blank to make picard.spr work
-			curr_pixel = _setNPixels(image, curr_pixel, length, image.blank)         # I've changed this to blank to make picard.spr work
+			#curr_pixel = _setNPixels(image, curr_pixel, length, palette[colour]) # I've changed this to blank to make picard.spr work. But perhaps this should be previous frame?
+			curr_pixel = _setNPixels(image, curr_pixel, length, image.blank)         # I've changed this to blank to make picard.spr work. But perhaps this should be previous frame?
 
 		elif f.readBitsToInt(1) == 0:
 			# bit 4 set: 7 bit colour (+128 for global palette), 4 bit length (+1)

@@ -36,7 +36,7 @@ def _videoToWav(input_file_path, output_dir):
 
 
 def _sprToWav(input_file_path, output_dir):
-	sprite = AFU.Sprite.sprite(input_file_path, input_file_path.with_name("standard.pal"), input_file_path.with_name("standard.pal"))
+	sprite = AFU.Sprite.sprite(input_file_path, render=False)
 	
 	for block in sprite["blocks"]:
 		if block["name"] != "DIGI": continue

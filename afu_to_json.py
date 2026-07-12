@@ -61,7 +61,7 @@ def main():
 	file_handler = AFU.handler(file_type)
 
 	if file_type == AFU.FileType.SPRITE:
-		data = file_handler(args.file, args.file.with_name("standard.pal"), args.file.with_name("standard.pal"))
+		data = file_handler(args.file, render=False)
 	else:
 		data = file_handler(args.file)
 	
