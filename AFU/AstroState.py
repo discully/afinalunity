@@ -218,35 +218,14 @@ def readAstroState(f):
 	systems_bodies = {}
 	for sector_id,end in enumerate(sector_end):
 		while object_id < end:
-			state = f.readUInt16()
-
-			# What does this value mean...
-			#              [x3853]
-			#  0      0000 [x1123] invisible, unscanned
-			#  1      0001 [x1322] visible,  unscanned
-			#  4      0100 [   x1] invisible, only Lethe Beta (it has 7 planets. If you set to 5 (101), the description doesn't inlclude the number of planets, the view shows no planets. If you set to 9 (1001), the description does)
-			#  5      0101 [ x263] Only stellar bodies (no star systems). No obvious difference from 1.
-			#  6      0110 [   x1] invisible, only Lethe Zeta
-			#  9      1001 [ x392] visible, scanned (but if there's no planets, the system view says 'unscanned', even though the description suggests sanned). One body, all the rest are systems.
-			# 13      1101 [ x746] visible, scanned (if there's no planets, the system view is correct - but some of these systems have multiple planets too). Five bodies, all the rest are systems.
-			# 29 0001 1101 [   x5] 13 + story planet  (x5: M'kyru Zeta (Palmyra), Tothe Delta (horst), Euterpe Epsilon (Morassia), Steger Delta (Cymkoe), Kamyar Delta (Yajj))
 
 			#  0000 0000
-			#          ^---- visible? "uncharted"
-			#         ^----- 4: Lethe Zeta only
-			#        ^------ 5,6: ???
-			#       ^------- scanned?
-			#     ^--------- story point?
-
-			# M'kyru Zeta (Palmyra)      - If you don't fight the original Garidian warbird, the scout ship self destructs, and you detect escape pods here
-			# Tothe Delta (Horst)        - Where Vulcan archeologist Shanok is based
-			# Euterpe Epsilon (Morassia) - Location where Vie Hunfrsch goes missing
-			# Steger Delta (Cymkoe IV)   - Location of Mertens Orbital Station (video on arrival)
-			# Kamyar Delta (Yajj)        - Location of Outpost Delta-0-8
-
-			# x & 1 != 1     -> Uncharted
-			# x & 4 == 0     -> Unscanned
-			# (x & 4 == 0) && (x & 8 == 0)    =Unscanned
+			#     |    ^---- 0x01 charted
+			#     |   ^----- 0x02 charted inhabitants (only recognise it's inhabited if this is set)
+			#     |  ^------ 0x04 story point unlocked
+			#     | ^------- 0x08 scanned
+			#     ^--------- 0x10 story point
+			state = f.readUInt16()
 
 			state_visible = (state & 0b00000001) != 0
 			state_scanned = (state & 0b00001000) != 0
@@ -286,7 +265,7 @@ def readAstroState(f):
 			"current_system_coords": current_system_coords,
 			"destination_system_coords": destination_system_coords,
 			"origin_system_coords": origin_system_coords,
-			"current_speed": speed, #current_warp,
+			"current_speed": speed,
 			"previous_location_info": origin_location_info,
 			"destination_location_info": destination_location_info,
 			"destination_name": destination_name,
