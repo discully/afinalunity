@@ -1,10 +1,13 @@
 from PIL import Image as PIL_Image
 
 
+_IMG_BLANK = (0, 252, 0)
+
+
 class Image:
 	
 	def __init__(self, width, height):
-		self.blank = (0,252,0)
+		self.blank = _IMG_BLANK
 		self.width = width
 		self.height = height
 		self.pixels = [ [self.blank for x in range(height)] for y in range(width) ]
