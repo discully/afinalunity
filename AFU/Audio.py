@@ -59,7 +59,7 @@ def toWav(audio_data, spec):
 
 
 def audio(file_path):
-	spec = _FILE_SPECS[file_path.suffix].copy()
+	spec = _FILE_SPECS[file_path.suffix.lower()].copy()
 	spec["src"] = str(file_path.name)
 	adpcm = open(file_path, "rb").read()
 	return toWav(adpcm, spec)
