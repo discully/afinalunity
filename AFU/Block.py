@@ -232,7 +232,9 @@ class ObjectId:
 
 	def __str__(self):
 		return "{:06x}".format(self.value)
-	
+
+	def __repr__(self):
+		return "ObjectId({:06x})".format(self.value)
 
 	def __eq__(self, value):
 		return self.value == value
@@ -696,6 +698,18 @@ def _readCondition(f, block):
 	return False
 
 
+class AlterFlags (IntEnum):
+	TALK_TO = 0x1
+	WALK = 0x2
+	INVENTORY_REMOVE = 0x4
+	INVENTORY_ADD = 0x8
+	ARCHIVE_REMOVE = 0x20
+	ARCHIVE_ADD = 0x40
+	WALK_STOP = 0x40
+	DEACTIVATE = 0x80
+	ACTIVATE = 0x100
+
+
 def _readAlter(f, block):
 	block["_length"] = f.readUInt16()
 	assert(block["_length"] == 0x105)
@@ -703,8 +717,7 @@ def _readAlter(f, block):
 
 	block["header"] = _readEntryHeader(f, 0x43)
 	block["target_id"] = _readObjectId(f)
-	block["alter_flags"] = f.readUInt8()
-	block["alter_reset"] = f.readUInt8()
+	block["alter_flags"] = f.readUInt16()
 	block["alter_time"] = f.readUInt16()
 	assert(f.readUInt16() == 0xffff)
 	block["alter_anim"] = f.readUInt16()
@@ -712,7 +725,7 @@ def _readAlter(f, block):
 	block["play_description"] = f.readUInt8()
 	block["x_pos"] = f.readUInt16()
 	block["y_pos"] = f.readUInt16()
-	block["unknown_8"] = f.readUInt16() # z_pos?
+	block["y_adjust"] = f.readUInt16()
 
 	# these are always 0xffff inside objects..
 	block["universe_x"] = f.readUInt16()
@@ -762,7 +775,9 @@ def _readCommand(f, block):
 
 	block["header"] = _readEntryHeader(f, 0x45)
 
-	block["targets"] = [_readObjectId(f) for i in range(3)]
+	block["target_id"] = _readObjectId(f)
+	block["who_id"] = _readObjectId(f) # if 0x10, use away team leader
+	block["other_id"] = _readObjectId(f)
 
 	# both usually 0xffff
 	block["target_x"] = f.readUInt16()
@@ -775,6 +790,17 @@ def _readCommand(f, block):
 	return True
 
 
+class GeneralActionType (IntEnum):
+	UNKNOWN = 2
+	ASTROTRIGGER = 2
+	WAIT = 3
+	ZEROTIMERS = 4
+	SHIP_REPAIR = 7
+	COMPUTER_TRICORDER = 8
+	COMPUTER_VISIBLE = 9
+	COMPUTER_HIDDEN = 10
+
+
 def _readGeneral(f, block):
 	block["_length"] = f.readUInt16()
 	assert(block["_length"] == 0x7b)
@@ -783,7 +809,12 @@ def _readGeneral(f, block):
 	block["header"] = _readEntryHeader(f, 0x48)
 
 	block["movie_id"] = f.readUInt16()
-	block["unknown"] = [f.readUInt16() for i in range(3)]
+	block["audio_id"] = f.readUInt16()
+	block["unknown_18"] = f.readUInt16()
+	block["_action_type_arg"] = f.readUInt16()
+	block["action_type"] = GeneralActionType(block["_action_type_arg"] // 1000)
+	block["action_arg"] = block["_action_type_arg"] % 1000
+	
 	for i in range(0x64):
 		assert(f.readUInt8() == 0)
 	
@@ -935,7 +966,7 @@ def _readPath(f, block):
 		stop = {}
 		stop["x"] = f.readUInt32()
 		stop["y"] = f.readUInt32()
-		stop["unknown0"] = f.readUInt16()
+		stop["unknown0"] = f.readUInt16() # Part of an offset to the sprite index
 		stop["unknown1"] = f.readUInt16()
 		stop["region_id"] = f.readUInt16()
 		stop["scale"] = f.readUInt16()
@@ -956,13 +987,13 @@ def _readReaction(f, block):
 	block["dest_world"]= f.readUInt16()
 	block["dest_screen"]= f.readUInt16()
 	block["dest_entrance"]= f.readUInt16()
-	block["target_type"]= f.readUInt8()
-	block["action_type"]= f.readUInt8()
+	block["target_type"]= f.readUInt8() # 0=this object, 2=away team (awake and stunned-on-screen), 5=target, 6=away team (awake only). Others not implemented.
+	block["action_type"]= f.readUInt8() # If damage_amount=0, then: 0=stun, 1=kill, 2=move away team to new screen location, 3=energise transporter. If damage_amount=0x7f then heal. Else, shoot to injur.
 	block["damage_amount"]= f.readUInt8()
-	block["beam_type"]= f.readUInt8()
+	block["beam_type"]= f.readUInt8() # If phaser (0=no phaser beam, 1=phaser beam), if transporter (0=federation, 1=chodak)
 	block["dest_x"]= f.readUInt16()
 	block["dest_y"]= f.readUInt16()
-	block["dest_unknown"]= f.readUInt16()
+	block["dest_unknown"]= f.readUInt16() # unused?
 
 	assert(block["target_type"] in range(1, 8) or block["target_type"] == 0xff)
 	if block["target_type"] != 6:

@@ -375,8 +375,8 @@ def _readChunksObjDiffs(f):
 def _readChunksObjectLists(f):
 	list_keys = [
 		"crew_ship",
-		None,
-		None,
+		"crew_away", #None,
+		"crew_stunned", #None,
 		"inventory_away",
 		"inventory_ship",
 		"unknown_88",
