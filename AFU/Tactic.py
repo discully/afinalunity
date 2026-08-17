@@ -133,7 +133,7 @@ def bin(file_path):
 			TacticSubtype.FIRED ):
 			assert(entry["_length"] == 0)
 		else:
-			raise ValueError(f"Unknown or unsupported entry type: {entry["type"]},{entry["subtype"]}")
+			raise ValueError(f"Unknown or unsupported entry type: {entry['type']},{entry['subtype']}")
 		
 		if entry["type"] == TacticType.PAGE:
 			page = entry
