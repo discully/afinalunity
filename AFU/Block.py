@@ -791,7 +791,7 @@ def _readCommand(f, block):
 
 
 class GeneralActionType (IntEnum):
-	UNKNOWN = 2
+	UNKNOWN = 1
 	ASTROTRIGGER = 2
 	WAIT = 3
 	ZEROTIMERS = 4
@@ -812,7 +812,7 @@ def _readGeneral(f, block):
 	block["audio_id"] = f.readUInt16()
 	block["unknown_18"] = f.readUInt16()
 	block["_action_type_arg"] = f.readUInt16()
-	block["action_type"] = GeneralActionType(block["_action_type_arg"] // 1000)
+	block["action_type"] = block["_action_type_arg"] // 1000 # TODO: should be this but got '65' - GeneralActionType(block["_action_type_arg"] // 1000)
 	block["action_arg"] = block["_action_type_arg"] % 1000
 	
 	for i in range(0x64):
