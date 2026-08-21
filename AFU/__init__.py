@@ -4,6 +4,7 @@ from enum import Enum
 from .Astro import astroDb, astromapDb, astStatDat, sectorAst, astrogation
 from .Audio import audio, toWav
 from .Background import background
+from .Binary import ovl
 from .Block import bst, getObject, identifyObject
 from .Computer import compstat, computerDb
 from .Cursor import cursor, defaultCursor
@@ -86,6 +87,7 @@ class FileType (Enum):
 	WORLD_LIST = 36
 	WORLD_OBJECTS = 37
 	WORLD_START = 38
+	BINARY = 39
 
 
 _FILE_HANDLERS = {
@@ -124,6 +126,7 @@ _FILE_HANDLERS = {
 	FileType.IMG_LBM:             Graphics.lbm,
 	FileType.G3D_OBJECT:          Graphics.model,
 	FileType.VIDEO:               Video.fvf,
+	FileType.BINARY:              Binary.ovl,
 }
 
 
@@ -175,5 +178,6 @@ def identify(file_path):
 		"world_objects": FileType.WORLD_OBJECTS,
 		"start": FileType.WORLD_START,
 		"unknown": FileType.UNKNOWN,
+		"binary": FileType.BINARY,
 	}
 	return type_map.get(type_str, FileType.UNKNOWN)

@@ -121,6 +121,8 @@ def identify(file_path):
 				return "world_list"
 			elif len(file_name) == 8 and file_name[4] == 'c': # wXXXcXXX.bst
 				return "conversation"
+	elif file_extension == ".ovl":
+		return "binary"
 	return "unknown"
 
 
