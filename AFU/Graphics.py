@@ -217,22 +217,29 @@ def lbm(file_path):
 
 
 def _modelReadHeader(f):
+	header_size = 0x1e
 	assert(f.pos() == 0x0)
 	header = {}
 	header["data_size"] = f.readUInt32()
-	assert(f.size() == header["data_size"] + 0x1e)
+	assert(f.size() == header["data_size"] + header_size)
 	fmt = f.readUInt16()
 	assert(fmt == 110)
 	header["format"] = "1.10"
-	header["n_vertices"] = f.readUInt16()
-	assert(header["n_vertices"] <= 5000)
-	header["n_surfaces"] = f.readUInt16()
-	assert(header["n_surfaces"] <= 5000)
+	header["max_vertices_per_mesh"] = f.readUInt16()
+	assert(header["max_vertices_per_mesh"] <= 5000)
+	header["max_faces_per_mesh"] = f.readUInt16()
+	assert(header["max_faces_per_mesh"] <= 5000)
 	header["name"] = f.readString()
-	header["unknown"] = [] # unused?
-	while f.pos() < 0x1e:
-		header["unknown"].append(f.readUInt8())
-	assert(f.pos() == 0x1e)
+
+	#[f.readUInt8() for i in range(7)] # unused
+	#while f.pos() < header_size: # padding
+	#	assert(f.readUInt8() == 0)
+
+	header["_unused"] = []
+	while f.pos() < header_size:
+		header["_unused"].append(f.readUInt8())
+
+	assert(f.pos() == header_size)
 	return header
 
 
@@ -240,50 +247,52 @@ def _modelReadHeader(f):
 def _modelReadMesh(f):
 	import math
 	mesh = {}
-	mesh["vertices_n"] = f.readSInt32() # TODO: what to do different if this is negative? (only the *board.3dv files)
-	mesh["surfaces_n"] = f.readUInt32()
+	n = f.readSInt32()
+	mesh["unknown_flag"] = n < 0  # TODO: what to do different if this is negative? (only the *board.3dv files)
+	mesh["vertices_n"] = abs(n)
+	mesh["faces_n"] = f.readUInt32()
 	assert(f.readUInt32() == 2)
 	
-	mesh["vertices_offset"] = f.readUInt32()
-	mesh["uvs_offset"] = f.readUInt32()
-	assert(f.readUInt32() == 0) # 0x18
-	assert(f.readUInt32() == 0) # 0x1c
-	mesh["triangles_offset"] = f.readUInt32()
-	mesh["normals_offset"] = f.readUInt32()
-	mesh["u28_surfaces_offset"] = f.readUInt32()
-	mesh["u2c_surfaces_offset"] = f.readUInt32()
+	mesh["_vertices_offset"] = f.readUInt32()
+	mesh["_uvs_offset"] = f.readUInt32()
+	assert(f.readUInt32() == 0)
+	assert(f.readUInt32() == 0)
+	mesh["_faces_offset"] = f.readUInt32()
+	mesh["_vertices_normals_offset"] = f.readUInt32()
+	mesh["_faces_normals_offset"] = f.readUInt32()
+	mesh["_faces_distances_offset"] = f.readUInt32()
 
 	p = f.pos()
 	
-	f.setOffset(mesh["vertices_offset"])
+	f.setOffset(mesh["_vertices_offset"])
 	mesh["vertices"] = [ (f.readFloat(),f.readFloat(),f.readFloat()) for j in range(abs(mesh["vertices_n"]))]
 
-	if mesh["uvs_offset"] > 0:
-		assert(f.offset() == mesh["uvs_offset"])
+	if mesh["_uvs_offset"] > 0:
+		assert(f.offset() == mesh["_uvs_offset"])
 		mesh["uvs"] = [ (f.readUInt32(),f.readUInt32()) for j in range(abs(mesh["vertices_n"]))]
 	
-	if mesh["triangles_offset"] > 0:
-		assert(f.offset() == mesh["triangles_offset"])
-		mesh["triangles"] = []
-		for i in range(mesh["surfaces_n"]):
-			tri = {}
+	if mesh["_faces_offset"] > 0:
+		assert(f.offset() == mesh["_faces_offset"])
+		mesh["faces"] = []
+		for i in range(mesh["faces_n"]):
+			face = {}
 			x = f.readUInt16()
-			tri["material"] = x & 0x7fff
-			tri["flag"] = (x & 0x8000) != 0 # unknown flag
-			tri["vertices"] = (f.readUInt16(), f.readUInt16(), f.readUInt16())
-			mesh["triangles"].append(tri)
+			face["material"] = x & 0x7fff
+			face["flag"] = (x & 0x8000) != 0 # unknown flag
+			face["vertices"] = (f.readUInt16(), f.readUInt16(), f.readUInt16())
+			mesh["faces"].append(face)
 	
-	if mesh["normals_offset"] > 0:
-		assert(f.offset() == mesh["normals_offset"])
-		mesh["normals"] = [ (f.readFloat(),f.readFloat(),f.readFloat()) for j in range(abs(mesh["vertices_n"]))]
+	if mesh["_vertices_normals_offset"] > 0:
+		assert(f.offset() == mesh["_vertices_normals_offset"])
+		mesh["vertices_normals"] = [ (f.readFloat(),f.readFloat(),f.readFloat()) for j in range(abs(mesh["vertices_n"]))]
 
-	if mesh["u28_surfaces_offset"] > 0:
-		assert(f.offset() == mesh["u28_surfaces_offset"])
-		mesh["u28_surfaces"] = [ [f.readFloat() for k in range(3)] for j in range(mesh["surfaces_n"])]
+	if mesh["_faces_normals_offset"] > 0:
+		assert(f.offset() == mesh["_faces_normals_offset"])
+		mesh["faces_normals"] = [ [f.readFloat() for k in range(3)] for j in range(mesh["faces_n"])]
 
-	if mesh["u2c_surfaces_offset"] > 0:
-		assert(f.offset() == mesh["u2c_surfaces_offset"])
-		mesh["u2c_surfaces"] = [ [f.readUInt8() for k in range(4)] for j in range(mesh["surfaces_n"])]
+	if mesh["_faces_distances_offset"] > 0:
+		assert(f.offset() == mesh["_faces_distances_offset"])
+		mesh["faces_distances"] = [ f.readFloat() for j in range(mesh["faces_n"])]
 
 	f.setPosition(p)
 	return mesh
@@ -302,36 +311,20 @@ def model(file_name):
 
 	model = {}
 	assert(f.readUInt32() == 0)
-	model["meshes_n"] = f.readSInt32()
+	model["meshes_n"] = f.readUInt32()
 	model["_meshes_offset"] = f.readUInt32()
 	assert(f.readUInt32() == 0) # stores a pointer to the material when loaded
-	size_length = f.readFloat()
-	size_height = f.readFloat()
-	size_width = f.readFloat()
-	model["size"] = (size_length, size_height, size_width)
-	model["u1C"] = f.readFloat()
-	model["u20"] = f.readFloat()
-	model["u24"] = f.readFloat()
-	model["extra_offset"] = f.readUInt32() # 10
+	model["size"] = [f.readFloat() for i in range(3)]
+	model["centre"] = [f.readFloat() for i in range(3)]
+	off = f.readUInt32()
+	assert(f.offset() == off)
 	pcn["model"] = model
 
-	n = abs(pcn["model"]["meshes_n"])
-
-	data_extra = []
-	if model["meshes_n"] < 0:
-		f.setPosition(data_start + model["extra_offset"])
-		for i in range(n):
-			extra = {}
-			extra["u0_offset"] = f.readUInt32()
-			extra["u4_offset"] = f.readUInt32()
-			extra["u8_offset"] = f.readUInt32()
-			extra["uC_offset"] = f.readUInt32()
-			data_extra.append(extra)
-	pcn["data_extra"] = data_extra
+	while f.offset() < model["_meshes_offset"]:
+		assert(f.readUInt8() == 0) # padding
 	
-	f.setOffset(model["_meshes_offset"])
 	pcn["meshes"] = []
-	for i in range(n):
+	for i in range(model["meshes_n"]):
 		pcn["meshes"].append(_modelReadMesh(f))
 
 	return pcn
