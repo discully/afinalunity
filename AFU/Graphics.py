@@ -25,7 +25,7 @@ def material(file_path):
 		
 		entry["unknown0"] = f.readUInt32() # junk, gets ignored
 		entry["unknown1"] = f.readUInt32() # Always 0x0, except in shield_*.mtl.
-		entry["type"] = f.readUInt32()
+		entry["type"] = f.readUInt16()
 		# 1 - .IMG
 		# 2 - .LBM (except STATW.IMG in station.mtl - mistype???)
 		# 3 - no file
@@ -230,10 +230,6 @@ def _modelReadHeader(f):
 	header["max_faces_per_mesh"] = f.readUInt16()
 	assert(header["max_faces_per_mesh"] <= 5000)
 	header["name"] = f.readString()
-
-	#[f.readUInt8() for i in range(7)] # unused
-	#while f.pos() < header_size: # padding
-	#	assert(f.readUInt8() == 0)
 
 	header["_unused"] = []
 	while f.pos() < header_size:
