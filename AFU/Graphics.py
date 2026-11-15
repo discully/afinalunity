@@ -9,9 +9,9 @@ def material(file_path):
 	f = File(file_path)
 
 	m = {}
-	m["data_size"] = f.readUInt32()
+	m["_data_size"] = f.readUInt32()
 	m["n_entries"] = f.readUInt32()
-	assert(m["data_size"] == m["n_entries"] * 36)
+	assert(m["_data_size"] == m["n_entries"] * 36)
 	format = f.readUInt16()
 	assert(format == 110)
 	m["format"] = "1.10"
@@ -21,18 +21,21 @@ def material(file_path):
 
 	m["entries"] = []
 	for i in range(m["n_entries"]):
+
+		# All this data gets ignored, except for the "img_file" name.
+		# The type of texture is inferred from the "img_file" extension, not the "type" field.
+		# The "type" field is:
+		#     1    - .IMG
+		#     2    - .LBM (except STATW.IMG in station.mtl - probably a mistype)
+		#     3    - no file (only in .mtr files)
+		#     2561 - .img files, and only in *x.mtl files which are for testing. So type 1 with some flag???
+
 		entry = {}
-		
-		entry["unknown0"] = f.readUInt32() # junk, gets ignored
-		entry["unknown1"] = f.readUInt32() # Always 0x0, except in shield_*.mtl.
-		entry["type"] = f.readUInt16()
-		# 1 - .IMG
-		# 2 - .LBM (except STATW.IMG in station.mtl - mistype???)
-		# 3 - no file
-		# 2561 - .img files, and only in *x.mtl files which are for testing. So type 1 with some flag???
+		entry["unknown_0"] = f.readUInt32() # Junk
+		entry["unknown_1"] = f.readUInt32() # Always 0x0, except in shield_*.mtl.
+		entry["type"] = f.readUInt32()
 		assert(entry["type"] in (1,2,3,2561))
 		assert(f.readUInt32() == 0)
-
 		entry["img_file"] = f.readStringBuffer(13)
 		entry["obj_name"] = f.readStringBuffer(7)
 
@@ -220,8 +223,8 @@ def _modelReadHeader(f):
 	header_size = 0x1e
 	assert(f.pos() == 0x0)
 	header = {}
-	header["data_size"] = f.readUInt32()
-	assert(f.size() == header["data_size"] + header_size)
+	header["_data_size"] = f.readUInt32()
+	assert(f.size() == header["_data_size"] + header_size)
 	fmt = f.readUInt16()
 	assert(fmt == 110)
 	header["format"] = "1.10"
@@ -244,7 +247,7 @@ def _modelReadMesh(f):
 	import math
 	mesh = {}
 	n = f.readSInt32()
-	mesh["unknown_flag"] = n < 0  # TODO: what to do different if this is negative? (only the *board.3dv files)
+	mesh["vertices_flag"] = n < 0
 	mesh["vertices_n"] = abs(n)
 	mesh["faces_n"] = f.readUInt32()
 	assert(f.readUInt32() == 2)
@@ -274,7 +277,7 @@ def _modelReadMesh(f):
 			face = {}
 			x = f.readUInt16()
 			face["material"] = x & 0x7fff
-			face["flag"] = (x & 0x8000) != 0 # unknown flag
+			face["flag"] = (x & 0x8000) != 0
 			face["vertices"] = (f.readUInt16(), f.readUInt16(), f.readUInt16())
 			mesh["faces"].append(face)
 	

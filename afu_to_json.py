@@ -80,6 +80,9 @@ def main():
 		_stripTacticMetadata(data)
 	elif file_type == AFU.FileType.VIDEO:
 		_stripVideoData(data)
+	elif file_type in (AFU.FileType.G3D_MATERIAL, AFU.FileType.G3D_OBJECT):
+		_stripDebugElements(data)
+		_stripUnknownElements(data)
 
 	output_path = "{}.json".format(args.output_dir.joinpath(args.file.name))
 	json.dump(data, open(output_path, "w"), indent="\t", cls=AFU.Utils.Encoder)
