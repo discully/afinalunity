@@ -55,6 +55,7 @@ def main():
 	parser.add_argument("file", type=Path, help="Path to the file to be converted")
 	parser.add_argument("-i", "--image_data", action="store_true", help='Include image data in export of computer.db', default=False)
 	parser.add_argument("-o", "--output_dir", type=Path, help="Output directory to place json in", default=".")
+	parser.add_argument("-d", "--debug", action="store_true", help="Include debug data in export", default=False)
 	args = parser.parse_args()
 
 	file_type = AFU.identify( args.file )
@@ -64,25 +65,27 @@ def main():
 		data = file_handler(args.file, render=False)
 	else:
 		data = file_handler(args.file)
-	
-	if file_type == AFU.FileType.DATABASE_COMPUTER:
-		if not args.image_data:
-				for value in data.values():
-					if "image" in value:
-						value["image"].pop("data")
-	elif file_type == AFU.FileType.SPRITE:
-		_stripSpriteAudio(args.file, data)
-	elif file_type in [AFU.FileType.CONVERSATION, AFU.FileType.OBJECT, AFU.FileType.PHASER]:
-		_stripDebugElements(data)
-		_stripUnknownElements(data)
-	elif file_type == AFU.FileType.TACTIC:
-		_stripDebugElements(data)
-		_stripTacticMetadata(data)
-	elif file_type == AFU.FileType.VIDEO:
-		_stripVideoData(data)
-	elif file_type in (AFU.FileType.G3D_MATERIAL, AFU.FileType.G3D_OBJECT):
-		_stripDebugElements(data)
-		_stripUnknownElements(data)
+
+	if not args.image_data:
+		if file_type == AFU.FileType.DATABASE_COMPUTER:
+			for value in data.values():
+				if "image" in value:
+					value["image"].pop("data")
+
+	if not args.debug:
+		if file_type == AFU.FileType.SPRITE:
+			_stripSpriteAudio(args.file, data)
+		elif file_type in [AFU.FileType.CONVERSATION, AFU.FileType.OBJECT, AFU.FileType.PHASER]:
+			_stripDebugElements(data)
+			_stripUnknownElements(data)
+		elif file_type == AFU.FileType.TACTIC:
+			_stripDebugElements(data)
+			_stripTacticMetadata(data)
+		elif file_type == AFU.FileType.VIDEO:
+			_stripVideoData(data)
+		elif file_type in (AFU.FileType.G3D_MATERIAL, AFU.FileType.G3D_OBJECT):
+			_stripDebugElements(data)
+			_stripUnknownElements(data)
 
 	output_path = "{}.json".format(args.output_dir.joinpath(args.file.name))
 	json.dump(data, open(output_path, "w"), indent="\t", cls=AFU.Utils.Encoder)
