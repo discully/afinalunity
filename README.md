@@ -112,6 +112,38 @@ and the `afu_to_wav.py` applciation will output a `.wav` file with the video's a
 The end goal will be to convert the entire video, but that is a work in progress.
 
 
+## 3D Models
+
+The 3D models used during combat are comprised of three file types:
+ * Models - The shape (vertices, faces, uvs, normals)
+   * `.3dv` - The standard model
+   * `.3dr` - A simplified, untextured model, used when too distant from the camera
+   * `.pc1`, `.pc2`, `.pc3`, `.pc4`, `.pc5`, `.pc6` - Pieces of a ship, used when it is destroyed
+ * Materials - An index of textures for a given model
+   * `.mtl` - The standard textures for `.3dv` and `.pc*` files
+   * `.mtr` - The untextured used for `.3dr`
+   * `.dmg` - The damaged textures for `.3dv` and `.pc*` files
+ * Textures - The images applied to the model faces
+   * `.img`
+   * `.lbm`
+
+The `afu_to_gltf.py` application will take a model, material and textures and convert to a single `.gtlf` file, which is compatible
+with most 3D graphics software (e.g. Blender). You give it the model file and it will load the material and texture files from the 
+same directory.
+
+For example:
+```sh
+python3 afu_to_gtlf.py enterprs.3dv
+```
+will output `enterprs.3dv.gtlf`.
+
+You can optionally apply the damage material/textures instead:
+```sh
+python3 afu_to_gtlf.py enterprs.3dv
+```
+will output `denterprs.3dv.gtlf`.
+
+
 ## Object Files
 
 The `.bst` files are objects representing characters, items, events, etc., but there are over 2500.
