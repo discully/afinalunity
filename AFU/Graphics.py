@@ -55,7 +55,7 @@ def imgPil(file_path):
 
 
 def img(file_path):
-	gif = imgPil(file_path)
+	gif = imgPil(file_path).convert("RGB")
 	img = Image(gif.width, gif.height)
 	for x in range(gif.width):
 		for y in range(gif.height):
