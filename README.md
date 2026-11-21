@@ -17,10 +17,25 @@ which perform various tasks:
 
  More details on each of those applications is provided below.
 
+ ## Data Files
+
+ The `afu_to_json.py` application will converst the majority of files to `.json`, containing as much of their data as I currently understand.
+
+ For exampole:
+ ```sh
+ python3 afu_to_json.py astro.db
+ ```
+ will output `astro.db.json` to the local directory.
+
+ You can also specify an alternative output directory:
+ ```sh
+ python3 afu_to_json.py astro.db -o /my/output/dir
+ ```
+
 ## Image Files
 
-The `afu_to_png.py` application converts `.spr` and `.spt` sprites, `.rm` and `.scr` backgrounds, `.fon` fonts, and `.mrg` menus to PNG.
-However, not all of those files are currently supported. It will also export images from `computer.db`.
+The `afu_to_png.py` application converts `.spr` and `.spt` sprites, `.rm` and `.scr` backgrounds, `.fon` fonts, `.mrg` menus, and `.img` and `.lbm` textures to PNG.
+It will also export images from `computer.db`.
 
 The application requires the [Pillow](http://python-pillow.github.io) module to be installed.
 
@@ -55,7 +70,7 @@ will output a png for all 49 images used to illustrate various computer entries.
 
 ## Audio Files
 
-The `.rac` `.vac` and `.mac` files contain audio. The `afu_to_wav.py` applications converst them to `.wav`.
+The `.rac` `.vac` and `.mac` files contain audio. The `afu_to_wav.py` applications converts them to `.wav`.
 
 The application requires the [audioop-lts](https://github.com/AbstractUmbra/audioop) module to be installed.
 
@@ -97,20 +112,6 @@ and the `afu_to_wav.py` applciation will output a `.wav` file with the video's a
 The end goal will be to convert the entire video, but that is a work in progress.
 
 
-## Database Files
-
-The `.db` files are databases.
-Specifically, `computer.db` contains the data available on the operations panel,
-while `astro.db` and `astromap.db` contain data on the sectors, systems, stations, etc.
-
-To convert these into `.json` files, run `afu_to_json.py` with the path to the database file as the first and only argument.
-For example:
-```sh
-python3 afu_to_json.py astro.db
-```
-will output `astro.db.json`.
-
-
 ## Object Files
 
 The `.bst` files are objects representing characters, items, events, etc., but there are over 2500.
@@ -118,7 +119,7 @@ The `.bst` files are objects representing characters, items, events, etc., but t
 To find and idenitfy the right `.bst` file you can use the `afu_objects.py` utility.
 
 ### Identifying Object Files
-To identify a given `.bst` file, run `afu_object.py` with the path to the file as the first and only argument.
+To identify a given `.bst` file, run `afu_objects.py` with the path to the file as the first and only argument.
 For example:
 ```sh
 python3 afu_objects.py path/to/o_5f0105.bst
