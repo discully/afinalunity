@@ -6,8 +6,8 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 
 | Extension | Description               | Number | Interesting Files          | afu_to_png         | afu_to_json        | afu_to_wav         |
 | :---      | :---                      | ---:   | :---                       | :---               | :---               | :---               |
-| 3DR       | 3D ship model             |      9 | enterprs.3dr               |                    | :heavy_check_mark: |                    |
-| 3DV       | 3D ship model             |     49 | enterprs.3dv               |                    | :heavy_check_mark: |                    |
+| 3DR       | 3D ship model (simple)    |      9 |                            |                    | :heavy_check_mark: |                    |
+| 3DV       | 3D ship model (full)      |     49 |                            |                    | :heavy_check_mark: |                    |
 | ANM       | animation (same format as .mrg) |      1 | phaser.anm           | :heavy_check_mark: |                    |                    |
 | AST       | Panel background image    |      2 | astropnl.ast, compupnl.ast | :heavy_check_mark: |                    |                    |
 | &vellip;  | List of sector names      |      1 | sector.ast                 |                    | :heavy_check_mark: |                    |
@@ -20,7 +20,7 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 | &vellip;  | screens index             |      9 | w_{world}scrn.bst          |                    | :heavy_check_mark: |                    |
 | &vellip;  | screen startups           |      9 | w_{world}strt.bst          |                    | :heavy_check_mark: |                    |
 | &vellip;  | screen objects            |    126 | w{world}##obj.bst          |                    | :heavy_check_mark: |                    |
-| &vellip;  |                           |      1 | worlname.bst               |                    | :heavy_check_mark: |                    |
+| &vellip;  | index of world id's       |      1 | worlname.bst               |                    | :heavy_check_mark: |                    |
 | &DAT      | cursors                   |      2 | cursor.dat, waitcurs.dat   | :heavy_check_mark: |                    |                    |
 | &vellip;  | alert levels settings     |      5 | level{alert}.dat           |                    | :heavy_check_mark: |                    |
 | &vellip;  | advice index              |      6 | w{world}a000.dat           |                    | :heavy_check_mark: |                    |
@@ -28,26 +28,26 @@ On the game DVD, you will find 'STTNG.ZIP' which contains the following files:
 | &vellip;  | astrogation state         |      1 | ast_stat.dat               |                    | :heavy_check_mark: |                    |
 | DB        | astrogation database      |      2 | [astro.db, astromap.db](ASTRO.md) |             | :heavy_check_mark: |                    |
 | &vellip;  | computer database         |      1 | computer.db                | :heavy_check_mark: | :heavy_check_mark: |                    |
-| IMG       | image (mostly 3d textures)|    197 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
-| DMG       | damage material info      |      7 | enterprs.dmg               |                    | :heavy_check_mark: |                    |
-| `no ext`  |                           |      1 | list                       |                    | :heavy_check_mark: |                    |
+| IMG       | 3D texture images (GIFs)  |    197 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
+| DMG       | 3D material (damaged)     |      7 |                            |                    | :heavy_check_mark: |                    |
+| `no ext`  | list of files             |      1 | list                       |                    | :heavy_check_mark: |                    |
 | &vellip;  | computer state            |      1 | compstat                   |                    | :heavy_check_mark: |                    |
 | FON       | font                      |     10 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
 | FVF       | video                     |     27 |                            |                    | :heavy_check_mark: | :heavy_check_mark: |
-| LBM       |                           |      4 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
+| LBM       | 3D texture images         |      4 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
 | MAP       | Maps from object_id to *  |      3 | icon.map, movie.map, phaser.map |               | :heavy_check_mark: |                    |
 | MAC       | audio (sound effects)     |    103 |                            |                    |                    | :heavy_check_mark: |
 | LST       | list (index of sprites)   |      1 | sprites.lst                |                    | :heavy_check_mark: |                    |
 | MRG       | menu graphics             |     11 |                            | :heavy_check_mark: | :heavy_check_mark: |                    |
-| MTL       | 3d material               |     55 |                            |                    | :heavy_check_mark: |                    |
-| MTR       |                           |      9 |                            |                    | :heavy_check_mark: |                    |
+| MTL       | 3D material               |     55 |                            |                    | :heavy_check_mark: |                    |
+| MTR       | 3D material               |      9 |                            |                    | :heavy_check_mark: |                    |
 | PAL       | colour palette            |      1 | standard.pal               | :heavy_check_mark: | :heavy_check_mark: |                    |
-| PC1       | 3D ship model             |      9 |                            |                    | :heavy_check_mark: |                    |
-| PC2       | 3D ship model             |      9 |                            |                    | :heavy_check_mark: |                    |
-| PC3       | 3D ship model             |      9 |                            |                    | :heavy_check_mark: |                    |
-| PC4       | 3D ship model             |      9 |                            |                    | :heavy_check_mark: |                    |
-| PC5       | 3D ship model             |      9 |                            |                    | :heavy_check_mark: |                    |
-| PC6       | 3D ship model             |      9 |                            |                    | :heavy_check_mark: |                    |
+| PC1       | 3D ship model (exploded)  |      9 |                            |                    | :heavy_check_mark: |                    |
+| PC2       | 3D ship model (exploded)  |      9 |                            |                    | :heavy_check_mark: |                    |
+| PC3       | 3D ship model (exploded)  |      9 |                            |                    | :heavy_check_mark: |                    |
+| PC4       | 3D ship model (exploded)  |      9 |                            |                    | :heavy_check_mark: |                    |
+| PC5       | 3D ship model (exploded)  |      9 |                            |                    | :heavy_check_mark: |                    |
+| PC6       | 3D ship model (exploded)  |      9 |                            |                    | :heavy_check_mark: |                    |
 | PIC       | image (same format as .rm)|      4 | compute1.pic is .mrg format| :heavy_check_mark: |                    |                    |
 | RAC       | audio (ambient)           |     69 |                            |                    |                    | :heavy_check_mark: |
 | RM        | background image (room?)  |      5 | bridge.rm                  | :heavy_check_mark: |                    |                    |
